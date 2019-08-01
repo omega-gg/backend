@@ -38,7 +38,7 @@ TRACK_ID: |
     IF (NOT_EQUALS index -1)
         SET url (EXTRACT_URL_ELEMENT url index)
     FI
-    RETURN url
+    RETURN ""
 
 PLAYLIST_INFO: |
     SET url (REMOVE_PREFIX url)
@@ -62,18 +62,19 @@ PLAYLIST_INFO: |
     IF (EQUALS id "")
     OR (LOWER (LENGTH id) 3)
     OR (NOT_EQUALS (INDEX_OF_REGEXP url "[/\\?#.]" 16) -1)
+        SET id ""
         RETURN
     FI
     SET type "feed"
 
 URL_TRACK: |
-    RETURN (APPEND "http://www.dailymotion.com/video/" id)
+    RETURN (APPEND "https://www.dailymotion.com/video/" id)
 
 URL_PLAYLIST: |
     IF (EQUALS type "feed")
-        RETURN (APPEND "http://www.dailymotion.com/user/" id)
+        RETURN (APPEND "https://www.dailymotion.com/user/" id)
     ELSE
-        RETURN (APPEND "http://www.dailymotion.com/playlist/" id)
+        RETURN (APPEND "https://www.dailymotion.com/playlist/" id)
     FI
 
 QUERY_SOURCE: |
@@ -89,7 +90,7 @@ QUERY_SOURCE: |
         RETURN
     FI
     SET url (EXTRACT_URL_ELEMENT url index)
-    PREPEND url "http://www.dailymotion.com/embed/video/"
+    PREPEND url "https://www.dailymotion.com/embed/video/"
 
 QUERY_TRACK: |
     SET url (REMOVE_PREFIX url)
@@ -121,11 +122,10 @@ QUERY_PLAYLIST: |
         SET id (EXTRACT_URL_ELEMENT url 21)
     ELSE
         SET id (EXTRACT_URL_ELEMENT url 16)
-        PRINT "HELLO PRINT"
-        PRINT id
         IF (EQUALS id "")
         OR (LOWER (LENGTH id) 3)
         OR (NOT_EQUALS (INDEX_OF_REGEXP url "[/\\?#.]" 16) -1)
+            SET id ""
             RETURN
         FI
     FI
@@ -248,7 +248,7 @@ EXTRACT_FOLDER: |
     IF (EQUALS id 1) # channels
         FOREACH list data
             SET source (EXTRACT_JSON data "username")
-            PREPEND source "http://www.dailymotion.com/user/"
+            PREPEND source "https://www.dailymotion.com/user/"
             SET_HASH item "type" "feed"
             SET_HASH item "state" "default"
             SET_HASH item "source" source
@@ -259,7 +259,7 @@ EXTRACT_FOLDER: |
     ELSE # playlists
         FOREACH list data
             SET source (EXTRACT_JSON data "id")
-            PREPEND source "http://www.dailymotion.com/playlist/"
+            PREPEND source "https://www.dailymotion.com/playlist/"
             SET_HASH item "type" "playlist"
             SET_HASH item "state" "default"
             SET_HASH item "source" source
