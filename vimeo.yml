@@ -1,0 +1,177 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+title: Vimeo
+
+host: vimeo.com
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: People
+    folder:
+        title: Channels
+    folder:
+        title: Groups
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+VALIDATE: |
+    SET url (REMOVE_PREFIX url)
+    RETURN (STARTS_WITH_REGEXP url "vimeo.com|player.vimeo.com")
+
+TRACK_ID: |
+    SET id (LAST_INDEX_END url "/")
+    IF (EQUALS id -1)
+        RETURN ""
+    FI
+    SET id (EXTRACT_URL_ELEMENT url id)
+    IF (EQUALS id 0)
+    OR (CONTAINS url (APPEND "/channels/" id))
+    OR (CONTAINS url (APPEND "/groups/" id))
+        RETURN ""
+    FI
+    RETURN id
+
+PLAYLIST_INFO: |
+    SET url (REMOVE_PREFIX url)
+    IF (EQUALS (STARTS_WITH "vimeo.com") 0)
+        RETURN
+    FI
+    IF (STARTS_WITH "vimeo.com/channels/")
+    OR (STARTS_WITH "vimeo.com/groups/")
+        SET type "feed"
+        SET id (EXTRACT_URL_ELEMENT url 2 10)
+    ELIF (STARTS_WITH "vimeo.com/")
+        SET id (EXTRACT_URL_ELEMENT url 10)
+        IF (EQUALS (NUMBER id) 0)
+            RETURN
+        FI
+        SET type "feed"
+    FI
+
+URL_TRACK: |
+    RETURN (APPEND "https://vimeo.com/" id)
+
+URL_PLAYLIST: |
+    RETURN (APPEND "https://vimeo.com/" id)
+
+QUERY_SOURCE: |
+    SET id (LAST_INDEX_END url "/")
+    IF (EQUALS id -1)
+        RETURN
+    FI
+    SET id (EXTRACT_URL_ELEMENT url id)
+    IF (EQUALS id 0)
+    OR (CONTAINS url (APPEND "/channels/" id))
+    OR (CONTAINS url (APPEND "/groups/" id))
+        RETURN
+    FI
+    IF (NOT_EQUALS id "")
+        SET type (APPEND "https://player.vimeo.com/video/" id)
+    FI
+
+QUERY_TRACK: |
+    SET id (LAST_INDEX_END url "/")
+    IF (EQUALS id -1)
+        RETURN
+    FI
+    SET id (EXTRACT_URL_ELEMENT url id)
+    IF (EQUALS id 0)
+    OR (CONTAINS url (APPEND "/channels/" id))
+    OR (CONTAINS url (APPEND "/groups/" id))
+        RETURN
+    FI
+    IF (NOT_EQUALS id "")
+        SET type (APPEND "https://vimeo.com/" id)
+    FI
+
+QUERY_PLAYLIST: |
+    SET url (REMOVE_PREFIX url)
+    IF (EQUALS (STARTS_WITH "vimeo.com") 0)
+        RETURN
+    FI
+    IF (STARTS_WITH "vimeo.com/channels/")
+    OR (STARTS_WITH "vimeo.com/groups/")
+        SET id (EXTRACT_URL_ELEMENT url 2 10)
+    ELIF (STARTS_WITH "vimeo.com/")
+        SET id (EXTRACT_URL_ELEMENT url 10)
+        IF (EQUALS (NUMBER id) 0)
+            RETURN
+        FI
+    FI
+    IF (EQUALS id "")
+        RETURN
+    FI
+    IF (STARTS_WITH id "tag:")
+        SET url (APPEND "https://vimeo.com/" id)
+        APPEND url "/page:1/sort:date/format:thumbnail"
+    ELSE
+        SET url (APPEND "https://vimeo.com/" id)
+        APPEND url "/videos/page:1/sort:date/format:thumbnail"
+    FI
+
+CREATE_QUERY: |
+    IF (EQUALS method "search")
+        IF (EQUALS label "tracks")
+            SET url "https://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
+            ADD_QUERY url "q" q
+            ADD_QUERY url "type" "video"
+            SET id 1
+            SET header true
+        ELIF (EQUALS label "people")
+            SET url "https://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
+            ADD_QUERY url "q" q
+            SET id 1
+            SET header true
+        ELIF (EQUALS label "channels")
+            SET url "https://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
+            ADD_QUERY url "q" q
+            SET header true
+        ELIF (EQUALS label "groups")
+            SET url "https://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
+            ADD_QUERY url "q" q
+            SET header true
+        FI
+    ELIF (EQUALS method "related")
+    AND (EQUALS label "tracks")
+        SET url (APPEND "https://vimeo.com/" q)
+        APPEND url "/collections/channels/sort:relevant/format:thumbnail"
+        SET id 2
+    FI
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    IF (EQUALS id 2)
+        SET index (INDEX_OF data "<ol class=\"js-browse_list")
+        IF (EQUALS index -1)
+            SET data (SLICE data "<ul class=\"small-block-grid" "</ul>")
+        ELSE
+            SET data (SLICE data "<ol class=\"js-browse_list" "</ol>")
+        FI
+        SET data (SLICES data "<li " "</li>")
+        FOREACH data value 3
+            SET url "https://vimeo.com"
+            APPEND url (EXTRACT_ATTRIBUTE value "href")
+            APPEND url "/videos/page:1/sort:relevant/format:thumbnail"
+            APPEND_LIST urls url
+        END
+        IF (COUNT urls)
+            SET_HASH next "url" (TAKE_AT urls 0)
+            IF (COUNT urls)
+                SET_HASH next "id" 3
+                SET_HASH next "queryData" urls
+            ELSE
+                SET_HASH next "id" 4
+            FI
+            SET_HASH next "header" true
+        FI
+    FI

@@ -1,2 +1,3 @@
-OTHER_FILES +=  index \
-                dailymotion.yml \
+OTHER_FILES += index \
+               dailymotion.yml \
+               vimeo.yml \
