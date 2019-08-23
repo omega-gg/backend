@@ -165,7 +165,7 @@ EXTRACT_PLAYLIST: |
             APPEND_LIST urls url
         END
         IF (COUNT urls)
-            SET_HASH next "url" (TAKE_AT urls 0)
+            SET_HASH next "url" (TAKE urls 0)
             IF (COUNT urls)
                 SET_HASH next "id" 3
                 SET_HASH next "queryData" urls
@@ -173,5 +173,42 @@ EXTRACT_PLAYLIST: |
                 SET_HASH next "id" 4
             FI
             SET_HASH next "header" true
+        FI
+    ELIF (EQUALS id 3)
+        SET_HASH next "url" (TAKE urls 0)
+        IF (COUNT urls)
+            SET_HASH next "id" 3
+            SET_HASH next "queryData" urls
+        ELSE
+            SET_HASH next "id" 4
+        FI
+        SET_HASH next "header" true
+        SET clearDuplicate true
+    ELIF (NOT_EQUALS id 4)
+        SET queryId (ADD queryData 1)
+        IF (LESSER queryId 3)
+            IF (EQUALS id 0)
+            AND (EQUALS queryId 1)
+                SET json (EXTRACT_JSON_HTML data "itemListElement")
+                SET index (LAST_INDEX "\"name\"")
+                SET title (EXTRACT_JSON_UTF8 json "name" index)
+            FI
+            SET paging (EXTRACT_JSON data "paging")
+            IF (EQUALS paging "")
+            AND (NOT_EQUALS (INDEX_OF data "<li class=\"pagination_next") -1)
+                SET hasNext true
+            ELIF (NOT_EQUALS (EXTRACT_JSON url "next") "null")
+                SET hasNext true
+            FI
+            IF hasNext
+                REPLACE url (APPEND "/page:" queryId) (APPEND "/page:" (ADD queryId 1))
+                SET_HASH next "url" url
+                SET_HASH next "id" id
+                SET_HASH next "queryData" queryId
+                SET_HASH next "header" true
+            FI
+            IF (EQUALS id 1)
+                # TBD
+            FI
         FI
     FI

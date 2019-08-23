@@ -36,9 +36,8 @@ TRACK_ID: |
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
     IF (NOT_EQUALS index -1)
-        SET url (EXTRACT_URL_ELEMENT url index)
+        RETURN (EXTRACT_URL_ELEMENT url index)
     FI
-    RETURN ""
 
 PLAYLIST_INFO: |
     SET url (REMOVE_PREFIX url)
@@ -60,7 +59,7 @@ PLAYLIST_INFO: |
     FI
     SET id (EXTRACT_URL_ELEMENT url 16)
     IF (EQUALS id "")
-    OR (LOWER (LENGTH id) 3)
+    OR (LESSER (LENGTH id) 3)
     OR (NOT_EQUALS (INDEX_REGEXP url "[/\\?#.]" 16) -1)
         SET id ""
         RETURN
@@ -123,7 +122,7 @@ QUERY_PLAYLIST: |
     ELSE
         SET id (EXTRACT_URL_ELEMENT url 16)
         IF (EQUALS id "")
-        OR (LOWER (LENGTH id) 3)
+        OR (LESSER (LENGTH id) 3)
         OR (NOT_EQUALS (INDEX_REGEXP url "[/\\?#.]" 16) -1)
             SET id ""
             RETURN
