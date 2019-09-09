@@ -26,14 +26,14 @@ validate: dailymotion.com|api.dailymotion.com|games.dailymotion.com
 
 #VALIDATE: |
     #SET url (REMOVE_PREFIX url)
-    #RETURN (STARTS_WITH_REGEXP url "dailymotion|api.dailymotion.com|games.dailymotion.com")
+    #RETURN (STARTS_WITH_REGEXP url "dailymotion.com|api.dailymotion.com|games.dailymotion.com")
 
 TRACK_ID: |
     SET url (REMOVE_PREFIX url)
     IF (STARTS_WITH url "games.")
         REMOVE_CHARS url 0 6
     FI
-    IF (EQUALS (STARTS_WITH url "dailymotion.com") 0)
+    IF (EQUALS (STARTS_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -46,7 +46,7 @@ PLAYLIST_INFO: |
     IF (STARTS_WITH url "games.")
         REMOVE_CHARS url 0 6
     FI
-    IF (EQUALS (STARTS_WITH url "dailymotion.com") 0)
+    IF (EQUALS (STARTS_WITH url "dailymotion.com") false)
         RETURN
     FI
     IF (STARTS_WITH url "dailymotion.com/playlist/")
@@ -83,7 +83,7 @@ QUERY_SOURCE: |
     IF (STARTS_WITH url "games.")
         REMOVE_CHARS url 0 6
     FI
-    IF (EQUALS (STARTS_WITH url "dailymotion.com") 0)
+    IF (EQUALS (STARTS_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -98,7 +98,7 @@ QUERY_TRACK: |
     IF (STARTS_WITH url "games.")
         REMOVE_CHARS url 0 6
     FI
-    IF (EQUALS (STARTS_WITH url "dailymotion.com") 0)
+    IF (EQUALS (STARTS_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -114,7 +114,7 @@ QUERY_PLAYLIST: |
     IF (STARTS_WITH url "games.")
         REMOVE_CHARS url 0 6
     FI
-    IF (EQUALS (STARTS_WITH url "dailymotion.com") 0)
+    IF (EQUALS (STARTS_WITH url "dailymotion.com") false)
         RETURN
     FI
     IF (STARTS_WITH url "dailymotion.com/playlist/")
@@ -195,7 +195,7 @@ EXTRACT_TRACK: |
     SET author (EXTRACT_JSON_UTF8 data, "owner.screenname")
     SET feed (EXTRACT_JSON data, "owner.username")
     SET duration (MULTIPLY (EXTRACT_JSON data, "duration") 1000)
-    SET date (EXTRACT_JSON data, "duration")
+    SET date (EXTRACT_JSON data, "created_time")
     SET quality (EXTRACT_JSON data, "available_formats")
     IF (CONTAINS quality "hd720")
         SET quality "720"
@@ -237,7 +237,12 @@ EXTRACT_PLAYLIST: |
             SET_HASH track "duration" (MULTIPLY (EXTRACT_JSON data "duration") 1000)
             SET_HASH track "date" (EXTRACT_JSON data "created_time")
             SET quality (EXTRACT_JSON data "available_formats")
-            SET_HASH track "quality" (EXTRACT_JSON data "created_time")
+            IF (CONTAINS quality "hd720")
+                SET quality "720"
+            ELSE
+                SET quality "480"
+            FI
+            SET_HASH track "quality" quality
             APPEND_LIST tracks track
         END
     FI

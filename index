@@ -1,1 +1,4 @@
-dailymotion dailymotion.yml 1.0.0 "dailymotion|api.dailymotion.com|games.dailymotion.com"
+duckduckgo  duckduckgo.yml  1.0.0 duckduckgo.com
+dailymotion dailymotion.yml 1.0.0 dailymotion|games.dailymotion.com
+vimeo       vimeo.yml       1.0.0 vimeo.com|player.vimeo.com
+soundcloud  soundcloud.yml  1.0.0 soundcloud.com
