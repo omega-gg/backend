@@ -1,0 +1,87 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+title: DuckDuckGo
+
+host: duckduckgo.com
+
+isSearchEngine: true
+
+validate: duckduckgo.com
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+#VALIDATE: |
+    #SET url (REMOVE_PREFIX url)
+    #RETURN (STARTS_WITH_REGEXP url "duckduckgo.com")
+
+CREATE_QUERY: |
+    IF (EQUALS method "search")
+        IF (EQUALS label "urls")
+            SET url (SIMPLIFY "https://duckduckgo.com/")
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+            SET data q
+        ELIF (EQUALS label "site")
+            SET url (SIMPLIFY "https://duckduckgo.com/")
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+            SET id 2
+            SET data q
+        FI
+    FI
+
+EXTRACT_FOLDER: |
+    IF (EQUALS id 1) # Search urls
+        SET data (SLICE_IN data "('d',[" "]);")
+        SET list (SPLIT_JSON data)
+        FOREACH list data
+            SET source (EXTRACT_JSON_UTF8 data 'c')
+            IF (EQUALS source "")
+                CONTINUE
+            FI
+            SET source (URL_NAME source)
+            PRINT "source" source
+            IF (CONTAINS_LIST urls source)
+                CONTINUE
+            FI
+            APPEND_LIST urls source
+            SET_HASH item "type" "folderSearch"
+            SET_HASH item "state" "default"
+            SET_HASH item "title" source
+            APPEND_LIST items item
+        END
+    ELIF (EQUALS id 3) # Search site
+        SET data (SLICE_IN data "('d',[" "]);")
+        SET list (SPLIT_JSON data)
+        FOREACH list data
+            SET source (EXTRACT_JSON_UTF8 data 'c')
+            IF (EQUALS source "")
+                CONTINUE
+            FI
+            SET title (EXTRACT_JSON_UTF8 data 't')
+            IF (EQUALS title "EOF")
+                BREAK
+            FI
+            SET_HASH item "type" "folderSearch"
+            SET_HASH item "state" "default"
+            SET_HASH item "source" source
+            SET_HASH item "title" title
+            APPEND_LIST items item
+        END
+    ELSE
+        SET data (READ data "utf-8")
+        SET data (SLICE_IN data ";nrj('" "'")
+        SET_HASH next "url" (APPEND "https://duckduckgo.com" data)
+        SET_HASH next "id" (ADD id 1)
+    FI
+    SET scanItems true

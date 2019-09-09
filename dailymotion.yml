@@ -18,13 +18,15 @@ items:
     folder:
         title: Playlists
 
+validate: dailymotion.com|api.dailymotion.com|games.dailymotion.com
+
 #--------------------------------------------------------------------------------------------------
 # Interface
 #--------------------------------------------------------------------------------------------------
 
-VALIDATE: |
-    SET url (REMOVE_PREFIX url)
-    RETURN (STARTS_WITH_REGEXP url "dailymotion|api.dailymotion.com|games.dailymotion.com")
+#VALIDATE: |
+    #SET url (REMOVE_PREFIX url)
+    #RETURN (STARTS_WITH_REGEXP url "dailymotion|api.dailymotion.com|games.dailymotion.com")
 
 TRACK_ID: |
     SET url (REMOVE_PREFIX url)

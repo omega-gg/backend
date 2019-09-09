@@ -20,13 +20,15 @@ items:
     folder:
         title: Groups
 
+validate: vimeo.com|player.vimeo.com
+
 #--------------------------------------------------------------------------------------------------
 # Interface
 #--------------------------------------------------------------------------------------------------
 
-VALIDATE: |
-    SET url (REMOVE_PREFIX url)
-    RETURN (STARTS_WITH_REGEXP url "vimeo.com|player.vimeo.com")
+#VALIDATE: |
+    #SET url (REMOVE_PREFIX url)
+    #RETURN (STARTS_WITH_REGEXP url "vimeo.com|player.vimeo.com")
 
 TRACK_ID: |
     SET id (LAST_INDEX_END url "/")
