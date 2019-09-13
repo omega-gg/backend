@@ -1,0 +1,150 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+title: BitTorrent
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: Torrents & Magnets
+        label: all
+    folder:
+        title: Torrents
+    folder:
+        title: Magnets
+
+validate: .torrent$|^magnet:?
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+TRACK_OUTPUT: |
+    SET fragment (URL_FRAGMENT url)
+    SET index (INDEX_END fragment '.')
+    IF (NOT_EQUAL index -1)
+        SET fragment (MID fragment index)
+        IF (EXTENSION_IS_AUDIO fragment)
+            RETURN "audio"
+        FI
+    FI
+    RETURN "video"
+
+PLAYLIST_INFO: |
+    IF (EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
+    AND (STARTS_WITH url "magnet:?")
+        SET type "playlist"
+    FI
+
+URL_PLAYLIST: |
+    RETURN id
+
+QUERY_TRACK: |
+    IF (STARTS_WITH url "magnet:?")
+        SET type "torrent"
+    ELIF (NOT_EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
+        RETURN
+    FI
+    SET index (INDEX_END url '#')
+    IF (EQUAL index -1)
+        SET queryData -1
+    ELSE
+        SET url (MID 0 index)
+        SET indexB (INDEX_OF url '.' index)
+        IF (EQUAL indexB -1)
+            SET queryData (MID index)
+        ELSE
+            SET queryData (MID index (SUB indexB index))
+        FI
+    FI
+
+QUERY_PLAYLIST: |
+    IF (STARTS_WITH url "magnet:?")
+        SET type "torrent"
+    ELIF (NOT_EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
+        RETURN
+    FI
+    SET index (INDEX_END url '#')
+    IF (EQUAL index -1)
+        SET queryData -1
+    ELSE
+        SET url (MID 0 index)
+        SET indexB (INDEX_OF url '.' index)
+        IF (EQUAL indexB -1)
+            SET queryData (MID index)
+        ELSE
+            SET queryData (MID index (SUB indexB index))
+        FI
+    FI
+
+CREATE_QUERY: |
+    IF (EQUAL method "search")
+        IF (EQUAL label "tracks")
+            SET backend "bittorrent"
+            SET url "https://duckduckgo.com/"
+            SET q (SIMPLIFY q)
+            IF (EQUAL (STARTS_WITH "torrent ") false)
+                PREPEND q "torrent "
+            FI
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+            SET id 2
+        ELIF (EQUAL label "all")
+            SET backend "bittorrent"
+            SET url "https://duckduckgo.com/"
+            SET q (SIMPLIFY q)
+            IF (EQUAL (STARTS_WITH "torrent ") false)
+                PREPEND q "torrent "
+            FI
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+        ELIF (EQUAL label "torrents")
+            SET backend "bittorrent"
+            SET url "https://duckduckgo.com/"
+            SET q (SIMPLIFY q)
+            IF (EQUAL (STARTS_WITH "torrent ") false)
+                PREPEND q "torrent "
+            FI
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+            SET queryData 1
+        ELIF (EQUAL label "magnets")
+            SET backend "bittorrent"
+            SET url "https://duckduckgo.com/"
+            SET q (SIMPLIFY q)
+            IF (EQUAL (STARTS_WITH "torrent ") false)
+                PREPEND q "torrent "
+            FI
+            ADD_QUERY url "q" q
+            ADD_QUERY url "kl" "us-en"
+            ADD_QUERY url "kp" "-2"
+            SET queryData 2
+        FI
+    ELIF (EQUAL method "related")
+        IF (EQUAL label "tracks")
+            IF (STARTS_WITH q "magnet:?")
+                SET type "torrent"
+            FI
+            SET index (INDEX_OF q '#')
+            SET url (MID 0 index)
+            SET id 1
+        FI
+    FI
+
+EXTRACT_TRACK: |
+    SET data (READ data "ascii")
+    SET data (TORRENT_LIST_AFTER data "info")
+    SET name (TORRENT_STRING_AFTER data "name")
+    SET items (EXTRACT_TORRENT_ITEMS data)
+    IF (EQUAL items 0)
+    ELSE
+    FI

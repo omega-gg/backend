@@ -1,0 +1,107 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+search: coverVideo
+
+title: TMDb
+
+host: themoviedb.org
+
+validate: ^themoviedb.org
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+CREATE_QUERY: |
+    IF (NOT_EQUAL method "cover")
+        RETURN
+    FI
+    IF (CONTAINS_REGEXP q "^[({\\[]")
+        SET index (INDEX_REGEXP_END q "[)}\\]]")
+        IF (NOT_EQUAL index -1)
+            SET q (MID q index)
+        FI
+    FI
+    SET temp (SPLIT q ' ')
+    FOREACH temp value
+        IF (EQUAL (CONTAINS_REGEXP value "^[({\\[]") false)
+            BREAK
+        FI
+        APPEND_LIST list value
+    END
+    SET q (JOIN list ' ')
+    REPLACE_REGEXP q ' ' "[,.:\\-_(){}\\[\\]]"
+    SET list SPLIT ((SIMPLIFY (LOWER q)) ' ')
+    SET temp list
+    FOREACH temp value
+        IF (EQUAL value 0)
+            BREAK
+        FI
+        REMOVE_LIST list 0
+    END
+    FOREACH list value
+        SET length (LENGTH value)
+        IF (EQUAL length 4)
+            IF (GREATER_EQUAL value 1800)
+                SET type 1 # Movie
+            FI
+        ELIF (STARTS_WITH data 's')
+            SET index (INDEX_REGEXP_END value "[^0-9]" 1)
+            IF (NOT_EQUALS index -1)
+            AND (EQUALS (GET_CHAR value index) 'e')
+                SET index (INDEX_REGEXP_END value "[^0-9]" (ADD index 1))
+                IF (EQUAL index -1)
+                    SET type 2 # Show
+                FI
+            FI
+        FI
+        IF (EQUALS type 1) # Movie
+            SET index (ADD i 1)
+            IF (EQUAL index (COUNT list))
+                IF (LENGTH title 0)
+                    RETURN
+                FI
+                CHOP title 1
+            ELSE
+                SET data (GET_LIST list index)
+                IF (EQUALS (LENGTH data) 4)
+                AND (GREATER_EQUAL data 1800)
+                    APPEND title value
+                    SET value data
+                ELSE
+                    IF (LENGTH title 0)
+                        RETURN
+                    FI
+                    CHOP title 1
+                FI
+            FI
+            SET url "https://www.themoviedb.org/search"
+            ADD_QUERY url "query" (APPEND title " y:" value)
+            ADD_QUERY url "language" "en"
+            SET id 1
+            RETURN
+        ELIF (EQUALS type 2) # Show
+        ELSE
+        FI
+        ADD i 1
+    END
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 2)
+    OR (EQUAL id 4)
+        SET index (INDEX_OF data "<div class=\"image_content\">")
+        IF (EQUAL index -1)
+            RETURN
+        FI
+        SET_HASH track "cover" (EXTRACT_ATTRIBUTE data "href" index)
+    ELIF (EQUAL id 3) # Show
+    ELIF (EQUAL id 1) # Movie
+    ELSE # Movie
+    FI

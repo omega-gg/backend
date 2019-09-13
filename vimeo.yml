@@ -20,23 +20,23 @@ items:
     folder:
         title: Groups
 
-validate: vimeo.com|player.vimeo.com
+validate: ^vimeo.com|^player.vimeo.com
 
 #--------------------------------------------------------------------------------------------------
 # Interface
 #--------------------------------------------------------------------------------------------------
 
 #VALIDATE: |
-    #SET url (REMOVE_PREFIX url)
+    #SET url (REMOVE_URL_PREFIX url)
     #RETURN (STARTS_WITH_REGEXP url "vimeo.com|player.vimeo.com")
 
 TRACK_ID: |
     SET id (LAST_INDEX_END url "/")
-    IF (EQUALS id -1)
+    IF (EQUAL id -1)
         RETURN ""
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
-    IF (EQUALS id 0)
+    IF (EQUAL id 0)
     OR (CONTAINS url (APPEND "/channels/" id))
     OR (CONTAINS url (APPEND "/groups/" id))
         RETURN ""
@@ -44,8 +44,8 @@ TRACK_ID: |
     RETURN id
 
 PLAYLIST_INFO: |
-    SET url (REMOVE_PREFIX url)
-    IF (EQUALS (STARTS_WITH url "vimeo.com") false)
+    SET url (REMOVE_URL_PREFIX url)
+    IF (EQUAL (STARTS_WITH url "vimeo.com") false)
         RETURN
     FI
     IF (STARTS_WITH url "vimeo.com/channels/")
@@ -68,11 +68,11 @@ URL_PLAYLIST: |
 
 QUERY_SOURCE: |
     SET id (LAST_INDEX_END url "/")
-    IF (EQUALS id -1)
+    IF (EQUAL id -1)
         RETURN
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
-    IF (EQUALS id "")
+    IF (EQUAL id "")
     OR (CONTAINS url (APPEND "/channels/" id))
     OR (CONTAINS url (APPEND "/groups/" id))
         RETURN
@@ -81,11 +81,11 @@ QUERY_SOURCE: |
 
 QUERY_TRACK: |
     SET id (LAST_INDEX_END url "/")
-    IF (EQUALS id -1)
+    IF (EQUAL id -1)
         RETURN
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
-    IF (EQUALS id "")
+    IF (EQUAL id "")
     OR (CONTAINS url (APPEND "/channels/" id))
     OR (CONTAINS url (APPEND "/groups/" id))
         RETURN
@@ -93,8 +93,8 @@ QUERY_TRACK: |
     SET url (APPEND "https://vimeo.com/" id)
 
 QUERY_PLAYLIST: |
-    SET url (REMOVE_PREFIX url)
-    IF (EQUALS (STARTS_WITH url "vimeo.com") false)
+    SET url (REMOVE_URL_PREFIX url)
+    IF (EQUAL (STARTS_WITH url "vimeo.com") false)
         RETURN
     FI
     IF (STARTS_WITH url "vimeo.com/channels/")
@@ -106,7 +106,7 @@ QUERY_PLAYLIST: |
             RETURN
         FI
     FI
-    IF (EQUALS id "")
+    IF (EQUAL id "")
         RETURN
     FI
     IF (STARTS_WITH id "tag:")
@@ -118,29 +118,29 @@ QUERY_PLAYLIST: |
     FI
 
 CREATE_QUERY: |
-    IF (EQUALS method "search")
-        IF (EQUALS label "tracks")
+    IF (EQUAL method "search")
+        IF (EQUAL label "tracks")
             SET url "https://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
             ADD_QUERY url "q" q
             ADD_QUERY url "type" "video"
             SET id 1
             SET header true
-        ELIF (EQUALS label "people")
+        ELIF (EQUAL label "people")
             SET url "https://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
             ADD_QUERY url "q" q
             SET id 1
             SET header true
-        ELIF (EQUALS label "channels")
+        ELIF (EQUAL label "channels")
             SET url "https://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
             ADD_QUERY url "q" q
             SET header true
-        ELIF (EQUALS label "groups")
+        ELIF (EQUAL label "groups")
             SET url "https://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
             ADD_QUERY url "q" q
             SET header true
         FI
-    ELIF (EQUALS method "related")
-    AND (EQUALS label "tracks")
+    ELIF (EQUAL method "related")
+    AND (EQUAL label "tracks")
         SET url (APPEND "https://vimeo.com/" q)
         APPEND url "/collections/channels/sort:relevant/format:thumbnail"
         SET id 2
@@ -152,15 +152,15 @@ EXTRACT_SOURCE: |
     SET list (SPLIT_JSON data)
     FOREACH list data
         SET quality (EXTRACT_JSON data "quality")
-        IF (EQUALS quality "270p")
+        IF (EQUAL quality "270p")
             SET_HASH medias "240" (EXTRACT_JSON data "url")
-        ELIF (EQUALS quality "360p")
+        ELIF (EQUAL quality "360p")
             SET_HASH medias "360" (EXTRACT_JSON data "url")
-        ELIF (EQUALS quality "480p")
+        ELIF (EQUAL quality "480p")
             SET_HASH medias "480" (EXTRACT_JSON data "url")
-        ELIF (EQUALS quality "720p")
+        ELIF (EQUAL quality "720p")
             SET_HASH medias "720" (EXTRACT_JSON data "url")
-        ELIF (EQUALS quality "1080p")
+        ELIF (EQUAL quality "1080p")
             SET_HASH medias "1080" (EXTRACT_JSON data "url")
         FI
     END
@@ -171,16 +171,16 @@ EXTRACT_TRACK: |
     SET title (EXTRACT_JSON_UTF8 data "name")
     SET cover (EXTRACT_JSON data "thumbnailUrl")
     SET index (INDEX_OF cover "?src")
-    IF (EQUALS index -1)
+    IF (EQUAL index -1)
         SET index (LAST_INDEX_END cover '_')
-        IF (NOT_EQUALS index -1)
+        IF (NOT_EQUAL index -1)
             SET cover (MID cover index)
             SET cover (APPEND cover "1280.jpg")
         FI
     ELSE
         SET index (ADD index 6)
         SET indexB (INDEX_END cover '_' index)
-        IF (NOT_EQUALS indexB -1)
+        IF (NOT_EQUAL indexB -1)
             SET cover (MID cover index (SUB indexB index))
             SET cover (DECODE_URL cover)
             SET cover (APPEND cover "1280.jpg")
@@ -194,13 +194,13 @@ EXTRACT_TRACK: |
     SET duration (SLICE_IN duration 'T' 'S')
     SET duration (TIME duration "hh'H'mm'M'ss")
     SET date (EXTRACT_JSON data "uploadDate")
-    IF (EQUALS date "")
+    IF (EQUAL date "")
         SET date (EXTRACT_JSON data "datePublished")
     FI
     SET date (MID date 0 (LAST_INDEX_OF date '-'))
     SET date (DATE date "yyyy-MM-ddThh:mm:ss")
     SET quality (EXTRACT_JSON data "videoQuality")
-    IF (EQUALS quality "HD")
+    IF (EQUAL quality "HD")
         SET quality "720"
     ELSE
         SET quality "480"
@@ -208,9 +208,9 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUALS id 2)
+    IF (EQUAL id 2)
         SET index (INDEX_OF data "<ol class=\"js-browse_list")
-        IF (EQUALS index -1)
+        IF (EQUAL index -1)
             SET data (SLICE data "<ul class=\"small-block-grid" "</ul>")
         ELSE
             SET data (SLICE data "<ol class=\"js-browse_list" "</ol>")
@@ -233,7 +233,7 @@ EXTRACT_PLAYLIST: |
             SET_HASH next "header" true
         FI
         RETURN
-    ELIF (EQUALS id 3)
+    ELIF (EQUAL id 3)
         SET_HASH next "url" (TAKE queryData 0)
         IF (COUNT queryData)
             SET_HASH next "id" 3
@@ -243,21 +243,21 @@ EXTRACT_PLAYLIST: |
         FI
         SET_HASH next "header" true
         SET clearDuplicate true
-    ELIF (NOT_EQUALS id 4)
+    ELIF (NOT_EQUAL id 4)
         SET queryId (ADD queryData 1)
         IF (LESSER queryId 3)
-            IF (EQUALS id 0)
-            AND (EQUALS queryId 1)
+            IF (EQUAL id 0)
+            AND (EQUAL queryId 1)
                 SET json (EXTRACT_JSON_HTML data "itemListElement")
                 SET index (LAST_INDEX_OF json "\"name\"")
                 SET title (EXTRACT_JSON_UTF8 json "name" index)
             FI
             SET paging (EXTRACT_JSON data "paging")
-            IF (EQUALS paging "")
-                IF (NOT_EQUALS (INDEX_OF data "<li class=\"pagination_next") -1)
+            IF (EQUAL paging "")
+                IF (NOT_EQUAL (INDEX_OF data "<li class=\"pagination_next") -1)
                     SET hasNext true
                 FI
-            ELIF (NOT_EQUALS (EXTRACT_JSON url "next") "null")
+            ELIF (NOT_EQUAL (EXTRACT_JSON url "next") "null")
                 SET hasNext true
             FI
             IF hasNext
@@ -267,12 +267,12 @@ EXTRACT_PLAYLIST: |
                 SET_HASH next "queryData" queryId
                 SET_HASH next "header" true
             FI
-            IF (EQUALS id 1)
+            IF (EQUAL id 1)
                 SET data (EXTRACT_JSON_HTML data "data")
                 SET list (SPLIT_JSON data)
                 FOREACH list data
                     SET string (EXTRACT_JSON data "privacy")
-                    IF (EQUALS string "\"view\":\"ptv\"")
+                    IF (EQUAL string "\"view\":\"ptv\"")
                         CONTINUE
                     FI
                     SET source (EXTRACT_JSON data "uri")
@@ -282,16 +282,16 @@ EXTRACT_PLAYLIST: |
                     SET_HASH track "title" (EXTRACT_JSON_UTF8 data "name")
                     SET cover (EXTRACT_JSON data "pictures")
                     SET index (INDEX_OF cover "?src")
-                    IF (EQUALS index -1)
+                    IF (EQUAL index -1)
                         SET index (LAST_INDEX_END cover '_')
-                        IF (NOT_EQUALS index -1)
+                        IF (NOT_EQUAL index -1)
                             SET cover (MID cover 0 index)
                             SET_HASH track "cover" (APPEND cover "1280.jpg")
                         FI
                     ELSE
                         SET index (ADD index 6)
                         SET indexB (INDEX_END cover '_' index)
-                        IF (NOT_EQUALS indexB -1)
+                        IF (NOT_EQUAL indexB -1)
                             SET cover (MID cover index (SUB indexB index))
                             SET cover (DECODE_URL cover)
                             SET_HASH track "cover" (APPEND cover "1280.jpg")
@@ -311,27 +311,27 @@ EXTRACT_PLAYLIST: |
         SET_HASH track "state" "default"
         SET url (EXTRACT_ATTRIBUTE data "href")
         SET index (LAST_INDEX_END url '/')
-        IF (NOT_EQUALS index -1)
+        IF (NOT_EQUAL index -1)
             SET id (EXTRACT_URL_ELEMENT url index)
-            IF (NOT_EQUALS (NUMBER id) 0)
-            AND (EQUALS (CONTAINS url (APPEND "/channels/" id)) false)
-            AND (EQUALS (CONTAINS url (APPEND "/groups/" id)) false)
+            IF (NOT_EQUAL (NUMBER id) 0)
+            AND (EQUAL (CONTAINS url (APPEND "/channels/" id)) false)
+            AND (EQUAL (CONTAINS url (APPEND "/groups/" id)) false)
                 SET_HASH track "source" (APPEND "https://vimeo.com/" id)
             FI
         FI
         SET_HASH track "title" (EXTRACT_ATTRIBUTE_UTF8 data "title")
         SET cover (EXTRACT_ATTRIBUTE data "srcset")
         SET index (INDEX_OF cover "?src")
-        IF (EQUALS index -1)
+        IF (EQUAL index -1)
             SET index (LAST_INDEX_END cover '_')
-            IF (NOT_EQUALS index -1)
+            IF (NOT_EQUAL index -1)
                 SET cover (MID cover 0 index)
                 SET_HASH track "cover" (APPEND cover "1280.jpg")
             FI
         ELSE
             SET index (ADD index 6)
             SET indexB (INDEX_END cover '_' index)
-            IF (NOT_EQUALS indexB -1)
+            IF (NOT_EQUAL indexB -1)
                 SET cover (MID cover index (SUB indexB index))
                 SET cover (DECODE_URL cover)
                 SET_HASH track "cover" (APPEND cover "1280.jpg")
@@ -351,16 +351,16 @@ EXTRACT_FOLDER: |
         SET cover (EXTRACT_JSON data "pictures")
         SET cover (EXTRACT_JSON cover "link")
         SET index (INDEX_OF cover "?src")
-        IF (EQUALS index -1)
+        IF (EQUAL index -1)
             SET index (LAST_INDEX_END cover '_')
-            IF (NOT_EQUALS index -1)
+            IF (NOT_EQUAL index -1)
                 SET cover (MID cover 0 index)
                 SET_HASH item "cover" (APPEND cover "1280.jpg")
             FI
         ELSE
             SET index (ADD index 6)
             SET indexB (INDEX_END cover '_' index)
-            IF (NOT_EQUALS indexB -1)
+            IF (NOT_EQUAL indexB -1)
                 SET cover (MID cover index (SUB indexB index))
                 SET cover (DECODE_URL cover)
                 SET_HASH item "cover" (APPEND cover "1280.jpg")
@@ -371,11 +371,11 @@ EXTRACT_FOLDER: |
     SET queryId (ADD queryData 1)
     IF (LESSER queryId 3)
         SET paging (EXTRACT_JSON data "paging")
-        IF (EQUALS paging "")
-            IF (EQUALS (INDEX_OF data "<li class=\"pagination_next") -1)
+        IF (EQUAL paging "")
+            IF (EQUAL (INDEX_OF data "<li class=\"pagination_next") -1)
                 RETURN
             FI
-        ELIF (EQUALS (EXTRACT_JSON url "next") "null")
+        ELIF (EQUAL (EXTRACT_JSON url "next") "null")
             RETURN
         FI
         REPLACE url (APPEND "/page:" queryId) (APPEND "/page:" (ADD queryId 1))
