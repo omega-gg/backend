@@ -20,7 +20,7 @@ validate: ^duckduckgo.com
 
 #VALIDATE: |
     #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (STARTS_WITH_REGEXP url "duckduckgo.com")
+    #RETURN (START_WITH_REGEXP url "duckduckgo.com")
 
 CREATE_QUERY: |
     IF (EQUAL method "search")
@@ -53,7 +53,7 @@ EXTRACT_FOLDER: |
             FI
             SET source (URL_NAME source)
             PRINT "source" source
-            IF (CONTAINS_LIST urls source)
+            IF (CONTAIN_LIST urls source)
                 CONTINUE
             FI
             APPEND_LIST urls source

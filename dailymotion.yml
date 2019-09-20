@@ -26,14 +26,14 @@ validate: ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
 
 #VALIDATE: |
     #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (STARTS_WITH_REGEXP url "dailymotion.com|api.dailymotion.com|games.dailymotion.com")
+    #RETURN (START_WITH_REGEXP url "dailymotion.com|api.dailymotion.com|games.dailymotion.com")
 
 TRACK_ID: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (STARTS_WITH url "games.")
+    IF (START_WITH url "games.")
         REMOVE_CHAR url 0 6
     FI
-    IF (EQUAL (STARTS_WITH url "dailymotion.com") false)
+    IF (EQUAL (START_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -43,18 +43,18 @@ TRACK_ID: |
 
 PLAYLIST_INFO: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (STARTS_WITH url "games.")
+    IF (START_WITH url "games.")
         REMOVE_CHAR url 0 6
     FI
-    IF (EQUAL (STARTS_WITH url "dailymotion.com") false)
+    IF (EQUAL (START_WITH url "dailymotion.com") false)
         RETURN
     FI
-    IF (STARTS_WITH url "dailymotion.com/playlist/")
+    IF (START_WITH url "dailymotion.com/playlist/")
         SET type "playlist"
         SET id (EXTRACT_URL_ELEMENT url 25)
         RETURN
     FI
-    IF (STARTS_WITH url "dailymotion.com/user/")
+    IF (START_WITH url "dailymotion.com/user/")
         SET type "feed"
         SET id (EXTRACT_URL_ELEMENT url 21)
         RETURN
@@ -80,10 +80,10 @@ URL_PLAYLIST: |
 
 QUERY_SOURCE: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (STARTS_WITH url "games.")
+    IF (START_WITH url "games.")
         REMOVE_CHAR url 0 6
     FI
-    IF (EQUAL (STARTS_WITH url "dailymotion.com") false)
+    IF (EQUAL (START_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -95,10 +95,10 @@ QUERY_SOURCE: |
 
 QUERY_TRACK: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (STARTS_WITH url "games.")
+    IF (START_WITH url "games.")
         REMOVE_CHAR url 0 6
     FI
-    IF (EQUAL (STARTS_WITH url "dailymotion.com") false)
+    IF (EQUAL (START_WITH url "dailymotion.com") false)
         RETURN
     FI
     SET index (INDEX_REGEXP_END url "/video/|#videoId=|#video=")
@@ -111,15 +111,15 @@ QUERY_TRACK: |
 
 QUERY_PLAYLIST: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (STARTS_WITH url "games.")
+    IF (START_WITH url "games.")
         REMOVE_CHAR url 0 6
     FI
-    IF (EQUAL (STARTS_WITH url "dailymotion.com") false)
+    IF (EQUAL (START_WITH url "dailymotion.com") false)
         RETURN
     FI
-    IF (STARTS_WITH url "dailymotion.com/playlist/")
+    IF (START_WITH url "dailymotion.com/playlist/")
         SET id (EXTRACT_URL_ELEMENT url 25)
-    ELIF (STARTS_WITH url "dailymotion.com/user/")
+    ELIF (START_WITH url "dailymotion.com/user/")
         SET id (EXTRACT_URL_ELEMENT url 21)
     ELSE
         SET id (EXTRACT_URL_ELEMENT url 16)
@@ -130,7 +130,7 @@ QUERY_PLAYLIST: |
             RETURN
         FI
     FI
-    IF (STARTS_WITH url "dailymotion.com/playlist/")
+    IF (START_WITH url "dailymotion.com/playlist/")
         SET url (APPEND "https://api.dailymotion.com/playlist/" id)
         ADD_QUERY url "fields" "name,thumbnail_url"
         SET queryData (APPEND "playlist/" id)
@@ -197,7 +197,7 @@ EXTRACT_TRACK: |
     SET duration (MULTIPLY (EXTRACT_JSON data, "duration") 1000)
     SET date (EXTRACT_JSON data, "created_time")
     SET quality (EXTRACT_JSON data, "available_formats")
-    IF (CONTAINS quality "hd720")
+    IF (CONTAIN quality "hd720")
         SET quality "720"
     ELSE
         SET quality "480"
@@ -237,7 +237,7 @@ EXTRACT_PLAYLIST: |
             SET_HASH track "duration" (MULTIPLY (EXTRACT_JSON data "duration") 1000)
             SET_HASH track "date" (EXTRACT_JSON data "created_time")
             SET quality (EXTRACT_JSON data "available_formats")
-            IF (CONTAINS quality "hd720")
+            IF (CONTAIN quality "hd720")
                 SET quality "720"
             ELSE
                 SET quality "480"

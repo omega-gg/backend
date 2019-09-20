@@ -26,12 +26,12 @@ validate: ^soundcloud.com|^api.soundcloud.com|^a-v2.sndcdn.com
 
 #VALIDATE: |
     #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (STARTS_WITH_REGEXP url "soundcloud.com|api.soundcloud.com|a-v2.sndcdn.com")
+    #RETURN (START_WITH_REGEXP url "soundcloud.com|api.soundcloud.com|a-v2.sndcdn.com")
 
 TRACK_ID: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (EQUAL (STARTS_WITH url "soundcloud.com/") false)
-    OR (CONTAINS_REGEXP url "/tracks/|/sets/|/albums/|/reposts/|/tags/|/popular/")
+    IF (EQUAL (START_WITH url "soundcloud.com/") false)
+    OR (CONTAIN_REGEXP url "/tracks/|/sets/|/albums/|/reposts/|/tags/|/popular/")
         RETURN ""
     FI
     SET url (EXTRACT_URL_ELEMENTS url 2 15)
@@ -46,14 +46,14 @@ TRACK_OUTPUT: |
 
 PLAYLIST_INFO: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (EQUAL (STARTS_WITH source "soundcloud.com/") false)
+    IF (EQUAL (START_WITH source "soundcloud.com/") false)
         RETURN
     FI
     SET url (MID url 15)
-    IF (CONTAINS_REGEXP url "[.\\?#]")
+    IF (CONTAIN_REGEXP url "[.\\?#]")
         RETURN
     ELIF (COUNT_STRING url '/')
-        IF (CONTAINS url "/sets/")
+        IF (CONTAIN url "/sets/")
             SET type "playlist"
             SET id url
         FI
@@ -80,14 +80,14 @@ QUERY_SOURCE: |
 QUERY_PLAYLIST: |
     SET source url
     SET source (REMOVE_URL_PREFIX source)
-    IF (EQUAL (STARTS_WITH source "soundcloud.com/") false)
+    IF (EQUAL (START_WITH source "soundcloud.com/") false)
         RETURN
     FI
     SET source (MID source 15)
-    IF (CONTAINS_REGEXP source "[.\\?#]")
+    IF (CONTAIN_REGEXP source "[.\\?#]")
         RETURN
     ELIF (COUNT_STRING source '/')
-        IF (CONTAINS source "/sets/")
+        IF (CONTAIN source "/sets/")
             IF (EQUAL global "")
                 SET id -1
                 SET queryData url 1
@@ -169,7 +169,7 @@ EXTRACT_SOURCE: |
         SET index (INDEX_OF data "client_id")
         SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
-        IF (STARTS_WITH string "https://api")
+        IF (START_WITH string "https://api")
             ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string
@@ -183,7 +183,7 @@ EXTRACT_SOURCE: |
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (EXTRACT_JSON data "data" index)
             IF (LENGTH string)
-            AND (EQUAL (STARTS_WITH string "{\"allows") false)
+            AND (EQUAL (START_WITH string "{\"allows") false)
                 SET data string
                 BREAK
             FI
@@ -202,7 +202,7 @@ EXTRACT_TRACK: |
         SET index (INDEX_END data (APPEND "\"id\":" value))
         SET string (EXTRACT_JSON data "data" index)
         IF (LENGTH string)
-        AND (EQUAL (STARTS_WITH string "{\"allows") false)
+        AND (EQUAL (START_WITH string "{\"allows") false)
             SET data string
             BREAK
         FI
@@ -219,7 +219,7 @@ EXTRACT_TRACK: |
     SET duration (EXTRACT_JSON data "duration")
     SET date (EXTRACT_JSON data "created_at")
     SET date (MID date 0 19)
-    IF (CONTAINS date ' ')
+    IF (CONTAIN date ' ')
         SET date (DATE date "yyyy/MM/dd hh:mm:ss")
     ELSE
         SET date (DATE date "yyyy-MM-ddThh:mm:ss")
@@ -237,7 +237,7 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_OF data "client_id")
         SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
-        IF (STARTS_WITH string "https://api")
+        IF (START_WITH string "https://api")
             ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string
@@ -246,7 +246,7 @@ EXTRACT_PLAYLIST: |
         SET backup id
         RETURN
     ELIF (EQUAL id 0)
-        IF (EQUAL (STARTS_WITH data '[') false)
+        IF (EQUAL (START_WITH data '[') false)
             SET data (EXTRACT_JSON data "tracks")
         FI
         FOREACH (SPLIT_JSON data) data
@@ -265,7 +265,7 @@ EXTRACT_PLAYLIST: |
             SET_HASH track "duration" (EXTRACT_JSON data "duration")
             SET date (EXTRACT_JSON data "created_at")
             SET date (MID date 0 19)
-            IF (CONTAINS date ' ')
+            IF (CONTAIN date ' ')
                 SET_HASH track "date" (DATE date "yyyy/MM/dd hh:mm:ss")
             ELSE
                 SET_HASH track "date" (DATE date "yyyy-MM-ddThh:mm:ss")
@@ -278,7 +278,7 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (EXTRACT_JSON data "data" index)
             IF (LENGTH string)
-            AND (EQUAL (STARTS_WITH string "{\"allows") false)
+            AND (EQUAL (START_WITH string "{\"allows") false)
                 SET data string
                 BREAK
             FI
@@ -297,7 +297,7 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (EXTRACT_JSON data "data" index)
             IF (LENGTH string)
-            AND (EQUAL (STARTS_WITH string "{\"allows") false)
+            AND (EQUAL (START_WITH string "{\"allows") false)
                 SET data string
                 BREAK
             FI
@@ -313,7 +313,7 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (EXTRACT_JSON data "data" index)
             IF (LENGTH string)
-            AND (EQUAL (STARTS_WITH string "{\"allows") false)
+            AND (EQUAL (START_WITH string "{\"allows") false)
                 SET data string
                 BREAK
             FI
@@ -334,7 +334,7 @@ EXTRACT_FOLDER: |
         SET index (INDEX_OF data "client_id")
         SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
-        IF (STARTS_WITH string "https://api")
+        IF (START_WITH string "https://api")
             ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string

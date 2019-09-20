@@ -38,7 +38,7 @@ TRACK_OUTPUT: |
 
 PLAYLIST_INFO: |
     IF (EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
-    AND (STARTS_WITH url "magnet:?")
+    AND (START_WITH url "magnet:?")
         SET type "playlist"
     FI
 
@@ -46,7 +46,7 @@ URL_PLAYLIST: |
     RETURN id
 
 QUERY_TRACK: |
-    IF (STARTS_WITH url "magnet:?")
+    IF (START_WITH url "magnet:?")
         SET type "torrent"
     ELIF (NOT_EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
         RETURN
@@ -65,7 +65,7 @@ QUERY_TRACK: |
     FI
 
 QUERY_PLAYLIST: |
-    IF (STARTS_WITH url "magnet:?")
+    IF (START_WITH url "magnet:?")
         SET type "torrent"
     ELIF (NOT_EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
         RETURN
@@ -89,7 +89,7 @@ CREATE_QUERY: |
             SET backend "bittorrent"
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            IF (EQUAL (STARTS_WITH "torrent ") false)
+            IF (EQUAL (START_WITH "torrent ") false)
                 PREPEND q "torrent "
             FI
             ADD_QUERY url "q" q
@@ -100,7 +100,7 @@ CREATE_QUERY: |
             SET backend "bittorrent"
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            IF (EQUAL (STARTS_WITH "torrent ") false)
+            IF (EQUAL (START_WITH "torrent ") false)
                 PREPEND q "torrent "
             FI
             ADD_QUERY url "q" q
@@ -110,7 +110,7 @@ CREATE_QUERY: |
             SET backend "bittorrent"
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            IF (EQUAL (STARTS_WITH "torrent ") false)
+            IF (EQUAL (START_WITH "torrent ") false)
                 PREPEND q "torrent "
             FI
             ADD_QUERY url "q" q
@@ -121,7 +121,7 @@ CREATE_QUERY: |
             SET backend "bittorrent"
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            IF (EQUAL (STARTS_WITH "torrent ") false)
+            IF (EQUAL (START_WITH "torrent ") false)
                 PREPEND q "torrent "
             FI
             ADD_QUERY url "q" q
@@ -131,7 +131,7 @@ CREATE_QUERY: |
         FI
     ELIF (EQUAL method "related")
         IF (EQUAL label "tracks")
-            IF (STARTS_WITH q "magnet:?")
+            IF (START_WITH q "magnet:?")
                 SET type "torrent"
             FI
             SET index (INDEX_OF q '#')
@@ -144,7 +144,301 @@ EXTRACT_TRACK: |
     SET data (READ data "ascii")
     SET data (TORRENT_LIST_AFTER data "info")
     SET name (TORRENT_STRING_AFTER data "name")
-    SET items (EXTRACT_TORRENT_ITEMS data)
+    SET items (TORRENT_ITEMS data)
     IF (EQUAL items 0)
+        SET string (LATIN_TO_UTF8 name)
+        IF (EQUAL (EXTENSION_IS_MEDIA (EXTRACT_URL_EXTENSION string)) false)
+            RETURN
+        FI
+        SET author string
     ELSE
+        SET index (SUB queryData 1)
+        IF (GREATER index 0)
+            SET count (SUB (COUNT items) 1)
+            IF (GREATER index count)
+                SET index count
+            FI
+        ELSE
+            SET index 0
+        FI
+        SET item (LIST_AT index)
+        SET string (LATIN_TO_UTF8 (GET_HASH item "name"))
+        IF (EQUAL (EXTENSION_IS_MEDIA (EXTRACT_URL_EXTENSION string)) false)
+            SET string ""
+            RETURN
+        FI
+        SET author (LATIN_TO_UTF8 name)
+    FI
+    SET state "cover"
+    SET title string
+    SET feed  url
+
+EXTRACT_PLAYLIST: |
+    IF (EQUAL id 2) # Search urls
+        SET data (READ data "utf-8")
+        SET source (SLICE_IN data ";nrj('" "'")
+        SET_HASH next "backend" "bittorrent"
+        SET_HASH next "url" (APPEND "https://duckduckgo.com" source)
+        SET_HASH next "id" 3
+        SET_HASH next "queryData" queryData
+    ELIF (EQUAL id 3) # Extract urls
+        SET data (SLICE_IN data "('d',[" "]);")
+        SET list (SPLIT_JSON data)
+        FOREACH list source
+            SET source (EXTRACT_JSON_UTF8 value 'c')
+            IF (EQUAL source "")
+            OR (CONTAIN_LIST urls source)
+                CONTINUE
+            FI
+            APPEND_LIST urls value
+            IF (EQUAL (COUNT urls) 20)
+                BREAK
+            FI
+        END
+        IF (EQUAL urls 0)
+            RETURN
+        FI
+        SET_HASH next "backend" "bittorrent"
+        SET_HASH next "url" (TAKE_AT urls 0)
+        SET_HASH next "id" 4
+        SET_HASH next "queryData" urls
+        SET_HASH next "skipErrory" true
+        SET_HASH next "timeout" 3000
+    ELIF (EQUAL id 4) # Extract sources
+        SET data (EXTRACT_HTML data url ("http" "|.torrent" "magnet:?"))
+        SET list (GET_HASH data "sources")
+        FOREACH list data
+            SET data (GET_HASH data "url")
+            IF (EXTRACT_URL_EXTENSION data "torrent")
+                APPEND_LIST sources data
+                SET index (ADD index 1)
+                IF (EQUAL index 5)
+                    BREAK
+                FI
+            FI
+        END
+        IF (NOT_EQUAL index 5)
+            FOREACH list data
+                SET data (GET_HASH data "url")
+                IF (START_WITH data "magnet:?")
+                    APPEND_LIST sources data
+                    SET index (ADD index 1)
+                    IF (EQUAL index 5)
+                        BREAK
+                    FI
+                FI
+            END
+        FI
+        IF (COUNT sources)
+            SET source (TAKE_AT urls 0)
+            IF (START_WITH source "magnet:?")
+                SET_HASH next "type" "torrent"
+                SET_HASH next "timeout" 10000
+            ELSE
+                SET_HASH next "timeout" 3000
+            FI
+            SET_HASH next "url" source
+            SET_HASH next "id" 5
+            SET_HASH next "queryData" (LIST sources urls)
+            SET_HASH next "skipError" true
+        ELSE
+            SET_HASH next "backend" "bittorrent"
+            SET_HASH next "url" (TAKE_AT urls 0)
+            SET_HASH next "id" 4
+            SET_HASH next "queryData" urls
+            SET_HASH next "skipErrory" true
+            SET_HASH next "timeout" 3000
+        FI
+    ELIF (EQUAL id 5) # Extract torrent
+        IF (LENGTH data)
+            SET cache data
+            SET data (READ data "ascii")
+            SET data (TORRENT_LIST_AFTER data "info")
+            SET name (TORRENT_STRING_AFTER data "name")
+            SET items (TORRENT_ITEMS data)
+            IF (EQUAL (COUNT items) 0)
+                SET_HASH item "id" 1
+                SET_HASH item "name" name
+                SET_HASH item "index" -1
+                APPEND_LIST items item
+            FI
+            SET name (LATIN_TO_UTF8 name)
+            SET folders (TORRENT_FOLDERS items)
+            FOREACH folders data
+                FOREACH (GET_HASH folders "items") data
+                    SET title (LATIN_TO_UTF8 (GET_HASH data "name"))
+                    SET extension (EXTRACT_URL_EXTENSION title)
+                    IF (EXTENSION_IS_MEDIA extension)
+                        SET source (APPEND url '#' (GET_HASH data "id") '.' extension)
+                        SET_HASH track "source" soure
+                        SET_HASH track "state" "cover"
+                        SET_HASH track "title" title
+                        SET_HASH track "author" name
+                        SET_HASH track "feed" url
+                        APPEND_LIST tracks track
+                    FI
+                END
+            END
+            SET clearDuplicate true
+        FI
+        SET sources (GET_LIST queryData 0)
+        IF (COUNT sources)
+            SET source (TAKE_AT urls 0)
+            IF (START_WITH source "magnet:?")
+                SET_HASH next "type" "torrent"
+                SET_HASH next "timeout" 10000
+            ELSE
+                SET_HASH next "timeout" 3000
+            FI
+            SET_HASH next "url" source
+            SET_HASH next "id" 5
+            SET_HASH next "queryData" (LIST sources urls)
+            SET_HASH next "skipError" true
+        ELSE
+            SET_HASH next "backend" "bittorrent"
+            SET_HASH next "url" (TAKE_AT urls 0)
+            SET_HASH next "id" 4
+            SET_HASH next "queryData" urls
+            SET_HASH next "skipErrory" true
+            SET_HASH next "timeout" 3000
+        ELSE
+        FI
+    ELSE
+        SET cache data
+        SET data (READ data "ascii")
+        SET data (TORRENT_LIST_AFTER data "info")
+        SET name (TORRENT_STRING_AFTER data "name")
+        SET items (TORRENT_ITEMS data)
+        IF (COUNT items 0)
+            SET_HASH item "id" 1
+            SET_HASH item "name" name
+            SET_HASH item "index" -1
+            APPEND_LIST items item
+        FI
+        SET name (LATIN_TO_UTF8 name)
+        SET folders (TORRENT_FOLDERS items)
+        FOREACH folders data
+            FOREACH (GET_HASH folders "items") data
+                SET title (LATIN_TO_UTF8 (GET_HASH data "name"))
+                SET extension (EXTRACT_URL_EXTENSION title)
+                IF (EXTENSION_IS_MEDIA extension)
+                    SET itemId (GET_HASH data "id")
+                    SET source (APPEND url '#' itemId '.' extension)
+                    SET_HASH track "source" soure
+                    SET_HASH track "state" "cover"
+                    SET_HASH track "title" title
+                    SET_HASH track "author" name
+                    SET_HASH track "feed" url
+                    APPEND_LIST tracks track
+                    APPEND_LIST ids itemId
+                FI
+            END
+        END
+        SET title name
+        IF (EQUAL id 0)
+            IF (EQUAL queryData -1)
+                RETURN
+            FI
+            FOREACH ids id
+                IF (EQUAL id queryData)
+                    SET currentIndex i
+                    BREAK
+                FI
+                SET i (ADD i 1)
+            END
+        ELSE
+            SET clearDuplicate true
+        FI
+    FI
+
+
+EXTRACT_FOLDER: |
+    IF (EQUAL id 0) # Search urls
+        SET data (READ data "utf-8")
+        SET source (SLICE_IN data ";nrj('" "'")
+        SET_HASH next "backend" "bittorrent"
+        SET_HASH next "url" (APPEND "https://duckduckgo.com" source)
+        SET_HASH next "id" id
+        SET_HASH next "queryData" queryData
+    ELIF (EQUAL id 1) # Extract urls
+        SET string (SLICE_IN data "('d',[" "]);")
+        SET list (SPLIT_JSON string)
+        FOREACH list data
+            SET source (EXTRACT_JSON_UTF8 data 'c')
+            IF (EQUAL (LENGTH source 0))
+            OR (CONTAIN_LIST urls source)
+                CONTINUE
+            FI
+            APPEND_LIST urls source
+            IF (EQUAL (COUNT urls) 20)
+                BREAK
+            FI
+        END
+    ELSE # Extract sources
+        SET data (EXTRACT_HTML data url ("http" "|.torrent" "magnet:?"))
+        IF (EQUAL id 2)
+            FOREACH (GET_HASH data "sources") data
+                SET url (GET_HASH data "url")
+                SET valid false
+                IF (EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
+                    SET_HASH item "type" "playlist"
+                    SET_HASH item "state" "default"
+                    SET_HASH item "source" url
+                    SET_HASH item "title" (APPEND "Torrent" " - " (SIMPLIFY url))
+                    APPEND_LIST items item
+                    SET valid true
+                FI
+                IF (EQUAL valid false)
+                AND (START_WITH url "magnet:?")
+                    SET_HASH item "type" "playlist"
+                    SET_HASH item "state" "default"
+                    SET_HASH item "source" url
+                    SET_HASH item "title" (APPEND "Magnet" " - " (SIMPLIFY url))
+                    APPEND_LIST items item
+                FI
+                IF (valid)
+                    SET index (ADD index 1)
+                    IF (EQUAL index 5)
+                        BREAK
+                    FI
+                FI
+            END
+        ELIF (EQUAL id 3)
+            FOREACH (GET_HASH data "sources") data
+                SET url (GET_HASH data "url")
+                IF (EQUAL (EXTRACT_URL_EXTENSION url) "torrent")
+                    SET_HASH item "type" "playlist"
+                    SET_HASH item "state" "default"
+                    SET_HASH item "source" url
+                    SET_HASH item "title" (APPEND "Torrent" " - " (SIMPLIFY url))
+                    APPEND_LIST items item
+                    SET index (ADD index 1)
+                    IF (EQUAL index 5)
+                        BREAK
+                    FI
+                FI
+            END
+        ELSE # (EQUAL id 4)
+            FOREACH (GET_HASH data "sources") data
+                SET url (GET_HASH data "url")
+                IF (START_WITH url "magnet:?")
+                    SET_HASH item "type" "playlist"
+                    SET_HASH item "state" "default"
+                    SET_HASH item "source" url
+                    SET_HASH item "title" (APPEND "Magnet" " - " (SIMPLIFY url))
+                    APPEND_LIST items item
+                    SET index (ADD index 1)
+                    IF (EQUAL index 5)
+                        BREAK
+                    FI
+                FI
+            END
+        FI
+        SET next "backend" "bittorrent"
+        SET next "url" (TAKE_AT queryData 0)
+        SET next "id" id
+        SET next "queryData" queryData
+        SET next "skipError" true
+        SET next "timeout" 3000
+        SET clearDuplicate true
     FI

@@ -22,7 +22,7 @@ CREATE_QUERY: |
     IF (NOT_EQUAL method "cover")
         RETURN
     FI
-    IF (CONTAINS_REGEXP q "^[({\\[]")
+    IF (CONTAIN_REGEXP q "^[({\\[]")
         SET index (INDEX_REGEXP_END q "[)}\\]]")
         IF (NOT_EQUAL index -1)
             SET q (MID q index)
@@ -30,14 +30,14 @@ CREATE_QUERY: |
     FI
     SET temp (SPLIT q ' ')
     FOREACH temp value
-        IF (EQUAL (CONTAINS_REGEXP value "^[({\\[]") false)
+        IF (EQUAL (CONTAIN_REGEXP value "^[({\\[]") false)
             BREAK
         FI
         APPEND_LIST list value
     END
     SET q (JOIN list ' ')
     REPLACE_REGEXP q ' ' "[,.:\\-_(){}\\[\\]]"
-    SET list SPLIT ((SIMPLIFY (LOWER q)) ' ')
+    SET list (SPLIT (SIMPLIFY (LOWER q)) ' ')
     SET temp list
     FOREACH temp value
         IF (EQUAL value 0)
@@ -46,22 +46,26 @@ CREATE_QUERY: |
         REMOVE_LIST list 0
     END
     FOREACH list value
+        #------------------------------------------------------------------------------------------
+        # Get type
+        #------------------------------------------------------------------------------------------
         SET length (LENGTH value)
         IF (EQUAL length 4)
             IF (GREATER_EQUAL value 1800)
                 SET type 1 # Movie
             FI
-        ELIF (STARTS_WITH data 's')
+        ELIF (START_WITH data 's')
             SET index (INDEX_REGEXP_END value "[^0-9]" 1)
-            IF (NOT_EQUALS index -1)
-            AND (EQUALS (GET_CHAR value index) 'e')
+            IF (NOT_EQUAL index -1)
+            AND (EQUAL (GET_CHAR value index) 'e')
                 SET index (INDEX_REGEXP_END value "[^0-9]" (ADD index 1))
                 IF (EQUAL index -1)
                     SET type 2 # Show
                 FI
             FI
         FI
-        IF (EQUALS type 1) # Movie
+        #------------------------------------------------------------------------------------------
+        IF (EQUAL type 1) # Movie
             SET index (ADD i 1)
             IF (EQUAL index (COUNT list))
                 IF (LENGTH title 0)
@@ -70,7 +74,7 @@ CREATE_QUERY: |
                 CHOP title 1
             ELSE
                 SET data (GET_LIST list index)
-                IF (EQUALS (LENGTH data) 4)
+                IF (EQUAL (LENGTH data) 4)
                 AND (GREATER_EQUAL data 1800)
                     APPEND title value
                     SET value data
@@ -86,7 +90,19 @@ CREATE_QUERY: |
             ADD_QUERY url "language" "en"
             SET id 1
             RETURN
-        ELIF (EQUALS type 2) # Show
+        ELIF (EQUAL type 2) # Show
+            SET index (INDEX_OF value 'e')
+            SET season (MID value 1 (SUB index 1))
+            IF (LESSER season 1)
+                RETURN
+            FI
+            SET episode (MID value (ADD index 1))
+            IF (LESSER episode 1)
+                RETURN
+            FI
+            #--------------------------------------------------------------------------------------
+            # Extract show
+            #--------------------------------------------------------------------------------------
         ELSE
         FI
         ADD i 1

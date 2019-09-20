@@ -28,7 +28,7 @@ validate: ^vimeo.com|^player.vimeo.com
 
 #VALIDATE: |
     #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (STARTS_WITH_REGEXP url "vimeo.com|player.vimeo.com")
+    #RETURN (START_WITH_REGEXP url "vimeo.com|player.vimeo.com")
 
 TRACK_ID: |
     SET id (LAST_INDEX_END url "/")
@@ -37,22 +37,22 @@ TRACK_ID: |
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
     IF (EQUAL id 0)
-    OR (CONTAINS url (APPEND "/channels/" id))
-    OR (CONTAINS url (APPEND "/groups/" id))
+    OR (CONTAIN url (APPEND "/channels/" id))
+    OR (CONTAIN url (APPEND "/groups/" id))
         RETURN ""
     FI
     RETURN id
 
 PLAYLIST_INFO: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (EQUAL (STARTS_WITH url "vimeo.com") false)
+    IF (EQUAL (START_WITH url "vimeo.com") false)
         RETURN
     FI
-    IF (STARTS_WITH url "vimeo.com/channels/")
-    OR (STARTS_WITH url "vimeo.com/groups/")
+    IF (START_WITH url "vimeo.com/channels/")
+    OR (START_WITH url "vimeo.com/groups/")
         SET type "feed"
         SET id (EXTRACT_URL_ELEMENT url 2 10)
-    ELIF (STARTS_WITH url "vimeo.com/")
+    ELIF (START_WITH url "vimeo.com/")
         SET id (EXTRACT_URL_ELEMENT url 10)
         IF (NUMBER id)
             RETURN
@@ -73,8 +73,8 @@ QUERY_SOURCE: |
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
     IF (EQUAL id "")
-    OR (CONTAINS url (APPEND "/channels/" id))
-    OR (CONTAINS url (APPEND "/groups/" id))
+    OR (CONTAIN url (APPEND "/channels/" id))
+    OR (CONTAIN url (APPEND "/groups/" id))
         RETURN
     FI
     SET url (APPEND "https://player.vimeo.com/video/" id)
@@ -86,21 +86,21 @@ QUERY_TRACK: |
     FI
     SET id (EXTRACT_URL_ELEMENT url id)
     IF (EQUAL id "")
-    OR (CONTAINS url (APPEND "/channels/" id))
-    OR (CONTAINS url (APPEND "/groups/" id))
+    OR (CONTAIN url (APPEND "/channels/" id))
+    OR (CONTAIN url (APPEND "/groups/" id))
         RETURN
     FI
     SET url (APPEND "https://vimeo.com/" id)
 
 QUERY_PLAYLIST: |
     SET url (REMOVE_URL_PREFIX url)
-    IF (EQUAL (STARTS_WITH url "vimeo.com") false)
+    IF (EQUAL (START_WITH url "vimeo.com") false)
         RETURN
     FI
-    IF (STARTS_WITH url "vimeo.com/channels/")
-    OR (STARTS_WITH url "vimeo.com/groups/")
+    IF (START_WITH url "vimeo.com/channels/")
+    OR (START_WITH url "vimeo.com/groups/")
         SET id (EXTRACT_URL_ELEMENT url 2 10)
-    ELIF (STARTS_WITH url "vimeo.com/")
+    ELIF (START_WITH url "vimeo.com/")
         SET id (EXTRACT_URL_ELEMENT url 10)
         IF (NUMBER id)
             RETURN
@@ -109,7 +109,7 @@ QUERY_PLAYLIST: |
     IF (EQUAL id "")
         RETURN
     FI
-    IF (STARTS_WITH id "tag:")
+    IF (START_WITH id "tag:")
         SET url (APPEND "https://vimeo.com/" id)
         APPEND url "/page:1/sort:date/format:thumbnail"
     ELSE
@@ -313,9 +313,9 @@ EXTRACT_PLAYLIST: |
         SET index (LAST_INDEX_END url '/')
         IF (NOT_EQUAL index -1)
             SET id (EXTRACT_URL_ELEMENT url index)
-            IF (NOT_EQUAL (NUMBER id) 0)
-            AND (EQUAL (CONTAINS url (APPEND "/channels/" id)) false)
-            AND (EQUAL (CONTAINS url (APPEND "/groups/" id)) false)
+            IF (NUMBER id)
+            AND (EQUAL (CONTAIN url (APPEND "/channels/" id)) false)
+            AND (EQUAL (CONTAIN url (APPEND "/groups/" id)) false)
                 SET_HASH track "source" (APPEND "https://vimeo.com/" id)
             FI
         FI
