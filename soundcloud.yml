@@ -24,17 +24,13 @@ validate: ^soundcloud.com|^api.soundcloud.com|^a-v2.sndcdn.com
 # Interface
 #--------------------------------------------------------------------------------------------------
 
-#VALIDATE: |
-    #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (START_WITH_REGEXP url "soundcloud.com|api.soundcloud.com|a-v2.sndcdn.com")
-
 TRACK_ID: |
-    SET url (REMOVE_URL_PREFIX url)
+    SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "soundcloud.com/") false)
-    OR (CONTAIN_REGEXP url "/tracks/|/sets/|/albums/|/reposts/|/tags/|/popular/")
+    OR (CONTAIN url (REGEXP "/tracks/|/sets/|/albums/|/reposts/|/tags/|/popular/"))
         RETURN ""
     FI
-    SET url (EXTRACT_URL_ELEMENTS url 2 15)
+    SET url (URL_ELEMENTS url 2 15)
     IF (EQUAL (COUNT_STRING url '/') 1)
         RETURN url
     ELSE
@@ -45,12 +41,12 @@ TRACK_OUTPUT: |
     RETURN "audio"
 
 PLAYLIST_INFO: |
-    SET url (REMOVE_URL_PREFIX url)
+    SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH source "soundcloud.com/") false)
         RETURN
     FI
     SET url (MID url 15)
-    IF (CONTAIN_REGEXP url "[.\\?#]")
+    IF (CONTAIN url (REGEXP "[.\\?#]"))
         RETURN
     ELIF (COUNT_STRING url '/')
         IF (CONTAIN url "/sets/")
@@ -63,10 +59,10 @@ PLAYLIST_INFO: |
     FI
 
 URL_TRACK: |
-    RETURN (APPEND "https://www.soundcloud.com/" id)
+    RETURN (APPEND_CHAR "https://www.soundcloud.com/" id)
 
 URL_PLAYLIST: |
-    RETURN (APPEND "https://www.soundcloud.com/" id)
+    RETURN (APPEND_CHAR "https://www.soundcloud.com/" id)
 
 QUERY_SOURCE: |
     IF (EQUAL global "")
@@ -79,12 +75,12 @@ QUERY_SOURCE: |
 
 QUERY_PLAYLIST: |
     SET source url
-    SET source (REMOVE_URL_PREFIX source)
+    SET source (URL_REMOVE_PREFIX source)
     IF (EQUAL (START_WITH source "soundcloud.com/") false)
         RETURN
     FI
     SET source (MID source 15)
-    IF (CONTAIN_REGEXP source "[.\\?#]")
+    IF (CONTAIN source (REGEXP "[.\\?#]"))
         RETURN
     ELIF (COUNT_STRING source '/')
         IF (CONTAIN source "/sets/")
@@ -111,49 +107,48 @@ QUERY_PLAYLIST: |
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
-            SET source (APPEND "https://api.soundcloud.com/tracks?q=" q "&limit=50")
+            SET source (APPEND_CHAR "https://api.soundcloud.com/tracks?q=" q "&limit=50")
             IF (EQUAL global "")
                 SET url "https://soundcloud.com"
                 SET id -1
                 SET queryData source 0
             ELSE
-                SET url (ADD_QUERY source "client_id" id)
+                SET url (URL_ADD_QUERY source "client_id" id)
                 SET queryData global
             FI
         ELIF (EQUAL label "people")
-            SET source (APPEND "https://api.soundcloud.com/users?q=" q "&limit=50")
+            SET source (APPEND_CHAR "https://api.soundcloud.com/users?q=" q "&limit=50")
             IF (EQUAL global "")
                 SET url "https://soundcloud.com"
                 SET id -1
                 SET queryData source 0
             ELSE
-                SET url (ADD_QUERY source "client_id" id)
+                SET url (URL_ADD_QUERY source "client_id" id)
                 SET queryData global
             FI
         ELIF (EQUAL label "playlists")
-                SET source (APPEND "https://api.soundcloud.com/playlists?q=" q "&limit=50")
+                SET source (APPEND_CHAR "https://api.soundcloud.com/playlists?q=" q "&limit=50")
                 IF (EQUAL global "")
                     SET url "https://soundcloud.com"
                     SET id -1
                     SET queryData source 1
                 ELSE
-                    SET url (ADD_QUERY source "client_id" id)
+                    SET url (URL_ADD_QUERY source "client_id" id)
                     SET id 1
                     SET queryData global
                 FI
         FI
     ELIF (EQUAL method "related")
-        IF (EQUAL label "tracks")
-            SET source (APPEND "https://soundcloud.com/" q)
-            IF (EQUAL global "")
-                SET url "https://soundcloud.com"
-                SET id -1
-                SET queryData source 3
-            ELSE
-                SET url source
-                SET id 3
-                SET queryData global
-            FI
+    AND (EQUAL label "tracks")
+        SET source (APPEND_CHAR "https://soundcloud.com/" q)
+        IF (EQUAL global "")
+            SET url "https://soundcloud.com"
+            SET id -1
+            SET queryData source 3
+        ELSE
+            SET url source
+            SET id 3
+            SET queryData global
         FI
     FI
 
@@ -161,16 +156,16 @@ EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
-        SET_HASH next "url" (EXTRACT_ATTRIBUTE_AT data (ADD index 25))
+        SET_HASH next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         SET_HASH next "id" -2
         SET_HASH next "queryData" queryData
         RETURN
     ELIF (EQUAL id -2)
         SET index (INDEX_OF data "client_id")
-        SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
+        SET id (HTML_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
         IF (START_WITH string "https://api")
-            ADD_QUERY string "client_id" id
+            URL_ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string
         SET_HASH next "id" (GET_LIST queryData 1)
@@ -178,46 +173,43 @@ EXTRACT_SOURCE: |
         SET backup id
         RETURN
     ELIF (EQUAL id 0)
-        FOREACH (LIST 67 68 69) value
-            SET index (INDEX_END data "<script>webpackJsonp")
-            SET index (INDEX_END data (APPEND "\"id\":" value))
-            SET string (EXTRACT_JSON data "data" index)
+        FOREACH (LIST 16 17 18) value
+            SET index (INDEX_END data (APPEND_CHAR "\"id\":" value))
+            SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
             AND (EQUAL (START_WITH string "{\"allows") false)
-                SET data string
                 BREAK
             FI
         END
-        SET id (EXTRACT_JSON_UTF8 data "id")
-        SET_HASH next "url" (APPEND "https://api.soundcloud.com/tracks/" id "/streams?client_id=" queryData)
+        SET id (JSON_EXTRACT_UTF8 string "id")
+        SET_HASH next "url" (APPEND_CHAR "https://api.soundcloud.com/tracks/" id \
+                                         "/streams?client_id=" queryData)
         SET_HASH next "id" 1
     ELSE
-        SET_HASH medias "480" (EXTRACT_JSON_UTF8 data "http_mp3_128_url")
+        SET_HASH medias "480" (JSON_EXTRACT_UTF8 data "http_mp3_128_url")
     FI
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    FOREACH (LIST 67 68 69) value
-        SET index (INDEX_END data "<script>webpackJsonp")
-        SET index (INDEX_END data (APPEND "\"id\":" value))
-        SET string (EXTRACT_JSON data "data" index)
+    FOREACH (LIST 16 17 18) value
+        SET index (INDEX_END data (APPEND_CHAR "\"id\":" value))
+        SET string (JSON_EXTRACT data "data" index)
         IF (LENGTH string)
         AND (EQUAL (START_WITH string "{\"allows") false)
-            SET data string
             BREAK
         FI
     END
-    SET title (EXTRACT_JSON_UTF8 data "title")
-    SET cover (EXTRACT_JSON data "artwork_url")
+    SET title (JSON_EXTRACT_UTF8 string "title")
+    SET cover (JSON_EXTRACT string "artwork_url")
     IF (EQUAL cover "null")
-        SET cover (EXTRACT_JSON data "avatar_url")
+        SET cover (JSON_EXTRACT string "avatar_url")
     FI
-    REPLACE cover "-large." "-t500x500."
-    SET author (EXTRACT_JSON data "user")
-    SET feed (EXTRACT_JSON author "permalink")
-    SET author (EXTRACT_JSON_UTF8 author "username")
-    SET duration (EXTRACT_JSON data "duration")
-    SET date (EXTRACT_JSON data "created_at")
+    SET cover (REPLACE cover "-large." "-t500x500.")
+    SET author (JSON_EXTRACT string "user")
+    SET feed (JSON_EXTRACT author "permalink")
+    SET author (JSON_EXTRACT_UTF8 author "username")
+    SET duration (JSON_EXTRACT string "duration")
+    SET date (JSON_EXTRACT string "created_at")
     SET date (MID date 0 19)
     IF (CONTAIN date ' ')
         SET date (DATE date "yyyy/MM/dd hh:mm:ss")
@@ -229,16 +221,16 @@ EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
-        SET_HASH next "url" (EXTRACT_ATTRIBUTE_AT data (ADD index 25))
+        SET_HASH next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         SET_HASH next "id" -2
         SET_HASH next "queryData" queryData
         RETURN
     ELIF (EQUAL id -2)
         SET index (INDEX_OF data "client_id")
-        SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
+        SET id (HTML_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
         IF (START_WITH string "https://api")
-            ADD_QUERY string "client_id" id
+            URL_ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string
         SET_HASH next "id" (GET_LIST queryData 1)
@@ -247,23 +239,24 @@ EXTRACT_PLAYLIST: |
         RETURN
     ELIF (EQUAL id 0)
         IF (EQUAL (START_WITH data '[') false)
-            SET data (EXTRACT_JSON data "tracks")
+            SET data (JSON_EXTRACT data "tracks")
         FI
-        FOREACH (SPLIT_JSON data) data
-            SET source (EXTRACT_JSON data "permalink")
-            SET user (EXTRACT_JSON data "user")
-            SET feed (EXTRACT_JSON user "permalink")
-            SET_HASH track "source" (APPEND "https://soundcloud.com/" feed '/' source)
-            SET_HASH track "title" (EXTRACT_JSON_UTF8 data "title")
-            SET cover (EXTRACT_JSON data "artwork_url")
+        PRINT "HELLO SOUNDCLOUD TRACKS"
+        FOREACH (JSON_SPLIT data) data
+            SET source (JSON_EXTRACT data "permalink")
+            SET user (JSON_EXTRACT data "user")
+            SET feed (JSON_EXTRACT user "permalink")
+            SET_HASH track "source" (APPEND_CHAR "https://soundcloud.com/" feed '/' source)
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 data "title")
+            SET cover (JSON_EXTRACT data "artwork_url")
             IF (EQUAL cover "null")
-                SET cover (EXTRACT_JSON data "avatar_url")
+                SET cover (JSON_EXTRACT data "avatar_url")
             FI
             SET_HASH track "cover" (REPLACE cover "-large." "-t500x500.")
             SET_HASH track "feed" feed
-            SET_HASH track "author" (EXTRACT_JSON_UTF8 user "username")
-            SET_HASH track "duration" (EXTRACT_JSON data "duration")
-            SET date (EXTRACT_JSON data "created_at")
+            SET_HASH track "author" (JSON_EXTRACT_UTF8 user "username")
+            SET_HASH track "duration" (JSON_EXTRACT data "duration")
+            SET date (JSON_EXTRACT data "created_at")
             SET date (MID date 0 19)
             IF (CONTAIN date ' ')
                 SET_HASH track "date" (DATE date "yyyy/MM/dd hh:mm:ss")
@@ -273,69 +266,65 @@ EXTRACT_PLAYLIST: |
             APPEND_LIST tracks track
         END
     ELIF (EQUAL id 1) # playlist
-        FOREACH (LIST 84 85 86) value
-            SET index (INDEX_END data "<script>webpackJsonp")
-            SET index (INDEX_END data (APPEND "\"id\":" value))
-            SET string (EXTRACT_JSON data "data" index)
+        FOREACH (LIST 40 41 42) value
+            SET index (INDEX_END data (APPEND_CHAR "\"id\":" value))
+            SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
             AND (EQUAL (START_WITH string "{\"allows") false)
-                SET data string
                 BREAK
             FI
         END
-        SET index (LAST_INDEX_OF data "\"kind\":\"track\"")
-        SET data (MID data index)
-        SET id (EXTRACT_JSON_UTF8 data "id")
-        SET title (EXTRACT_JSON_UTF8 data "title")
-        SET index (INDEX_OF data "<img")
-        SET cover (EXTRACT_ATTRIBUTE data "src" index)
-        REPLACE cover "-large." "-t500x500."
-        SET_HASH next "url" (APPEND "https://api.soundcloud.com/playlists/" id "?client_id=" queryData)
+        SET index (LAST_INDEX_OF string "\"kind\":\"track\"")
+        SET string (MID string index)
+        SET id (JSON_EXTRACT_UTF8 string "id")
+        SET title (JSON_EXTRACT_UTF8 string "title")
+        SET index (INDEX_OF string "<img")
+        SET cover (HTML_ATTRIBUTE string "src" index)
+        SET cover (REPLACE cover "-large." "-t500x500.")
+        SET_HASH next "url" (APPEND_CHAR "https://api.soundcloud.com/playlists/" id "?client_id=" \
+                                         queryData)
     ELIF (EQUAL id 2) # feed
-        FOREACH (LIST 63 64 65) value
-            SET index (INDEX_END data "<script>webpackJsonp")
-            SET index (INDEX_END data (APPEND "\"id\":" value))
-            SET string (EXTRACT_JSON data "data" index)
+        FOREACH (LIST 30 31 32) value
+            SET index (INDEX_END data (APPEND_CHAR "\"id\":" value))
+            SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
             AND (EQUAL (START_WITH string "{\"allows") false)
-                SET data string
                 BREAK
             FI
         END
-        SET source (EXTRACT_JSON_UTF8 data "uri")
-        SET title (EXTRACT_JSON_UTF8 data "username")
-        SET cover (EXTRACT_JSON_UTF8 data "avatar_url")
-        REPLACE cover "-large." "-t500x500."
-        SET_HASH next "url" (APPEND source "/tracks?client_id=" queryData)
+        SET source (JSON_EXTRACT_UTF8 string "uri")
+        SET title (JSON_EXTRACT_UTF8 string "username")
+        SET cover (JSON_EXTRACT_UTF8 string "avatar_url")
+        SET cover (REPLACE cover "-large." "-t500x500.")
+        SET_HASH next "url" (APPEND_CHAR source "/tracks?client_id=" queryData)
     ELIF (EQUAL id 3) # related
-        FOREACH (LIST 67 68 69) value
-            SET index (INDEX_END data "<script>webpackJsonp")
-            SET index (INDEX_END data (APPEND "\"id\":" value))
-            SET string (EXTRACT_JSON data "data" index)
+        FOREACH (LIST 16 17 18) value
+            SET index (INDEX_END data (APPEND_CHAR "\"id\":" value))
+            SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
             AND (EQUAL (START_WITH string "{\"allows") false)
-                SET data string
                 BREAK
             FI
         END
-        SET id (EXTRACT_JSON_UTF8 data "id")
-        SET_HASH next "url" (APPEND "https://api.soundcloud.com/tracks/" id "/related?limit=50&client_id=" queryData)
+        SET id (JSON_EXTRACT_UTF8 string "id")
+        SET_HASH next "url" (APPEND_CHAR "https://api.soundcloud.com/tracks/" id \
+                                         "/related?limit=50&client_id=" queryData)
     FI
 
 EXTRACT_FOLDER: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
-        SET_HASH next "url" (EXTRACT_ATTRIBUTE_AT data (ADD index 25))
+        SET_HASH next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         SET_HASH next "id" -2
         SET_HASH next "queryData" queryData
         RETURN
     ELIF (EQUAL id -2)
         SET index (INDEX_OF data "client_id")
-        SET id (EXTRACT_ATTRIBUTE_AT data (ADD index 11))
+        SET id (HTML_ATTRIBUTE_AT data (ADD index 11))
         SET string (GET_LIST queryData 0)
         IF (START_WITH string "https://api")
-            ADD_QUERY string "client_id" id
+            URL_ADD_QUERY string "client_id" id
         FI
         SET_HASH next "url" string
         SET_HASH next "id" (GET_LIST queryData 1)
@@ -343,14 +332,15 @@ EXTRACT_FOLDER: |
         SET backup id
         RETURN
     FI
-    SET list (SPLIT_JSON data)
+    SET list (JSON_SPLIT data)
     IF (EQUAL id 0) # people
         FOREACH list data
             SET_HASH item "type" "feed"
             SET_HASH item "state" "default"
-            SET_HASH item "source" (APPEND "https://soundcloud.com/" (EXTRACT_JSON data "permalink"))
-            SET_HASH item "title" (EXTRACT_JSON_UTF8 data "username")
-            SET cover (EXTRACT_JSON data "avatar_url")
+            SET_HASH item "source" (APPEND_CHAR "https://soundcloud.com/" \
+                                                (JSON_EXTRACT data "permalink"))
+            SET_HASH item "title" (JSON_EXTRACT_UTF8 data "username")
+            SET cover (JSON_EXTRACT data "avatar_url")
             SET_HASH item "cover" (REPLACE cover "-large." "-t500x500.")
             APPEND_LIST items item
         END
@@ -358,11 +348,11 @@ EXTRACT_FOLDER: |
         FOREACH list data
             SET_HASH item "type" "playlist"
             SET_HASH item "state" "default"
-            SET_HASH item "source" (EXTRACT_JSON data "permalink_url")
-            SET_HASH item "title" (EXTRACT_JSON_UTF8 data "title")
-            SET cover (EXTRACT_JSON data "artwork_url")
+            SET_HASH item "source" (JSON_EXTRACT data "permalink_url")
+            SET_HASH item "title" (JSON_EXTRACT_UTF8 data "title")
+            SET cover (JSON_EXTRACT data "artwork_url")
             IF (EQUAL cover "null")
-                SET cover (EXTRACT_JSON data "avatar_url")
+                SET cover (JSON_EXTRACT data "avatar_url")
             FI
             SET_HASH item "cover" (REPLACE cover "-large." "-t500x500.")
             APPEND_LIST items item

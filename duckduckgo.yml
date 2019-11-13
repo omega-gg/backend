@@ -18,25 +18,21 @@ validate: ^duckduckgo.com
 # Interface
 #--------------------------------------------------------------------------------------------------
 
-#VALIDATE: |
-    #SET url (REMOVE_URL_PREFIX url)
-    #RETURN (START_WITH_REGEXP url "duckduckgo.com")
-
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "urls")
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            ADD_QUERY url "q" q
-            ADD_QUERY url "kl" "us-en"
-            ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "kl" "us-en"
+            URL_ADD_QUERY url "kp" "-2"
             SET data q
         ELIF (EQUAL label "site")
             SET url "https://duckduckgo.com/"
             SET q (SIMPLIFY q)
-            ADD_QUERY url "q" q
-            ADD_QUERY url "kl" "us-en"
-            ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "kl" "us-en"
+            URL_ADD_QUERY url "kp" "-2"
             SET id 2
             SET data q
         FI
@@ -45,14 +41,13 @@ CREATE_QUERY: |
 EXTRACT_FOLDER: |
     IF (EQUAL id 1) # Search urls
         SET data (SLICE_IN data "('d',[" "]);")
-        SET list (SPLIT_JSON data)
+        SET list (JSON_SPLIT data)
         FOREACH list data
-            SET source (EXTRACT_JSON_UTF8 data 'c')
+            SET source (JSON_EXTRACT_UTF8 data 'c')
             IF (EQUAL source "")
                 CONTINUE
             FI
             SET source (URL_NAME source)
-            PRINT "source" source
             IF (CONTAIN_LIST urls source)
                 CONTINUE
             FI
@@ -64,13 +59,13 @@ EXTRACT_FOLDER: |
         END
     ELIF (EQUAL id 3) # Search site
         SET data (SLICE_IN data "('d',[" "]);")
-        SET list (SPLIT_JSON data)
+        SET list (JSON_SPLIT data)
         FOREACH list data
-            SET source (EXTRACT_JSON_UTF8 data 'c')
+            SET source (JSON_EXTRACT_UTF8 data 'c')
             IF (EQUAL source "")
                 CONTINUE
             FI
-            SET title (EXTRACT_JSON_UTF8 data 't')
+            SET title (JSON_EXTRACT_UTF8 data 't')
             IF (EQUAL title "EOF")
                 BREAK
             FI
@@ -83,7 +78,7 @@ EXTRACT_FOLDER: |
     ELSE
         SET data (READ data "utf-8")
         SET data (SLICE_IN data ";nrj('" "'")
-        SET_HASH next "url" (APPEND "https://duckduckgo.com" data)
+        SET_HASH next "url" (APPEND_CHAR "https://duckduckgo.com" data)
         SET_HASH next "id" (ADD id 1)
     FI
     SET scanItems true

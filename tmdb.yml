@@ -19,32 +19,35 @@ validate: ^themoviedb.org
 #--------------------------------------------------------------------------------------------------
 
 CREATE_QUERY: |
+    #----------------------------------------------------------------------------------------------
+    # Get list
+    #----------------------------------------------------------------------------------------------
     IF (NOT_EQUAL method "cover")
         RETURN
     FI
-    IF (CONTAIN_REGEXP q "^[({\\[]")
-        SET index (INDEX_REGEXP_END q "[)}\\]]")
+    IF (CONTAIN q (REGEXP "^[({\\[]"))
+        SET index (INDEX_END q (REGEXP "[)}\\]]"))
         IF (NOT_EQUAL index -1)
             SET q (MID q index)
         FI
     FI
-    SET temp (SPLIT q ' ')
-    FOREACH temp value
-        IF (EQUAL (CONTAIN_REGEXP value "^[({\\[]") false)
+    SET list (SPLIT q ' ')
+    FOREACH list value
+        IF (EQUAL (CONTAIN value (REGEXP "^[({\\[]")) false)
             BREAK
         FI
-        APPEND_LIST list value
+        REMOVE_LIST_AT list 0
     END
     SET q (JOIN list ' ')
-    REPLACE_REGEXP q ' ' "[,.:\\-_(){}\\[\\]]"
-    SET list (SPLIT (SIMPLIFY (LOWER q)) ' ')
-    SET temp list
-    FOREACH temp value
-        IF (EQUAL value 0)
+    SET q (REPLACE q (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+    SET list (SPLIT (LOWER (SIMPLIFY q)) ' ')
+    FOREACH list value
+        IF (EQUAL (NUMBER value) 0)
             BREAK
         FI
-        REMOVE_LIST list 0
+        REMOVE_LIST_AT list 0
     END
+    #----------------------------------------------------------------------------------------------
     FOREACH list value
         #------------------------------------------------------------------------------------------
         # Get type
@@ -54,11 +57,11 @@ CREATE_QUERY: |
             IF (GREATER_EQUAL value 1800)
                 SET type 1 # Movie
             FI
-        ELIF (START_WITH data 's')
-            SET index (INDEX_REGEXP_END value "[^0-9]" 1)
+        ELIF (START_WITH value 's')
+            SET index (INDEX_OF value (REGEXP "[^0-9]") 1)
             IF (NOT_EQUAL index -1)
             AND (EQUAL (GET_CHAR value index) 'e')
-                SET index (INDEX_REGEXP_END value "[^0-9]" (ADD index 1))
+                SET index (INDEX_END value (REGEXP "[^0-9]") (ADD index 1))
                 IF (EQUAL index -1)
                     SET type 2 # Show
                 FI
@@ -68,45 +71,132 @@ CREATE_QUERY: |
         IF (EQUAL type 1) # Movie
             SET index (ADD i 1)
             IF (EQUAL index (COUNT list))
-                IF (LENGTH title 0)
+                IF (EQUAL (LENGTH title) 0)
                     RETURN
                 FI
-                CHOP title 1
+                SET title (CHOP title 1)
             ELSE
                 SET data (GET_LIST list index)
                 IF (EQUAL (LENGTH data) 4)
                 AND (GREATER_EQUAL data 1800)
-                    APPEND title value
+                    SET title (APPEND_CHAR title value)
                     SET value data
                 ELSE
-                    IF (LENGTH title 0)
+                    IF (EQUAL (LENGTH title) 0)
                         RETURN
                     FI
-                    CHOP title 1
+                    SET title (CHOP title 1)
                 FI
             FI
             SET url "https://www.themoviedb.org/search"
-            ADD_QUERY url "query" (APPEND title " y:" value)
-            ADD_QUERY url "language" "en"
+            URL_ADD_QUERY url "query" (APPEND_CHAR title " y:" value)
+            URL_ADD_QUERY url "language" "en"
             SET id 1
             RETURN
         ELIF (EQUAL type 2) # Show
             SET index (INDEX_OF value 'e')
-            SET season (MID value 1 (SUB index 1))
+            SET season (NUMBER (MID value 1 (SUB index 1)))
             IF (LESSER season 1)
                 RETURN
             FI
-            SET episode (MID value (ADD index 1))
+            SET episode (NUMBER (MID value (ADD index 1)))
             IF (LESSER episode 1)
                 RETURN
             FI
-            #--------------------------------------------------------------------------------------
+            #======================================================================================
             # Extract show
+            #======================================================================================
+            # Get list
             #--------------------------------------------------------------------------------------
-        ELSE
+            IF (CONTAIN label (REGEXP "^[({\\[]"))
+                SET index (INDEX_END label (REGEXP "[)}\\]]"))
+                IF (NOT_EQUAL index -1)
+                    SET label (MID label index)
+                FI
+            FI
+            SET list (SPLIT label ' ')
+            FOREACH temp string
+                IF (EQUAL (CONTAIN string (REGEXP "^[({\\[]")) false)
+                    BREAK
+                FI
+                REMOVE_LIST_AT list 0
+            END
+            SET label (JOIN list ' ')
+            SET label (REPLACE label (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+            SET list (SPLIT (LOWER (SIMPLIFY label)) ' ')
+            FOREACH temp string
+                IF (EQUAL (NUMBER value) 0)
+                    BREAK
+                FI
+                REMOVE_LIST_AT list 0
+            END
+            #--------------------------------------------------------------------------------------
+            FOREACH list string
+                IF (START_WITH string 's')
+                    #SET length (LENGTH string)
+                    SET index (INDEX_OF string (REGEXP "[^0-9]") 1)
+                    IF (EQUAL index -1)
+                    AND (NOT_EQUAL (LENGTH show) 0)
+                        BREAK
+                    FI
+                    IF (EQUAL (GET_CHAR string index) 'e')
+                        SET index (INDEX_END string (REGEXP "[^0-9]") (ADD index 1))
+                        IF (EQUAL index -1)
+                        AND (NOT_EQUAL (LENGTH show) 0)
+                            BREAK
+                        FI
+                    FI
+                    SET index (ADD j 1)
+                    IF (NOT_EQUAL index (COUNT list))
+                    AND (NUMBER (GET_LIST list index))
+                    AND (NOT_EQUAL (LENGTH show) 0)
+                        BREAK
+                    FI
+                FI
+                SET show (APPEND_CHAR show (APPEND_CHAR string ' '))
+                SET j (ADD j 1)
+            END
+            SET show (CHOP show 1)
+            #======================================================================================
+            SET source (GET_HASH (GET_LIST global 1) show)
+            IF (LENGTH source)
+                SET list show
+                SET url (APPEND_CHAR source (NUMBER season) "/episode/" (NUMBER episode) \
+                         "/images/backdrops?language=en")
+                SET id 4
+            ELSE
+                SET list show season episode
+                SET url "https://www.themoviedb.org/search/tv"
+                URL_ADD_QUERY url "query" show
+                URL_ADD_QUERY url "language" en
+                SET id 3
+            FI
+            SET queryData list
+        ELIF (END_WITH value 'p')
+            SET temp value
+            SET temp (CHOP temp 1)
+            IF (NUMBER temp)
+                BREAK
+            FI
         FI
-        ADD i 1
+        SET title (APPEND_CHAR title value ' ')
+        SET i (ADD i 1)
     END
+    IF (EQUAL (LENGTH title) 0)
+        RETURN
+    FI
+    SET title (CHOP title 1)
+    SET index (LAST_INDEX_OF title ' ')
+    IF (NOT_EQUAL index -1)
+        SET string (MID title (ADD index 1))
+        IF (EXTENSION_IS_VIDEO string)
+            SET title (REMOVE_CHAR title index (SUB (LENGTH title) index))
+        FI
+    FI
+    SET url "https://www.themoviedb.org/search"
+    URL_ADD_QUERY url "query" title
+    URL_ADD_QUERY url "language" "en"
+    SET queryData title
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
@@ -116,8 +206,148 @@ EXTRACT_TRACK: |
         IF (EQUAL index -1)
             RETURN
         FI
-        SET_HASH track "cover" (EXTRACT_ATTRIBUTE data "href" index)
+        SET cover (HTML_ATTRIBUTE data "href" index)
+        SET_HASH track "cover" cover
+        #------------------------------------------------------------------------------------------
+        # Global
+        #------------------------------------------------------------------------------------------
+        IF (NOT_EQUAL cover "")
+            RETURN
+        FI
+        SET show (GET_LIST queryData 0)
+        SET list (GET_LIST global 0)
+        SET hash (GET_LIST global 1)
+        REMOVE_LIST list show
+        REMOVE_HASH hash show
+        SET global (LIST list hash)
+        #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 3) # Show
+        SET list (SLICES data "<div class=\"image_content\">" "<p class=\"overview\">")
+        IF (EQUAL (COUNT list) 0)
+            RETURN
+        FI
+        SET data (GET_LIST list 0)
+        #------------------------------------------------------------------------------------------
+        # listA
+        SET string (GET_LIST queryData 0)
+        SET string (REPLACE string (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+        SET listA (SPLIT (LOWER (SIMPLIFY string)) ' ')
+        #------------------------------------------------------------------------------------------
+        # listB
+        SET string (HTML_ATTRIBUTE_UTF8 data "title")
+        SET string (REPLACE string (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+        SET listB (SPLIT (LOWER (SIMPLIFY string)) ' ')
+        #------------------------------------------------------------------------------------------
+        IF (NOT_EQUAL (COUNT list) 1)
+            #--------------------------------------------------------------------------------------
+            # Match
+            #--------------------------------------------------------------------------------------
+            IF (EQUAL (COUNT listB) 1)
+            AND (GREATER (COUNT listA) 1)
+                RETURN
+            FI
+            #SET from 0
+            FOREACH listA valueA
+                SET from (INDEX_LIST listB valueA from)
+                IF (EQUAL from -1)
+                    SET from 0
+                    FOREACH listB valueB
+                        SET from (INDEX_LIST listA valueB from)
+                        IF (EQUAL from -1)
+                            RETURN
+                        FI
+                    END
+                    BREAK
+                FI
+            END
+            #--------------------------------------------------------------------------------------
+        FI
+        SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
+        SET source (APPEND_CHAR "https://www.themoviedb.org" source "/season/" \
+                                (TAKE_LIST_AT queryData 1) "/episode/" (TAKE_LIST_AT queryData 1) \
+                                "/images/backdrops?language=en")
+        SET_HASH next "url" source
+        SET_HASH next "id" 4
+        SET_HASH next "queryData" queryData
+        #------------------------------------------------------------------------------------------
+        # Global
+        #------------------------------------------------------------------------------------------
+        SET source (MID source 0 (INDEX_END "/season/"))
+        SET list (GET_LIST global 0)
+        SET hash (GET_LIST global 1)
+        IF (GREATER (COUNT list 100))
+            SET show (TAKE_LIST_AT list 0)
+            REMOVE_HASH hash show
+        FI
+        SET show (GET_LIST queryData 0)
+        REMOVE_LIST list show
+        APPEND_LIST list show
+        SET hash show source
+        SET global (LIST list hash)
+        #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 1) # Movie
+        SET data (SLICE_IN data "<div class=\"image_content\">" "<p class=\"overview\">")
+        IF (EQUAL (LENGTH data) 0)
+            RETURN
+        FI
+        #------------------------------------------------------------------------------------------
+        # Apply source
+        #------------------------------------------------------------------------------------------
+        SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
+        SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
+                                         "/images/backdrops?language=en")
+        SET_HASH next "id" 2
+        #------------------------------------------------------------------------------------------
     ELSE # Movie
+        SET listA (SLICES data "<div class=\"image_content\">" "<p class=\"overview\">")
+        IF (EQUAL (COUNT listA) 1)
+            #--------------------------------------------------------------------------------------
+            # Apply source
+            #--------------------------------------------------------------------------------------
+            SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE (GET_LIST listA 0) "href"))
+            SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
+                                             "/images/backdrops?language=en")
+            SET_HASH next "id" 2
+            #--------------------------------------------------------------------------------------
+            RETURN
+        FI
+        SET queryData (REPLACE queryData (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+        SET listB (SPLIT (LOWER (SIMPLIFY queryData)) ' ')
+        FOREACH listA data
+            SET data (LOWER (HTML_ATTRIBUTE_UTF8 data "title"))
+            SET data (REPLACE data (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+            SET listA (SIMPLIFY (SPLIT (LOWER data)) ' ')
+            #--------------------------------------------------------------------------------------
+            # Match
+            #--------------------------------------------------------------------------------------
+            SET from 0
+            IF (NOT_EQUAL (COUNT listB) 1)
+            OR (EQUAL (COUNT listA) 1)
+                SET from 0
+                FOREACH listA valueA
+                    SET from (INDEX_LIST listB valueA from)
+                    IF (EQUAL from -1)
+                        SET from 0
+                        FOREACH listB valueB
+                            SET from (INDEX_LIST listA valueB from)
+                            IF (EQUAL from -1)
+                                BREAK
+                            FI
+                        END
+                        BREAK
+                    FI
+                END
+            FI
+            IF (NOT_EQUAL from -1)
+                #----------------------------------------------------------------------------------
+                # Apply source
+                #----------------------------------------------------------------------------------
+                SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
+                SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
+                                                 "/images/backdrops?language=en")
+                SET_HASH next "id" 2
+                #----------------------------------------------------------------------------------
+                RETURN
+            FI
+        END
     FI

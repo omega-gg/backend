@@ -1,6 +1,10 @@
-bittorrent  bittorrent.yml  1.0.0 .torrent$|^magnet:?
-duckduckgo  duckduckgo.yml  1.0.0 ^duckduckgo.com
-tmdb        tmdb.yml        1.0.0 ^themoviedb.org
-dailymotion dailymotion.yml 1.0.0 ^dailymotion|^games.dailymotion.com
-vimeo       vimeo.yml       1.0.0 ^vimeo.com|^player.vimeo.com
-soundcloud  soundcloud.yml  1.0.0 ^soundcloud.com
+bittorrent    bittorrent.yml    1.0.0 .torrent$|^magnet:?
+duckduckgo    duckduckgo.yml    1.0.0 ^duckduckgo.com
+tmdb          tmdb.yml          1.0.0 ^themoviedb.org
+lastfm        lastfm.yml        1.0.0 ^last.fm
+youtube       youtube.yml       1.0.0 ^youtube.com|^youtu.be
+dailymotion   dailymotion.yml   1.0.0 ^dailymotion|^games.dailymotion.com
+vimeo         vimeo.yml         1.0.0 ^vimeo.com|^player.vimeo.com
+soundcloud    soundcloud.yml    1.0.0 ^soundcloud.com
+opensubtitles opensubtitles.yml 1.0.0 ^opensubtitles.org
+
