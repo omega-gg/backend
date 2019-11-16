@@ -1,0 +1,104 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+search: coverAudio
+
+title: Last.fm
+
+host: last.fm
+
+validate: ^last.fm
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+CREATE_QUERY: |
+    SET q (LOWER (SIMPLIFY (REPLACE q (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')))
+    SET index (INDEX_OF q (REGEXP "[^0-9]"))
+    IF (EQUAL index -1)
+        RETURN
+    FI
+    SET index (INDEX_OF q (REGEXP "[^\s]") index)
+    IF (EQUAL index -1)
+        RETURN
+    FI
+    SET q (MID q index (SUB (LAST_INDEX_OF q ' ') index))
+    SET url "https://www.last.fm/search/tracks"
+    URL_ADD_QUERY url 'q' q
+    SET label (LOWER (SIMPLIFY (REPLACE label (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')))
+    SET queryData (LIST q label)
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 1)
+        SET index (INDEX_OF data "property=\"og:image\"")
+        IF (EQUAL index -1)
+            RETURN
+        FI
+        SET cover (HTML_ATTRIBUTE data "content" index)
+    ELSE
+        SET list (SLICES data "chartlist-row" "</tr>")
+        SET listTitle (SPLIT (GET_LIST queryData 0) ' ')
+        SET listAuthor (SPLIT (GET_LIST queryData 1) ' ')
+        FOREACH list data
+            #--------------------------------------------------------------------------------------
+            # Match author
+            #--------------------------------------------------------------------------------------
+            SET index (INDEX_OF data "class=\"chartlist-artist\"")
+            SET author (HTML_ATTRIBUTE_UTF8 data "title" index)
+            SET author (LOWER (SIMPLIFY (REPLACE author (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')))
+            SET list (SPLIT author ' ')
+            SET from 0
+            FOREACH list valueA
+                SET from (INDEX_LIST listAuthor valueA from)
+                IF (EQUAL from -1)
+                    SET from 0
+                    FOREACH listAuthor valueB
+                        SET from (INDEX_LIST list valueB from)
+                        IF (EQUAL from -1)
+                            BREAK
+                        FI
+                    END
+                    BREAK
+                FI
+            END
+            IF (EQUAL from -1)
+                CONTINUE
+            FI
+            #--------------------------------------------------------------------------------------
+            # Match title
+            #--------------------------------------------------------------------------------------
+            SET index (INDEX_OF data "class=\"chartlist-name\"")
+            SET string (HTML_ATTRIBUTE_UTF8 data "title" index)
+            SET string (LOWER (SIMPLIFY (REPLACE string (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')))
+            SET list (SPLIT string ' ')
+            SET from 0
+            FOREACH list valueA
+                SET from (INDEX_LIST listTitle valueA from)
+                IF (EQUAL from -1)
+                    SET from 0
+                    FOREACH listTitle valueB
+                        SET from (INDEX_LIST list valueB from)
+                        IF (EQUAL from -1)
+                            BREAK
+                        FI
+                    END
+                    BREAK
+                FI
+            END
+            IF (EQUAL from -1)
+                CONTINUE
+            FI
+            #--------------------------------------------------------------------------------------
+            SET source (HTML_ATTRIBUTE_UTF8 data "href" index)
+            SET_HASH next "url" (APPEND_CHAR "https://www.last.fm" source)
+            SET_HASH next "id" 1
+            RETURN
+        END
+    FI

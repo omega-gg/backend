@@ -1,0 +1,579 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+api: 1.0.0
+
+version: 1.0.0
+
+title: Youtube
+
+host: youtube.com
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: Channels
+    folder:
+        title: Playlists
+
+validate: ^youtube.com|^youtu.be
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "youtube.be")
+        RETURN (URL_ELEMENT url 9)
+    ELIF (EQUAL (START_WITH url "youtube.com") false)
+        RETURN
+    FI
+    SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+    IF (NOT_EQUAL index -1)
+        RETURN (URL_ELEMENT url index)
+    FI
+
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "youtube.com") false)
+        RETURN
+    FI
+    SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
+    IF (EQUAL index -1)
+        SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
+        IF (EQUAL index -1)
+            SET index (INDEX_END (REGEXP "\\?channel_id=|&channel_id="))
+            IF (EQUAL index -1)
+                SET string (URL_ELEMENT url 12)
+                IF (LENGTH string)
+                AND (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
+                    SET type "playlist"
+                    SET id string
+                FI
+            ELSE
+                SET type "feed"
+                SET id (APPEND_CHAR "channel/" (URL_ELEMENT url index))
+            FI
+            RETURN
+        FI
+        SET type "playlist"
+        SET id (URL_ELEMENT url index)
+    ELSE
+        SET type "feed"
+        SET id (URL_ELEMENT url 2 (ADD index 1))
+    FI
+
+URL_TRACK: |
+    RETURN (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+
+URL_PLAYLIST: |
+    IF (EQUAL type "feed")
+        RETURN (APPEND_CHAR "https://www.youtube.com/" id)
+    ELSE
+        RETURN (APPEND_CHAR "https://www.youtube.com/playlist?list=" id)
+    FI
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "youtu.be")
+        SET id (URL_ELEMENT url 9)
+    ELIF (START_WITH url "youtube.com")
+        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+        IF (EQUAL index -1)
+            RETURN
+        FI
+        SET id (URL_ELEMENT url index)
+    ELSE
+        RETURN
+    FI
+    SET url (APPEND_CHAR "https://www.youtube.com/get_video_info?video_id=" id "&el=detailpage")
+    SET queryData id
+
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "youtu.be")
+        SET string (URL_ELEMENT url 9)
+    ELIF (START_WITH url "youtube.com")
+        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+        IF (EQUAL index -1)
+            RETURN
+        FI
+        SET string (URL_ELEMENT url index)
+    ELSE
+        RETURN
+    FI
+    SET url (APPEND_CHAR "https://www.youtube.com/watch?v=" string)
+
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "youtube.com") false)
+        RETURN
+    FI
+    SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
+    IF (EQUAL index -1)
+        SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
+        IF (EQUAL index -1)
+            SET index (INDEX_END url (REGEXP "\\?channel_id=|&channel_id="))
+            IF (EQUAL index -1)
+                SET string (URL_ELEMENT url 12)
+                IF (LENGTH string)
+                AND (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
+                    SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
+                FI
+            ELSE
+                SET string (APPEND_CHAR "channel/" (URL_ELEMENT url index))
+                SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
+                SET id 1
+            FI
+            RETURN
+        FI
+        SET string (URL_ELEMENT url index)
+        SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
+    ELSE
+        SET string (URL_ELEMENT url 2 (ADD index 1))
+        SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
+        SET id 1
+    FI
+
+CREATE_QUERY: |
+    IF (EQUAL method "search")
+        IF (EQUAL label "tracks")
+            SET url "https://www.youtube.com/results"
+            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "filters" "video"
+            SET id 2
+        ELIF (EQUAL label "channels")
+            SET url "https://www.youtube.com/results"
+            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "filters" "channel"
+            SET id 1
+        ELIF (EQUAL label "playlists")
+            SET url "https://www.youtube.com/results"
+            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "filters" "playlist"
+        FI
+    ELIF (EQUAL method "related")
+    AND (EQUAL label "tracks")
+        SET url (APPEND_CHAR "https://www.youtube.com/watch?v=" q)
+        SET id 3
+    FI
+
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 2)
+        SET javascript (JSON_EXTRACT_HTML data "js")
+        IF (EQUAL javascript 0)
+            RETURN
+        FI
+        SET javascript (URL_GENERATE javascript "https://www.youtube.com")
+        IF (EQUAL (GET_LIST global 0) javascript)
+            #--------------------------------------------------------------------------------------
+            # Apply signature
+            #--------------------------------------------------------------------------------------
+            SET listMedias (GET_LIST queryData 0)
+            SET listAudios (GET_LIST queryData 1)
+            SET script (JS_EVALUATE (GET_LIST global 1))
+            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+                SET source (GET_LIST listMedias i)
+                IF (EQUAL (LENGTH source) 0)
+                    SET i (ADD i 1)
+                    CONTINUE
+                FI
+                SET signature (JS_CALL script (REGEXP_CAP \
+                                               source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
+                                           (APPEND_CHAR "&sig=" signature))
+                SET_HASH medias value source
+                SET source (GET_LIST listAudios i)
+                IF (EQUAL (LENGTH source) 0)
+                    SET i (ADD i 1)
+                    CONTINUE
+                FI
+                SET signature (JS_CALL script (REGEXP_CAP \
+                                               source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
+                                           (APPEND_CHAR "&sig=" signature))
+                SET_HASH audios value source
+                SET i (ADD i 1)
+            END
+            #--------------------------------------------------------------------------------------
+        ELSE
+            SET_HASH next "url" javascript
+            SET_HASH next "id" 3
+            SET_HASH next "queryData" queryData
+        FI
+    ELIF (EQUAL id 3)
+        SET index (INDEX_OF data "function(a){a=a.split(\"\")")
+        SET function (JS_EXTRACT data "function(a)" index)
+        SET object (REGEXP_CAP function ";([a-zA-Z0-9$]+)\\." 1)
+        SET object (JS_EXTRACT data (APPEND_CHAR "var " object '='))
+        SET function (REPLACE "function(a)" "function b(a)")
+        SET script (APPEND_CHAR "(function(a){" object ';' function "return b(a);})")
+        SET global (LIST url script)
+        #------------------------------------------------------------------------------------------
+        # Apply signature
+        #------------------------------------------------------------------------------------------
+        SET listMedias (GET_LIST queryData 0)
+        SET listAudios (GET_LIST queryData 1)
+        SET script (JS_EVALUATE script)
+        #SET i 0
+        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            SET source (GET_LIST listMedias i)
+            IF (EQUAL (LENGTH source) 0)
+                SET i (ADD i 1)
+                CONTINUE
+            FI
+            SET signature (JS_CALL script (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+            SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
+                                       (APPEND_CHAR "&sig=" signature))
+            SET_HASH medias value source
+            SET source (GET_LIST listAudios i)
+            IF (EQUAL (LENGTH source) 0)
+                SET i (ADD i 1)
+                CONTINUE
+            FI
+            SET signature (JS_CALL script (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+            SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
+                                       (APPEND_CHAR "&sig=" signature))
+            SET_HASH audios value source
+            SET i (ADD i 1)
+        END
+        #------------------------------------------------------------------------------------------
+    ELSE # if (id == 0 || id == 1)
+        SET sources (URL_DECODE (SLICE_IN data "url_encoded_fmt_stream_map=" '&'))
+        SET list (SPLIT sources ',')
+        FOREACH list value
+            #--------------------------------------------------------------------------------------
+            # Load media
+            #--------------------------------------------------------------------------------------
+            SET type (MID (SLICE_IN value "type=" '&') 8 3)
+            IF  (NOT_EQUAL type "mp4")
+            AND (NOT_EQUAL type"web")
+                CONTINUE
+            FI
+            SET quality (MID (SLICE_IN value "quality=" '&') 0 3)
+            IF (EQUAL quality "sma")
+                SET quality "240"
+            ELIF (NOT_EQUAL quality "med")
+                SET quality "360"
+            ELIF (NOT_EQUAL quality "lar")
+                SET quality "480"
+            ELIF (NOT_EQUAL quality "hd7")
+                SET quality "720"
+            ELIF (NOT_EQUAL quality "hd1")
+                SET quality "1080"
+            ELIF (NOT_EQUAL quality "hig")
+                SET quality "1440"
+            ELSE
+                CONTINUE
+            FI
+            #--------------------------------------------------------------------------------------
+            # Extract url
+            #--------------------------------------------------------------------------------------
+            SET source    (SLICE_IN value "url="         '&')
+            SET signature (SLICE_IN value "signature%3D" '&')
+            IF (LENGTH signature)
+                SET source (URL_DECODE source)
+            ELSE
+                SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                IF (LENGTH signature)
+                    SET source (URL_DECODE (APPEND_CHAR source "&s=" signature))
+                ELSE
+                    SET source (URL_DECODE source)
+                FI
+            FI
+            #--------------------------------------------------------------------------------------
+            SET_HASH medias quality source
+            #--------------------------------------------------------------------------------------
+        END
+        SET sources (URL_DECODE (SLICE_IN data "adaptive_fmts=" '&'))
+        SET list (SPLIT sources ',')
+        #SET i 0
+        FOREACH list value
+            IF (CONTAIN value "%22vorbis%22")
+                #----------------------------------------------------------------------------------
+                # Extract url
+                #----------------------------------------------------------------------------------
+                SET audio     (SLICE_IN value "url="         '&')
+                SET signature (SLICE_IN value "signature%3D" '&')
+                IF (LENGTH signature)
+                    SET audio (URL_DECODE audio)
+                ELSE
+                    SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                    IF (LENGTH signature)
+                        SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
+                    ELSE
+                        SET audio (URL_DECODE audio)
+                    FI
+                FI
+                #----------------------------------------------------------------------------------
+                REMOVE_LIST_AT list i
+                BREAK
+            FI
+            SET i (ADD i 1)
+        END
+        IF (EQUAL (LENGTH audio) 0)
+            SET i 0
+            FOREACH list value
+                IF (CONTAIN value "%22mp4a")
+                    #------------------------------------------------------------------------------
+                    # Extract url
+                    #------------------------------------------------------------------------------
+                    SET audio     (SLICE_IN value "url="         '&')
+                    SET signature (SLICE_IN value "signature%3D" '&')
+                    IF (LENGTH signature)
+                        SET audio (URL_DECODE audio)
+                    ELSE
+                        SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                        IF (LENGTH signature)
+                            SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
+                        ELSE
+                            SET audio (URL_DECODE audio)
+                        FI
+                    FI
+                    #------------------------------------------------------------------------------
+                    REMOVE_LIST_AT list i
+                    BREAK
+                FI
+                SET i (ADD i 1)
+            END
+        FI
+        FOREACH list value
+            #--------------------------------------------------------------------------------------
+            # Load adaptative
+            #--------------------------------------------------------------------------------------
+            SET mime (MID (SLICE_IN value "mime%3D" "%26") 10 3)
+            IF (NOT_EQUAL mime "mp4")
+                CONTINUE
+            FI
+            SET quality (SLICE_IN value "quality_label=" 'p')
+            IF (EQUAL (INDEX_OF quality (REGEXP "240|360|480|720|1080|1440|2160")) -1)
+                CONTINUE
+            FI
+            #--------------------------------------------------------------------------------------
+            # Extract url
+            #--------------------------------------------------------------------------------------
+            SET media     (SLICE_IN value "url="         '&')
+            SET signature (SLICE_IN value "signature%3D" '&')
+            IF (LENGTH signature)
+                SET media (URL_DECODE media)
+            ELSE
+                SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                IF (LENGTH signature)
+                    SET media (URL_DECODE (APPEND_CHAR media "&s=" signature))
+                ELSE
+                    SET media (URL_DECODE media)
+                FI
+            FI
+            SET_HASH medias quality media
+            SET_HASH audios quality audio
+            #--------------------------------------------------------------------------------------
+        END
+        IF (EQUAL (COUNT medias) 0)
+            IF (EQUAL id 1)
+                RETURN
+            FI
+            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com/get_video_info?video_id=" \
+                                             queryData "&el=embedded")
+            SET_HASH next "id" 1
+            SET_HASH next "queryData" queryData
+            RETURN
+        FI
+        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            SET string (GET_HASH medias value)
+            IF (EQUAL (CONTAIN string "&s=") false)
+                CONTINUE
+            FI
+            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+                APPEND_LIST listMedias (GET_HASH medias value)
+                APPEND_LIST listAudios (GET_HASH audios value)
+            END
+            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com/watch?v=" queryData)
+            SET_HASH next "id" 2
+            SET_HASH next "queryData" (LIST listMedias listAudios)
+            BREAK
+        END
+    FI
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    SET index (INDEX_OF data "=\"og:image")
+    SET cover (HTML_ATTRIBUTE data "content" index)
+    SET cover (REPLACE cover "https://" "http://")
+    SET json (SLICE data "\\\"videoDetails\\\"" "\\\"playerConfig\\\"")
+    SET json (REPLACE (REPLACE json "\\\"" '"') "\\\" '\\')
+    SET title (JSON_EXTRACT_UTF8 json "title")
+    SET author (JSON_EXTRACT_UTF8 json "author")
+    SET duration (JSON_EXTRACT json "lengthSeconds")
+    SET index (INDEX_OF data "itemprop=\"datePublished")
+    SET date (HTML_ATTRIBUTE data "content" index)
+    SET index (INDEX_OF data "class=\"yt-user-info" index)
+    SET feed (HTML_ATTRIBUTE data "href" index)
+    SET feed (APPEND_CHAR "https://www.youtube.com/" (URL_PATH feed))
+    SET duration (MULTIPLY duration 1000)
+    SET date (DATE date "yyyy-MM-dd")
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 1) # Feed
+        IF (EQUAL queryData "")
+            SET index (INDEX_OF data "class=\"channel-header-profile-image")
+            SET cover (URL_GENERATE (HTML_ATTRIBUTE data "src" index) "https://www.youtube.com")
+            SET title (HTML_ATTRIBUTE_UTF8 data "title" index)
+            SET index (INDEX_OF "data-uix-load-more-href=\"" index)
+            IF (EQUAL index -1)
+                SET url (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
+                SET url (APPEND_CHAR "https://www.youtube.com" (URL_DECODE url))
+                SET id 1
+                SET queryData 1
+            FI
+        ELSE
+            SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
+        FI
+        SET list (SLICES data "<li class=\"channels-content-item" "<div class=\"yt-lockup-meta")
+        FOREACH list value
+            SET index (INDEX_OF value "class=\"yt-lockup-title")
+            SET source (HTML_ATTRIBUTE value "href" index)
+            IF (EQUAL (LENGTH source) 0)
+            OR (EQUAL (START_WITH source '/') false)
+                CONTINUE
+            FI
+            SET id (URL_VALUE source 'v')
+            SET_HASH track "state" "default"
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
+            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            APPEND_LIST tracks track
+        END
+    ELIF (EQUAL id 2) # Search tracks
+        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile" "</div></li>")
+        FOREACH list value
+            SET index (INDEX_OF value "class=\"yt-lockup-title")
+            SET source (HTML_ATTRIBUTE value "href" index)
+            IF (EQUAL (LENGTH source) 0)
+            OR (EQUAL (START_WITH source '/') false)
+                CONTINUE
+            FI
+            SET id (URL_VALUE source 'v')
+            SET_HASH track "state" "default"
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
+            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            APPEND_LIST tracks track
+        END
+        IF (EQUAL queryData "")
+            SET index (INDEX_OF data "class=\"branded-page-box search-pager")
+            IF (EQUAL index -1)
+                RETURN
+            FI
+            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" \
+                                             (HTML_ATTRIBUTE data "href" index))
+            SET_HASH next "id" 2
+            SET_HASH next "queryData" 1
+        FI
+    ELIF (EQUAL id 3) # Related tracks
+        IF (EQUAL queryData "")
+            SET index (INDEX_OF data "\\\"continuation\\\"")
+            SET json (SLICE_IN data "\\\"continuation\\\":\\\"" "\\\"" (ADD index 1))
+            IF (NOT_EQUAL json "")
+                SET_HASH next "url" (APPEND_CHAR \
+                                     "https://www.youtube.com/related_ajax?continuation=" \
+                                     (URL_DECODE json))
+                SET_HASH next "id" 3
+                SET_HASH next "queryData" 1
+            FI
+        ELSE
+            SET index (INDEX_OF data "\"body\"")
+            SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "watch-more-related" index))
+        FI
+        SET list (SLICES data "<li class=\"video-list-item" "</li>")
+        FOREACH list value
+            SET index (INDEX_OF value "class=\"content-wrapper")
+            SET source (HTML_ATTRIBUTE value "href" index)
+            IF (EQUAL (LENGTH source) 0)
+            OR (EQUAL (START_WITH source '/') false)
+                CONTINUE
+            FI
+            SET id (URL_VALUE source 'v')
+            SET_HASH track "state" "default"
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
+            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            APPEND_LIST tracks track
+        END
+    ELSE # Playlist
+        IF (EQUAL queryData "")
+            SET index (INDEX_OF data "<meta name=\"title")
+            SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+            IF (EQUAL index -1)
+                SET data (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
+                SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" (URL_DECODE data))
+                SET_HASH next "queryData" 1
+            FI
+        ELSE
+            SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
+        FI
+        SET list (SLICES data "<tr class=\"pl-video yt-uix-tile" "</td></tr>")
+        FOREACH list value
+            SET id (HTML_ATTRIBUTE value "data-video-id")
+            SET_HASH track "state" "default"
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "data-title")
+            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            APPEND_LIST tracks track
+        END
+    FI
+
+EXTRACT_FOLDER: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 1) # Search channels
+        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile yt-lockup-channel" \
+                              "</div></li>")
+        FOREACH list value
+            SET index (INDEX_OF value "class=\"yt-thumb video-thumb")
+            SET cover (HTML_ATTRIBUTE value "data-thumb" index)
+            IF (EQUAL cover "")
+                SET cover (HTML_ATTRIBUTE value "src" index)
+            FI
+            SET cover (URL_GENERATE cover "https://www.youtube.com")
+            SET index (INDEX_OF value "class=\"yt-lockup-title" index)
+            SET source (HTML_ATTRIBUTE_UTF8 value "href" index)
+            SET_HASH item "type" "feed"
+            SET_HASH item "state" "default"
+            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com" source "/videos?view=0")
+            SET_HASH item "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH item "cover" (REPLACE cover "http://" "https://") # FIXME Youtube
+            APPEND_LIST items item
+        END
+    ELSE # Search playlists
+        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile yt-lockup-playlist" \
+                              "</div></li>")
+        FOREACH list value
+            SET index (INDEX_OF value "class=\"yt-thumb video-thumb")
+            SET cover (HTML_ATTRIBUTE value "data-thumb" index)
+            IF (EQUAL cover "")
+                SET cover (HTML_ATTRIBUTE value "src" index)
+            FI
+            SET index (INDEX_OF value "class=\"yt-lockup-title" index)
+            SET id (URL_VALUE (HTML_ATTRIBUTE_UTF8 value "href" index) "list")
+            SET_HASH item "type" "playlist"
+            SET_HASH item "state" "default"
+            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com/playlist?list=" id)
+            SET_HASH item "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH item "cover" (URL_GENERATE cover "https://www.youtube.com")
+            APPEND_LIST items item
+        END
+        IF (EQUAL queryData "")
+            SET index (INDEX_OF data "class=\"branded-page-box search-pager")
+            IF (EQUAL index -1)
+                RETURN
+            FI
+            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" \
+                                             (HTML_ATTRIBUTE data "href" index))
+            SET_HASH next "id" id
+            SET_HASH next "queryData" 1
+        FI
+    FI
