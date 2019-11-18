@@ -1,4 +1,4 @@
-OTHER_FILES += index \
+OTHER_FILES += index.yml \
                bittorrent.yml \
                duckduckgo.yml \
                tmdb.yml \
