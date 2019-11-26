@@ -1,0 +1,43 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/index.yml
+
+api: 1.0.0
+
+version: 1.0.0
+
+#--------------------------------------------------------------------------------------------------
+# Backends
+#--------------------------------------------------------------------------------------------------
+
+backend_search: |
+    duckduckgo
+
+backend_track: |
+    bittorrent
+    youtube
+    dailymotion
+    vimeo
+    soundcloud
+
+backend_cover: |
+    tmdb
+    lastfm
+
+backend_subtitle: |
+    opensubtitles
+
+#--------------------------------------------------------------------------------------------------
+
+backends: |
+    duckduckgo    DuckDuckGo    1.0.0 ^duckduckgo.com
+    bittorrent    BitTorrent    1.0.0 .torrent$|^magnet:?
+    youtube       Youtube       1.0.0 ^youtube.com|^youtu.be
+    dailymotion   Dailymotion   1.0.0 ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo         1.0.0 ^vimeo.com|^player.vimeo.com
+    soundcloud    SoundCloud    1.0.0 ^soundcloud.com|^api.soundcloud.com|^a-v2.sndcdn.com
+    tmdb          TMDb          1.0.0 ^themoviedb.org
+    lastfm        Last.fm       1.0.0 ^last.fm
+    opensubtitles OpenSubtitles 1.0.0 ^opensubtitles.org

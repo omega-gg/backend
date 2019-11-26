@@ -1,10 +1,10 @@
-OTHER_FILES += index.yml \
-               bittorrent.yml \
-               duckduckgo.yml \
-               tmdb.yml \
-               lastfm.yml \
-               youtube.yml \
-               dailymotion.yml \
-               vimeo.yml \
-               soundcloud.yml \
-               opensubtitles.yml \
+OTHER_FILES += index.vbml \
+               bittorrent.vbml \
+               duckduckgo.vbml \
+               tmdb.vbml \
+               lastfm.vbml \
+               youtube.vbml \
+               dailymotion.vbml \
+               vimeo.vbml \
+               soundcloud.vbml \
+               opensubtitles.vbml \
