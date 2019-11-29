@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.vbml
 
 api: 1.0.0
 
@@ -21,7 +21,7 @@ validate: ^opensubtitles.org
 QUERY_ITEM: |
     IF (EQUAL (START_WITH (URL_REMOVE_PREFIX url) "opensubtitles.org") false)
     OR (EQUAL (CONTAIN url "/subtitles/") false)
-        RETURN
+        RETURN false
     FI
     SET cookies true
     #----------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ QUERY_ITEM: |
     SET delay 1000
     SET timeout 10000
     #----------------------------------------------------------------------------------------------
+    RETURN true
 
 CREATE_QUERY: |
     IF (NOT_EQUAL method "subtitles")

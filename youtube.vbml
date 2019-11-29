@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
@@ -11,6 +11,8 @@ version: 1.0.0
 title: Youtube
 
 host: youtube.com
+
+cover: cover/youtube.png
 
 items:
     playlist:
@@ -41,7 +43,7 @@ TRACK_ID: |
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "youtube.com") false)
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
     IF (EQUAL index -1)
@@ -51,15 +53,17 @@ PLAYLIST_INFO: |
             IF (EQUAL index -1)
                 SET string (URL_ELEMENT url 12)
                 IF (LENGTH string)
-                AND (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
+                AND (EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
                     SET type "playlist"
                     SET id string
+                ELSE
+                    RETURN false
                 FI
             ELSE
                 SET type "feed"
                 SET id (APPEND_CHAR "channel/" (URL_ELEMENT url index))
             FI
-            RETURN
+            RETURN true
         FI
         SET type "playlist"
         SET id (URL_ELEMENT url index)
@@ -67,6 +71,7 @@ PLAYLIST_INFO: |
         SET type "feed"
         SET id (URL_ELEMENT url 2 (ADD index 1))
     FI
+    RETURN true
 
 URL_TRACK: |
     RETURN (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
@@ -85,14 +90,15 @@ QUERY_SOURCE: |
     ELIF (START_WITH url "youtube.com")
         SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
         IF (EQUAL index -1)
-            RETURN
+            RETURN false
         FI
         SET id (URL_ELEMENT url index)
     ELSE
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://www.youtube.com/get_video_info?video_id=" id "&el=detailpage")
     SET queryData id
+    RETURN true
 
 QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX url)
@@ -101,18 +107,19 @@ QUERY_TRACK: |
     ELIF (START_WITH url "youtube.com")
         SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
         IF (EQUAL index -1)
-            RETURN
+            RETURN false
         FI
         SET string (URL_ELEMENT url index)
     ELSE
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://www.youtube.com/watch?v=" string)
+    RETURN true
 
 QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "youtube.com") false)
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
     IF (EQUAL index -1)
@@ -122,15 +129,17 @@ QUERY_PLAYLIST: |
             IF (EQUAL index -1)
                 SET string (URL_ELEMENT url 12)
                 IF (LENGTH string)
-                AND (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
+                AND (EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
                     SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
+                ELSE
+                    SET url ""
                 FI
             ELSE
                 SET string (APPEND_CHAR "channel/" (URL_ELEMENT url index))
                 SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
                 SET id 1
             FI
-            RETURN
+            RETURN false
         FI
         SET string (URL_ELEMENT url index)
         SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
@@ -139,6 +148,7 @@ QUERY_PLAYLIST: |
         SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
         SET id 1
     FI
+    RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")

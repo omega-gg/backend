@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbml
 
 api: 1.0.0
 
@@ -11,6 +11,8 @@ version: 1.0.0
 title: SoundCloud
 
 host: soundcloud.com
+
+cover: cover/soundcloud.png
 
 items:
     playlist:
@@ -45,11 +47,11 @@ TRACK_OUTPUT: |
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH source "soundcloud.com/") false)
-        RETURN
+        RETURN false
     FI
     SET url (MID url 15)
     IF (CONTAIN url (REGEXP "[.\\?#]"))
-        RETURN
+        RETURN false
     ELIF (COUNT_STRING url '/')
         IF (CONTAIN url "/sets/")
             SET type "playlist"
@@ -59,6 +61,7 @@ PLAYLIST_INFO: |
         SET type "feed"
         SET id url
     FI
+    RETURN true
 
 URL_TRACK: |
     RETURN (APPEND_CHAR "https://www.soundcloud.com/" id)
@@ -74,16 +77,17 @@ QUERY_SOURCE: |
     ELSE
         SET queryData global
     FI
+    RETURN true
 
 QUERY_PLAYLIST: |
     SET source url
     SET source (URL_REMOVE_PREFIX source)
     IF (EQUAL (START_WITH source "soundcloud.com/") false)
-        RETURN
+        RETURN false
     FI
     SET source (MID source 15)
     IF (CONTAIN source (REGEXP "[.\\?#]"))
-        RETURN
+        RETURN false
     ELIF (COUNT_STRING source '/')
         IF (CONTAIN source "/sets/")
             IF (EQUAL global "")
@@ -105,6 +109,7 @@ QUERY_PLAYLIST: |
             SET queryData global
         FI
     FI
+    RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")

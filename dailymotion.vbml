@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vbml
 
 api: 1.0.0
 
@@ -11,6 +11,8 @@ version: 1.0.0
 title: Dailymotion
 
 host: dailymotion.com
+
+cover: cover/dailymotion.png
 
 items:
     playlist:
@@ -45,26 +47,26 @@ PLAYLIST_INFO: |
         SET url (REMOVE_CHAR url 0 6)
     FI
     IF (EQUAL (START_WITH url "dailymotion.com") false)
-        RETURN
+        RETURN false
     FI
     IF (START_WITH url "dailymotion.com/playlist/")
         SET type "playlist"
         SET id (URL_ELEMENT url 25)
-        RETURN
+        RETURN true
     FI
     IF (START_WITH url "dailymotion.com/user/")
         SET type "feed"
         SET id (URL_ELEMENT url 21)
-        RETURN
+        RETURN true
     FI
     SET id (URL_ELEMENT url 16)
     IF (EQUAL id "")
     OR (LESSER (LENGTH id) 3)
-    OR (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]" 16)) -1)
-        SET id ""
-        RETURN
+    OR (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 16) -1)
+        RETURN false
     FI
     SET type "feed"
+    RETURN true
 
 URL_TRACK: |
     RETURN (APPEND_CHAR "https://www.dailymotion.com/video/" id)
@@ -82,13 +84,14 @@ QUERY_SOURCE: |
         SET url (REMOVE_CHAR url 0 6)
     FI
     IF (EQUAL (START_WITH url "dailymotion.com") false)
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_END url (REGEXP "/video/|#videoId=|#video="))
     IF (EQUAL index -1)
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://www.dailymotion.com/embed/video/" (URL_ELEMENT url index))
+    RETURN true
 
 QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX url)
@@ -96,14 +99,15 @@ QUERY_TRACK: |
         SET url (REMOVE_CHAR url 0 6)
     FI
     IF (EQUAL (START_WITH url "dailymotion.com") false)
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_END url (REGEXP "/video/|#videoId=|#video="))
     IF (EQUAL index -1)
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://api.dailymotion.com/video/" (URL_ELEMENT url index))
     URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
+    RETURN true
 
 QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
@@ -111,7 +115,7 @@ QUERY_PLAYLIST: |
         SET url (REMOVE_CHAR url 0 6)
     FI
     IF (EQUAL (START_WITH url "dailymotion.com") false)
-        RETURN
+        RETURN false
     FI
     IF (START_WITH url "dailymotion.com/playlist/")
         SET id (URL_ELEMENT url 25)
@@ -123,7 +127,7 @@ QUERY_PLAYLIST: |
         OR (LESSER (LENGTH id) 3)
         OR (NOT_EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 16) -1)
             SET id ""
-            RETURN
+            RETURN false
         FI
     FI
     IF (START_WITH url "dailymotion.com/playlist/")
@@ -137,6 +141,7 @@ QUERY_PLAYLIST: |
         SET queryData (APPEND_CHAR "user/" id)
         SET id 2
     FI
+    RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")

@@ -2,13 +2,15 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbml
 
 api: 1.0.0
 
 version: 1.0.0
 
 title: BitTorrent
+
+cover: cover/bittorrent.png
 
 items:
     playlist:
@@ -43,6 +45,7 @@ PLAYLIST_INFO: |
     OR (START_WITH url "magnet:?")
         SET type "playlist"
         SET id url
+        RETURN true
     FI
 
 URL_PLAYLIST: |
@@ -52,7 +55,7 @@ QUERY_TRACK: |
     IF (START_WITH url "magnet:?")
         SET type "torrent"
     ELIF (NOT_EQUAL (URL_EXTENSION url) "torrent")
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_END url '#')
     IF (EQUAL index -1)
@@ -66,12 +69,13 @@ QUERY_TRACK: |
             SET queryData (MID index (SUB indexB index))
         FI
     FI
+    RETURN true
 
 QUERY_PLAYLIST: |
     IF (START_WITH url "magnet:?")
         SET type "torrent"
     ELIF (NOT_EQUAL (URL_EXTENSION url) "torrent")
-        RETURN
+        RETURN false
     FI
     SET index (INDEX_END url '#')
     IF (EQUAL index -1)
@@ -85,6 +89,7 @@ QUERY_PLAYLIST: |
             SET queryData (MID index (SUB indexB index))
         FI
     FI
+    RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")

@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbml
 
 api: 1.0.0
 
@@ -13,6 +13,8 @@ search: tracks
 title: DuckDuckGo
 
 host: duckduckgo.com
+
+cover: cover/duckduckgo.png
 
 validate: ^duckduckgo.com
 

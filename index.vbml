@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/index.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
@@ -41,3 +41,11 @@ backends: |
     tmdb          TMDb          1.0.0 ^themoviedb.org
     lastfm        Last.fm       1.0.0 ^last.fm
     opensubtitles OpenSubtitles 1.0.0 ^opensubtitles.org
+
+covers: |
+    duckduckgo  cover/duckduckgo.png
+    bittorrent  cover/bittorrent.png
+    youtube     cover/youtube.png
+    dailymotion cover/dailymotion.png
+    vimeo       cover/vimeo.png
+    soundcloud  cover/soundcloud.png

@@ -2,7 +2,7 @@
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.yml
+source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.0
 
@@ -11,6 +11,8 @@ version: 1.0.0
 title: Vimeo
 
 host: vimeo.com
+
+cover: cover/vimeo.png
 
 items:
     playlist:
@@ -44,7 +46,7 @@ TRACK_ID: |
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "vimeo.com") false)
-        RETURN
+        RETURN false
     FI
     IF (START_WITH url "vimeo.com/channels/")
     OR (START_WITH url "vimeo.com/groups/")
@@ -53,10 +55,11 @@ PLAYLIST_INFO: |
     ELIF (START_WITH url "vimeo.com/")
         SET id (URL_ELEMENT url 10)
         IF (NUMBER id)
-            RETURN
+            RETURN false
         FI
         SET type "feed"
     FI
+    RETURN true
 
 URL_TRACK: |
     RETURN (APPEND_CHAR "https://vimeo.com/" id)
@@ -67,33 +70,35 @@ URL_PLAYLIST: |
 QUERY_SOURCE: |
     SET id (LAST_INDEX_END url "/")
     IF (EQUAL id -1)
-        RETURN
+        RETURN false
     FI
     SET id (URL_ELEMENT url id)
     IF (EQUAL id "")
     OR (CONTAIN url (APPEND_CHAR "/channels/" id))
     OR (CONTAIN url (APPEND_CHAR "/groups/" id))
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://player.vimeo.com/video/" id)
+    RETURN true
 
 QUERY_TRACK: |
     SET id (LAST_INDEX_END url "/")
     IF (EQUAL id -1)
-        RETURN
+        RETURN false
     FI
     SET id (URL_ELEMENT url id)
     IF (EQUAL id "")
     OR (CONTAIN url (APPEND_CHAR "/channels/" id))
     OR (CONTAIN url (APPEND_CHAR "/groups/" id))
-        RETURN
+        RETURN false
     FI
     SET url (APPEND_CHAR "https://vimeo.com/" id)
+    RETURN true
 
 QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "vimeo.com") false)
-        RETURN
+        RETURN false
     FI
     IF (START_WITH url "vimeo.com/channels/")
     OR (START_WITH url "vimeo.com/groups/")
@@ -101,17 +106,18 @@ QUERY_PLAYLIST: |
     ELIF (START_WITH url "vimeo.com/")
         SET id (URL_ELEMENT url 10)
         IF (NUMBER id)
-            RETURN
+            RETURN false
         FI
     FI
     IF (EQUAL id "")
-        RETURN
+        RETURN false
     FI
     IF (START_WITH id "tag:")
         SET url (APPEND_CHAR "https://vimeo.com/" id "/page:1/sort:date/format:thumbnail")
     ELSE
         SET url (APPEND_CHAR "https://vimeo.com/" id "/videos/page:1/sort:date/format:thumbnail")
     FI
+    RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")
