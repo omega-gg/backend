@@ -174,26 +174,31 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    SET data (JSON_EXTRACT_HTML data "qualities")
-    SET list "240" "380" "480" "720" "1080"
-    FOREACH list value
-        SET source (JSON_EXTRACT data value)
-        IF (NOT_EQUAL source "")
-            SET index (INDEX_OF source "video/mp4")
-            SET source (JSON_EXTRACT source "url" index)
+    IF (EQUAL id 1)
+        SET list "240" "380" "480" "720" "1080" "1440" "2160"
+        FOREACH list value
+            SET index (LAST_INDEX_OF data (APPEND_CHAR "NAME=\"" value))
+            IF (EQUAL index -1)
+                CONTINUE
+            FI
+            SET source (SLICE_IN data "PROGRESSIVE-URI=\"" '"' index)
             SET_HASH medias value source
-        FI
-    END
+        END
+    ELSE
+        SET data (JSON_EXTRACT_HTML data "qualities")
+        SET_HASH next "url" (JSON_EXTRACT data "url")
+        SET_HASH next "id" 1
+    FI
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     SET data (JSON_EXTRACT_HTML data)
-    SET title (JSON_EXTRACT_UTF8 data, "title")
-    SET cover (JSON_EXTRACT data, "thumbnail_url")
-    SET author (JSON_EXTRACT_UTF8 data, "owner.screenname")
-    SET feed (JSON_EXTRACT data, "owner.username")
-    SET duration (MULTIPLY (JSON_EXTRACT data, "duration") 1000)
-    SET date (JSON_EXTRACT data, "created_time")
+    SET title (JSON_EXTRACT_UTF8 data "title")
+    SET cover (JSON_EXTRACT data "thumbnail_url")
+    SET author (JSON_EXTRACT_UTF8 data "owner.screenname")
+    SET feed (JSON_EXTRACT data "owner.username")
+    SET duration (MULTIPLY (JSON_EXTRACT data "duration") 1000)
+    SET date (JSON_EXTRACT data "created_time")
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")

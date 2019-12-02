@@ -46,7 +46,7 @@ TRACK_OUTPUT: |
 
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
-    IF (EQUAL (START_WITH source "soundcloud.com/") false)
+    IF (EQUAL (START_WITH url "soundcloud.com/") false)
         RETURN false
     FI
     SET url (MID url 15)
@@ -56,6 +56,8 @@ PLAYLIST_INFO: |
         IF (CONTAIN url "/sets/")
             SET type "playlist"
             SET id url
+        ELSE
+            RETURN false
         FI
     ELSE
         SET type "feed"
@@ -64,10 +66,10 @@ PLAYLIST_INFO: |
     RETURN true
 
 URL_TRACK: |
-    RETURN (APPEND_CHAR "https://www.soundcloud.com/" id)
+    RETURN (APPEND_CHAR "https://soundcloud.com/" id)
 
 URL_PLAYLIST: |
-    RETURN (APPEND_CHAR "https://www.soundcloud.com/" id)
+    RETURN (APPEND_CHAR "https://soundcloud.com/" id)
 
 QUERY_SOURCE: |
     IF (EQUAL global "")
@@ -77,6 +79,9 @@ QUERY_SOURCE: |
     ELSE
         SET queryData global
     FI
+    RETURN true
+
+QUERY_TRACK: |
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -98,6 +103,8 @@ QUERY_PLAYLIST: |
                 SET id 1
                 SET queryData global
             FI
+        ELSE
+            RETURN false
         FI
     ELSE
         IF (EQUAL global "")
@@ -248,7 +255,6 @@ EXTRACT_PLAYLIST: |
         IF (EQUAL (START_WITH data '[') false)
             SET data (JSON_EXTRACT data "tracks")
         FI
-        PRINT "HELLO SOUNDCLOUD TRACKS"
         FOREACH (JSON_SPLIT data) data
             SET source (JSON_EXTRACT data "permalink")
             SET user (JSON_EXTRACT data "user")
