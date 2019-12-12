@@ -187,27 +187,39 @@ EXTRACT_SOURCE: |
             #--------------------------------------------------------------------------------------
             SET listMedias (GET_LIST queryData 0)
             SET listAudios (GET_LIST queryData 1)
-            SET script (JS_EVALUATE (GET_LIST global 1))
+            #SET script (JS_EVALUATE (GET_LIST global 1))
+            SET script (GET_LIST global 1)
+            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+                SET source (GET_LIST listMedias i)
+                IF (LENGTH source)
+                    APPEND_LIST sources (LIST (REGEXP_CAP source \
+                                               "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                FI
+                SET source (GET_LIST listAudios i)
+                IF (LENGTH source)
+                    APPEND_LIST sources (LIST (REGEXP_CAP source \
+                                               "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                FI
+                SET i (ADD i 1)
+            END
+            SET signatures (JS_CALLS script sources)
+            SET i 0
             FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
                 SET source (GET_LIST listMedias i)
                 IF (EQUAL (LENGTH source) 0)
                     SET i (ADD i 1)
                     CONTINUE
                 FI
-                SET signature (JS_CALL script (REGEXP_CAP \
-                                               source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
                 SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND_CHAR "&sig=" signature))
+                                           (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
                 SET_HASH medias value source
                 SET source (GET_LIST listAudios i)
                 IF (EQUAL (LENGTH source) 0)
                     SET i (ADD i 1)
                     CONTINUE
                 FI
-                SET signature (JS_CALL script (REGEXP_CAP \
-                                               source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
                 SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND_CHAR "&sig=" signature))
+                                           (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
                 SET_HASH audios value source
                 SET i (ADD i 1)
             END
@@ -222,7 +234,7 @@ EXTRACT_SOURCE: |
         SET function (JS_EXTRACT data "function(a)" index)
         SET object (REGEXP_CAP function ";([a-zA-Z0-9$]+)\\." 1)
         SET object (JS_EXTRACT data (APPEND_CHAR "var " object '='))
-        SET function (REPLACE "function(a)" "function b(a)")
+        SET function (REPLACE function "function(a)" "function b(a)")
         SET script (APPEND_CHAR "(function(a){" object ';' function "return b(a);})")
         SET global (LIST url script)
         #------------------------------------------------------------------------------------------
@@ -230,26 +242,37 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         SET listMedias (GET_LIST queryData 0)
         SET listAudios (GET_LIST queryData 1)
-        SET script (JS_EVALUATE script)
+        #SET script (JS_EVALUATE script)
         #SET i 0
+        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            SET source (GET_LIST listMedias i)
+            IF (LENGTH source)
+                APPEND_LIST sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+            FI
+            SET source (GET_LIST listAudios i)
+            IF (LENGTH source)
+                APPEND_LIST sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+            FI
+            SET i (ADD i 1)
+        END
+        SET signatures (JS_CALLS script sources)
+        SET i 0
         FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
             SET source (GET_LIST listMedias i)
             IF (EQUAL (LENGTH source) 0)
                 SET i (ADD i 1)
                 CONTINUE
             FI
-            SET signature (JS_CALL script (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
             SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND_CHAR "&sig=" signature))
+                                       (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
             SET_HASH medias value source
             SET source (GET_LIST listAudios i)
             IF (EQUAL (LENGTH source) 0)
                 SET i (ADD i 1)
                 CONTINUE
             FI
-            SET signature (JS_CALL script (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
             SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND_CHAR "&sig=" signature))
+                                       (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
             SET_HASH audios value source
             SET i (ADD i 1)
         END
