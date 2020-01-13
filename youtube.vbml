@@ -278,18 +278,21 @@ EXTRACT_SOURCE: |
         END
         #------------------------------------------------------------------------------------------
     ELSE # if (id == 0 || id == 1)
-        SET sources (URL_DECODE (SLICE_IN data "url_encoded_fmt_stream_map=" '&'))
-        SET list (SPLIT sources ',')
+        #------------------------------------------------------------------------------------------
+        # Load "formats"
+        #------------------------------------------------------------------------------------------
+        SET sources (URL_DECODE (SLICE_IN data "%22formats%22"" "%5D"))
+        SET list (SPLIT sources "},{")
         FOREACH list value
             #--------------------------------------------------------------------------------------
             # Load media
             #--------------------------------------------------------------------------------------
-            SET type (MID (SLICE_IN value "type=" '&') 8 3)
+            SET type (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
             IF  (NOT_EQUAL type "mp4")
-            AND (NOT_EQUAL type"web")
+            AND (NOT_EQUAL type "web")
                 CONTINUE
             FI
-            SET quality (MID (SLICE_IN value "quality=" '&') 0 3)
+            SET quality (MID (SLICE_IN value "\"quality\":\"" '"') 0 3)
             IF (EQUAL quality "sma")
                 SET quality "240"
             ELIF (NOT_EQUAL quality "med")
@@ -308,11 +311,12 @@ EXTRACT_SOURCE: |
             #--------------------------------------------------------------------------------------
             # Extract url
             #--------------------------------------------------------------------------------------
-            SET source    (SLICE_IN value "url="         '&')
-            SET signature (SLICE_IN value "signature%3D" '&')
-            IF (LENGTH signature)
-                SET source (URL_DECODE source)
+            SET source (SLICE_IN value "\"url\":\"" '"')
+            IF (LENGTH source)
+                SET source (HTML_TO_UTF8 source)
             ELSE
+                SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                SET source    (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
                     SET source (URL_DECODE (APPEND_CHAR source "&s=" signature))
@@ -324,19 +328,23 @@ EXTRACT_SOURCE: |
             SET_HASH medias quality source
             #--------------------------------------------------------------------------------------
         END
-        SET sources (URL_DECODE (SLICE_IN data "adaptive_fmts=" '&'))
-        SET list (SPLIT sources ',')
+        #------------------------------------------------------------------------------------------
+        # Load "adaptiveFormats"
+        #------------------------------------------------------------------------------------------
+        SET sources (URL_DECODE (SLICE_IN data "%22adaptiveFormats%22" "%5D"))
+        SET list (SPLIT sources "},{")
         #SET i 0
         FOREACH list value
-            IF (CONTAIN value "%22vorbis%22")
+            IF (CONTAIN value "+vorbis")
                 #----------------------------------------------------------------------------------
                 # Extract url
                 #----------------------------------------------------------------------------------
-                SET audio     (SLICE_IN value "url="         '&')
-                SET signature (SLICE_IN value "signature%3D" '&')
-                IF (LENGTH signature)
-                    SET audio (URL_DECODE audio)
+                SET audio (SLICE_IN value "\"url\":\"" '"')
+                IF (LENGTH audio)
+                    SET audio (HTML_TO_UTF8 audio)
                 ELSE
+                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                    SET audio     (SLICE_IN value "url=" '&')
                     SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                     IF (LENGTH signature)
                         SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
@@ -353,15 +361,16 @@ EXTRACT_SOURCE: |
         IF (EQUAL (LENGTH audio) 0)
             SET i 0
             FOREACH list value
-                IF (CONTAIN value "%22mp4a")
+                IF (CONTAIN value "\"mp4a")
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET audio     (SLICE_IN value "url="         '&')
-                    SET signature (SLICE_IN value "signature%3D" '&')
-                    IF (LENGTH signature)
-                        SET audio (URL_DECODE audio)
+                    SET audio (SLICE_IN value "\"url\":\"" '"')
+                    IF (LENGTH audio)
+                        SET audio (HTML_TO_UTF8 audio)
                     ELSE
+                        SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                        SET audio     (SLICE_IN value "url=" '&')
                         SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                         IF (LENGTH signature)
                             SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
@@ -380,22 +389,23 @@ EXTRACT_SOURCE: |
             #--------------------------------------------------------------------------------------
             # Load adaptative
             #--------------------------------------------------------------------------------------
-            SET mime (MID (SLICE_IN value "mime%3D" "%26") 10 3)
+            SET mime (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
             IF (NOT_EQUAL mime "mp4")
                 CONTINUE
             FI
-            SET quality (SLICE_IN value "quality_label=" 'p')
+            SET quality (SLICE_IN value "\"qualityLabel\":\"" 'p')
             IF (EQUAL (INDEX_OF quality (REGEXP "240|360|480|720|1080|1440|2160")) -1)
                 CONTINUE
             FI
             #--------------------------------------------------------------------------------------
             # Extract url
             #--------------------------------------------------------------------------------------
-            SET media     (SLICE_IN value "url="         '&')
-            SET signature (SLICE_IN value "signature%3D" '&')
-            IF (LENGTH signature)
-                SET media (URL_DECODE media)
+            SET media (SLICE_IN value "\"url\":\"" '"')
+            IF (LENGTH media)
+                SET media (HTML_TO_UTF8 media)
             ELSE
+                SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                SET media     (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
                     SET media (URL_DECODE (APPEND_CHAR media "&s=" signature))
@@ -407,6 +417,7 @@ EXTRACT_SOURCE: |
             SET_HASH audios quality audio
             #--------------------------------------------------------------------------------------
         END
+        #------------------------------------------------------------------------------------------
         IF (EQUAL (COUNT medias) 0)
             IF (EQUAL id 1)
                 RETURN
