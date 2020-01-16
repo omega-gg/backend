@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.0
+version: 1.0.1
 
 title: Youtube
 
@@ -281,7 +281,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Load "formats"
         #------------------------------------------------------------------------------------------
-        SET sources (URL_DECODE (SLICE_IN data "%22formats%22"" "%5D"))
+        SET sources (URL_DECODE (SLICE_IN data "%22formats%22" "%5D"))
         SET list (SPLIT sources "},{")
         FOREACH list value
             #--------------------------------------------------------------------------------------
