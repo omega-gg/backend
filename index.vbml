@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.0
+version: 1.0.1
 
 #--------------------------------------------------------------------------------------------------
 # Backends
