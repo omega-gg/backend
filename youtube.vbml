@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.1
+version: 1.0.2
 
 title: Youtube
 
@@ -230,7 +230,7 @@ EXTRACT_SOURCE: |
             SET_HASH next "queryData" queryData
         FI
     ELIF (EQUAL id 3)
-        SET index (INDEX_OF data "function(a){a=a.split(\"\")")
+        SET index (LAST_INDEX_OF data "function(a){a=a.split(\"\")")
         SET function (JS_EXTRACT data "function(a)" index)
         SET object (REGEXP_CAP function ";([a-zA-Z0-9$]+)\\." 1)
         SET object (JS_EXTRACT data (APPEND_CHAR "var " object '='))
