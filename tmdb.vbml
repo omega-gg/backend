@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.0
 
-version: 1.0.0
+version: 1.0.1
 
 search: coverVideo
 
@@ -288,7 +288,7 @@ EXTRACT_TRACK: |
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 1) # Movie
-        SET data (SLICE_IN data "<div class=\"image_content\">" "<p class=\"overview\">")
+        SET data (SLICE_IN data "<div class=\"poster\">" "<img")
         IF (EQUAL (LENGTH data) 0)
             RETURN
         FI

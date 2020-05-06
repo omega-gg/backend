@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.4
+version: 1.0.5
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -38,7 +38,7 @@ backends: |
     dailymotion   Dailymotion   1.0.0 ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0 ^vimeo.com|^player.vimeo.com
     soundcloud    SoundCloud    1.0.0 ^soundcloud.com|^api.soundcloud.com|^a-v2.sndcdn.com
-    tmdb          TMDb          1.0.0 ^themoviedb.org
+    tmdb          TMDb          1.0.1 ^themoviedb.org
     lastfm        Last.fm       1.0.0 ^last.fm
     opensubtitles OpenSubtitles 1.0.1 ^opensubtitles.org
 
