@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.0
 
-version: 1.0.1
+version: 1.0.2
 
 search: coverVideo
 
@@ -204,7 +204,7 @@ EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     IF (EQUAL id 2)
     OR (EQUAL id 4)
-        SET index (INDEX_OF data "<div class=\"image_content\">")
+        SET index (INDEX_OF data "<a class=\"image\"")
         IF (EQUAL index -1)
             RETURN
         FI
@@ -224,7 +224,7 @@ EXTRACT_TRACK: |
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 3) # Show
-        SET list (SLICES data "<div class=\"image_content\">" "<p class=\"overview\">")
+        SET list (SLICES data "<div class=\"poster\">" "</a>")
         IF (EQUAL (COUNT list) 0)
             RETURN
         FI
@@ -236,7 +236,7 @@ EXTRACT_TRACK: |
         SET listA (SPLIT (LOWER (SIMPLIFY string)) ' ')
         #------------------------------------------------------------------------------------------
         # listB
-        SET string (HTML_ATTRIBUTE_UTF8 data "title")
+        SET string (HTML_ATTRIBUTE_UTF8 data "alt")
         SET string (REPLACE string (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
         SET listB (SPLIT (LOWER (SIMPLIFY string)) ' ')
         #------------------------------------------------------------------------------------------
@@ -288,7 +288,7 @@ EXTRACT_TRACK: |
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 1) # Movie
-        SET data (SLICE_IN data "<div class=\"poster\">" "<img")
+        SET data (SLICE_IN data "<div class=\"poster\">" "</a>")
         IF (EQUAL (LENGTH data) 0)
             RETURN
         FI
@@ -301,7 +301,7 @@ EXTRACT_TRACK: |
         SET_HASH next "id" 2
         #------------------------------------------------------------------------------------------
     ELSE # Movie
-        SET listA (SLICES data "<div class=\"image_content\">" "<p class=\"overview\">")
+        SET listA (SLICES data "<div class=\"poster\">" "</a>")
         IF (EQUAL (COUNT listA) 1)
             #--------------------------------------------------------------------------------------
             # Apply source
@@ -316,7 +316,7 @@ EXTRACT_TRACK: |
         SET queryData (REPLACE queryData (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
         SET listB (SPLIT (LOWER (SIMPLIFY queryData)) ' ')
         FOREACH listA data
-            SET data (LOWER (HTML_ATTRIBUTE_UTF8 data "title"))
+            SET data (LOWER (HTML_ATTRIBUTE_UTF8 data "alt"))
             SET data (REPLACE data (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
             SET listA (SIMPLIFY (SPLIT (LOWER data)) ' ')
             #--------------------------------------------------------------------------------------
