@@ -315,7 +315,7 @@ EXTRACT_SOURCE: |
             IF (LENGTH source)
                 SET source (HTML_TO_UTF8 source)
             ELSE
-                SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
                 SET source    (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
@@ -343,7 +343,7 @@ EXTRACT_SOURCE: |
                 IF (LENGTH audio)
                     SET audio (HTML_TO_UTF8 audio)
                 ELSE
-                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
                     SET audio     (SLICE_IN value "url=" '&')
                     SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                     IF (LENGTH signature)
@@ -369,7 +369,7 @@ EXTRACT_SOURCE: |
                     IF (LENGTH audio)
                         SET audio (HTML_TO_UTF8 audio)
                     ELSE
-                        SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                        SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
                         SET audio     (SLICE_IN value "url=" '&')
                         SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                         IF (LENGTH signature)
@@ -404,7 +404,7 @@ EXTRACT_SOURCE: |
             IF (LENGTH media)
                 SET media (HTML_TO_UTF8 media)
             ELSE
-                SET value (HTML_TO_UTF8 (SLICE_IN value "\"cipher\":\"" '"'))
+                SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
                 SET media     (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
