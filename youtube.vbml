@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.5
+version: 1.0.6
 
 title: Youtube
 
@@ -174,11 +174,6 @@ CREATE_QUERY: |
     FI
 
 EXTRACT_SOURCE: |
-    # FIXME: For some reason, we have to reload until we get the proper page.
-    IF (START_WITH data "<!doctype html>")
-        SET reload true
-        RETURN
-    FI
     SET data (READ data "utf-8")
     IF (EQUAL id 2)
         SET javascript (JSON_EXTRACT_HTML data "js")
@@ -450,11 +445,6 @@ EXTRACT_SOURCE: |
     FI
 
 EXTRACT_TRACK: |
-    # FIXME: For some reason, we have to reload until we get the proper page.
-    IF (START_WITH data "<!doctype html>")
-        SET reload true
-        RETURN
-    FI
     SET data (READ data "utf-8")
     SET index (INDEX_OF data "=\"og:image")
     SET cover (HTML_ATTRIBUTE data "content" index)
@@ -473,18 +463,12 @@ EXTRACT_TRACK: |
     SET date (DATE date "yyyy-MM-dd")
 
 EXTRACT_PLAYLIST: |
-    # FIXME: For some reason, we have to reload until we get the proper page.
-    IF (START_WITH data "<!doctype html>")
-        SET reload true
-        RETURN
-    FI
     SET data (READ data "utf-8")
     IF (EQUAL id 1) # Feed
         IF (EQUAL queryData "")
-            SET index (INDEX_OF data "class=\"channel-header-profile-image")
-            SET cover (URL_GENERATE (HTML_ATTRIBUTE data "src" index) "https://www.youtube.com")
-            SET title (HTML_ATTRIBUTE_UTF8 data "title" index)
-            SET index (INDEX_OF "data-uix-load-more-href=\"" index)
+            SET cover (HTML_ATTRIBUTE data "href" (INDEX_OF data "\"image_src\""))
+            SET title (HTML_ATTRIBUTE_UTF8 data "content" (INDEX_OF data "\"title\""))
+            SET index (INDEX_OF "data-uix-load-more-href=\"")
             IF (EQUAL index -1)
                 SET url (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
                 SET url (APPEND_CHAR "https://www.youtube.com" (URL_DECODE url))
@@ -494,34 +478,22 @@ EXTRACT_PLAYLIST: |
         ELSE
             SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
         FI
-        SET list (SLICES data "<li class=\"channels-content-item" "<div class=\"yt-lockup-meta")
+        SET list (SLICES data "\"gridVideoRenderer\"" "}}}")
         FOREACH list value
-            SET index (INDEX_OF value "class=\"yt-lockup-title")
-            SET source (HTML_ATTRIBUTE value "href" index)
-            IF (EQUAL (LENGTH source) 0)
-            OR (EQUAL (START_WITH source '/') false)
-                CONTINUE
-            FI
-            SET id (URL_VALUE source 'v')
+            SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
-            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
     ELIF (EQUAL id 2) # Search tracks
-        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile" "</div></li>")
+        SET list (SLICES data "\"videoRenderer\"" "}}}")
         FOREACH list value
-            SET index (INDEX_OF value "class=\"yt-lockup-title")
-            SET source (HTML_ATTRIBUTE value "href" index)
-            IF (EQUAL (LENGTH source) 0)
-            OR (EQUAL (START_WITH source '/') false)
-                CONTINUE
-            FI
-            SET id (URL_VALUE source 'v')
+            SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
-            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
@@ -550,18 +522,12 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_OF data "\"body\"")
             SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "watch-more-related" index))
         FI
-        SET list (SLICES data "<li class=\"video-list-item" "</li>")
+        SET list (SLICES data "\"compactVideoRenderer\"" "}}}")
         FOREACH list value
-            SET index (INDEX_OF value "class=\"content-wrapper")
-            SET source (HTML_ATTRIBUTE value "href" index)
-            IF (EQUAL (LENGTH source) 0)
-            OR (EQUAL (START_WITH source '/') false)
-                CONTINUE
-            FI
-            SET id (URL_VALUE source 'v')
+            SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com" source)
-            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
+            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
@@ -577,59 +543,44 @@ EXTRACT_PLAYLIST: |
         ELSE
             SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
         FI
-        SET list (SLICES data "<tr class=\"pl-video yt-uix-tile" "</td></tr>")
+        SET list (SLICES data "\"playlistVideoRenderer\"" "}}}")
         FOREACH list value
-            SET id (HTML_ATTRIBUTE value "data-video-id")
+            SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
             SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (HTML_ATTRIBUTE_UTF8 value "data-title")
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
     FI
 
 EXTRACT_FOLDER: |
-    # FIXME: For some reason, we have to reload until we get the proper page.
-    IF (START_WITH data "<!doctype html>")
-        SET reload true
-        RETURN
-    FI
     SET data (READ data "utf-8")
     IF (EQUAL id 1) # Search channels
-        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile yt-lockup-channel" \
-                              "</div></li>")
+        SET list (SLICES data "\"channelRenderer\"" "}}}")
         FOREACH list value
-            SET index (INDEX_OF value "class=\"yt-thumb video-thumb")
-            SET cover (HTML_ATTRIBUTE value "data-thumb" index)
-            IF (EQUAL cover "")
-                SET cover (HTML_ATTRIBUTE value "src" index)
-            FI
-            SET cover (URL_GENERATE cover "https://www.youtube.com")
-            SET index (INDEX_OF value "class=\"yt-lockup-title" index)
-            SET source (HTML_ATTRIBUTE_UTF8 value "href" index)
+            SET id (JSON_EXTRACT value "url")
+            SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"thumbnails\""))
+            SET cover (MID cover 0 (INDEX_OF cover '='))
             SET_HASH item "type" "feed"
             SET_HASH item "state" "default"
-            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com" source "/videos?view=0")
-            SET_HASH item "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
-            SET_HASH item "cover" (REPLACE cover "http://" "https://") # FIXME Youtube
+            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com" id)
+            PRINT (APPEND_CHAR "https://www.youtube.com" id)
+            SET_HASH item "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            SET_HASH item "cover" (APPEND_CHAR "https:" cover)
             APPEND_LIST items item
         END
     ELSE # Search playlists
-        SET list (SLICES data "<div class=\"yt-lockup yt-lockup-tile yt-lockup-playlist" \
-                              "</div></li>")
+        SET list (SLICES data "\"playlistRenderer\"" "}}}")
         FOREACH list value
-            SET index (INDEX_OF value "class=\"yt-thumb video-thumb")
-            SET cover (HTML_ATTRIBUTE value "data-thumb" index)
-            IF (EQUAL cover "")
-                SET cover (HTML_ATTRIBUTE value "src" index)
-            FI
-            SET index (INDEX_OF value "class=\"yt-lockup-title" index)
-            SET id (URL_VALUE (HTML_ATTRIBUTE_UTF8 value "href" index) "list")
+            SET id (JSON_EXTRACT value "playlistId")
+            SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"thumbnails\""))
+            SET cover (MID cover 0 (INDEX_OF cover '?'))
             SET_HASH item "type" "playlist"
             SET_HASH item "state" "default"
             SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com/playlist?list=" id)
-            SET_HASH item "title" (HTML_ATTRIBUTE_UTF8 value "title" index)
-            SET_HASH item "cover" (URL_GENERATE cover "https://www.youtube.com")
+            SET_HASH item "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            SET_HASH item "cover" cover
             APPEND_LIST items item
         END
         IF (EQUAL queryData "")

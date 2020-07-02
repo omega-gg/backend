@@ -61,7 +61,7 @@ QUERY_TRACK: |
     IF (EQUAL index -1)
         SET queryData -1
     ELSE
-        SET url (MID 0 index)
+        SET url (MID url 0 index)
         SET indexB (INDEX_OF url '.' index)
         IF (EQUAL indexB -1)
             SET queryData (MID index)
@@ -81,7 +81,7 @@ QUERY_PLAYLIST: |
     IF (EQUAL index -1)
         SET queryData -1
     ELSE
-        SET url (MID 0 index)
+        SET url (MID url 0 index)
         SET indexB (INDEX_OF url '.' index)
         IF (EQUAL indexB -1)
             SET queryData (MID index)
@@ -143,7 +143,7 @@ CREATE_QUERY: |
             SET type "torrent"
         FI
         SET index (INDEX_OF q '#')
-        SET url (MID 0 index)
+        SET url (MID url 0 index)
         SET id 1
     FI
 
