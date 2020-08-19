@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.8
+version: 1.0.9
 
 title: Youtube
 
@@ -45,7 +45,7 @@ PLAYLIST_INFO: |
     IF (EQUAL (START_WITH url "youtube.com") false)
         RETURN false
     FI
-    SET index (INDEX_OF url (REGEXP "/user/|/c/"))
+    SET index (INDEX_OF url (REGEXP "/user/|/channel/|/c/"))
     IF (EQUAL index -1)
         SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
         IF (EQUAL index -1)
@@ -121,7 +121,7 @@ QUERY_PLAYLIST: |
     IF (EQUAL (START_WITH url "youtube.com") false)
         RETURN false
     FI
-    SET index (INDEX_OF url (REGEXP "/user/|/c/"))
+    SET index (INDEX_OF url (REGEXP "/user/|/channel/|/c/"))
     IF (EQUAL index -1)
         SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
         IF (EQUAL index -1)
@@ -483,7 +483,13 @@ EXTRACT_PLAYLIST: |
             SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
             SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
+            # FIXME: simpleText / text
+            SET title (JSON_EXTRACT_UTF8 value "simpleText")
+            IF (EQUAL title "")
+                SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
+            ELSE
+                SET_HASH track "title" title
+            FI
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
