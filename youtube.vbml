@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.7
+version: 1.0.8
 
 title: Youtube
 
@@ -45,7 +45,7 @@ PLAYLIST_INFO: |
     IF (EQUAL (START_WITH url "youtube.com") false)
         RETURN false
     FI
-    SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
+    SET index (INDEX_OF url (REGEXP "/user/|/c/"))
     IF (EQUAL index -1)
         SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
         IF (EQUAL index -1)
@@ -61,7 +61,7 @@ PLAYLIST_INFO: |
                 FI
             ELSE
                 SET type "feed"
-                SET id (APPEND_CHAR "channel/" (URL_ELEMENT url index))
+                SET id (APPEND_CHAR "c/" (URL_ELEMENT url index))
             FI
             RETURN true
         FI
@@ -121,7 +121,7 @@ QUERY_PLAYLIST: |
     IF (EQUAL (START_WITH url "youtube.com") false)
         RETURN false
     FI
-    SET index (INDEX_OF url (REGEXP "/user/|/channel/"))
+    SET index (INDEX_OF url (REGEXP "/user/|/c/"))
     IF (EQUAL index -1)
         SET index (INDEX_END url (REGEXP "\\?p=|&p=|\\?list=|&list="))
         IF (EQUAL index -1)
@@ -135,7 +135,7 @@ QUERY_PLAYLIST: |
                     SET url ""
                 FI
             ELSE
-                SET string (APPEND_CHAR "channel/" (URL_ELEMENT url index))
+                SET string (APPEND_CHAR "c/" (URL_ELEMENT url index))
                 SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
                 SET id 1
             FI
@@ -458,7 +458,7 @@ EXTRACT_TRACK: |
     SET feed (HTML_ATTRIBUTE data "content" index)
     SET index (INDEX_OF data "itemprop=\"uploadDate" index)
     SET date (HTML_ATTRIBUTE data "content" index)
-    SET feed (APPEND_CHAR "https://www.youtube.com/channel/" (URL_PATH feed))
+    SET feed (APPEND_CHAR "https://www.youtube.com/c/" (URL_PATH feed))
     SET duration (MULTIPLY duration 1000)
     SET date (DATE date "yyyy-MM-dd")
 
@@ -483,7 +483,7 @@ EXTRACT_PLAYLIST: |
             SET id (JSON_EXTRACT value "videoId")
             SET_HASH track "state" "default"
             SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
         END
