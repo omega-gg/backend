@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.9
+version: 1.0.10
 
 title: Youtube
 
@@ -61,7 +61,7 @@ PLAYLIST_INFO: |
                 FI
             ELSE
                 SET type "feed"
-                SET id (APPEND_CHAR "c/" (URL_ELEMENT url index))
+                SET id (APPEND_CHAR "channel/" (URL_ELEMENT url index))
             FI
             RETURN true
         FI
@@ -135,7 +135,7 @@ QUERY_PLAYLIST: |
                     SET url ""
                 FI
             ELSE
-                SET string (APPEND_CHAR "c/" (URL_ELEMENT url index))
+                SET string (APPEND_CHAR "channel/" (URL_ELEMENT url index))
                 SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
                 SET id 1
             FI
@@ -458,7 +458,7 @@ EXTRACT_TRACK: |
     SET feed (HTML_ATTRIBUTE data "content" index)
     SET index (INDEX_OF data "itemprop=\"uploadDate" index)
     SET date (HTML_ATTRIBUTE data "content" index)
-    SET feed (APPEND_CHAR "https://www.youtube.com/c/" (URL_PATH feed))
+    SET feed (APPEND_CHAR "https://www.youtube.com/channel/" (URL_PATH feed))
     SET duration (MULTIPLY duration 1000)
     SET date (DATE date "yyyy-MM-dd")
 
@@ -484,11 +484,11 @@ EXTRACT_PLAYLIST: |
             SET_HASH track "state" "default"
             SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
             # FIXME: simpleText / text
-            SET title (JSON_EXTRACT_UTF8 value "simpleText")
-            IF (EQUAL title "")
+            SET text (JSON_EXTRACT_UTF8 value "simpleText")
+            IF (EQUAL text "")
                 SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
             ELSE
-                SET_HASH track "title" title
+                SET_HASH track "title" text
             FI
             SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             APPEND_LIST tracks track
@@ -571,7 +571,6 @@ EXTRACT_FOLDER: |
             SET_HASH item "type" "feed"
             SET_HASH item "state" "default"
             SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com" id)
-            PRINT (APPEND_CHAR "https://www.youtube.com" id)
             SET_HASH item "title" (JSON_EXTRACT_UTF8 value "simpleText")
             SET_HASH item "cover" (APPEND_CHAR "https:" cover)
             APPEND_LIST items item
