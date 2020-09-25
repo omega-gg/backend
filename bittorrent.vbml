@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.0
 
-version: 1.0.0
+version: 1.0.1
 
 title: BitTorrent
 
@@ -143,7 +143,7 @@ CREATE_QUERY: |
             SET type "torrent"
         FI
         SET index (INDEX_OF q '#')
-        SET url (MID url 0 index)
+        SET url (MID q 0 index)
         SET id 1
     FI
 
