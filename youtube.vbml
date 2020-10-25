@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.10
+version: 1.0.11
 
 title: Youtube
 
@@ -176,8 +176,8 @@ CREATE_QUERY: |
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
     IF (EQUAL id 2)
-        SET javascript (JSON_EXTRACT_HTML data "js")
-        IF (EQUAL javascript 0)
+        SET javascript (JSON_EXTRACT_HTML data "jsUrl")
+        IF (EQUAL javascript "")
             RETURN
         FI
         SET javascript (URL_GENERATE javascript "https://www.youtube.com")
@@ -403,6 +403,10 @@ EXTRACT_SOURCE: |
             SET media (SLICE_IN value "\"url\":\"" '"')
             IF (LENGTH media)
                 SET media (HTML_TO_UTF8 media)
+                # NOTE: When the duration is equal zero the source is invalid, so we skip it.
+                IF (NOT_EQUAL (INDEX_OF media "dur=0.000") -1)
+                    CONTINUE
+                FI
             ELSE
                 SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
                 SET media     (SLICE_IN value "url=" '&')
