@@ -32,15 +32,15 @@ backend_subtitle: |
 #--------------------------------------------------------------------------------------------------
 
 backends: |
-    duckduckgo    DuckDuckGo    1.0.0 ^duckduckgo.com
-    bittorrent    BitTorrent    1.0.1 .torrent$|^magnet:?
-    youtube       Youtube       1.0.8 ^youtube.com|^youtu.be
-    dailymotion   Dailymotion   1.0.0 ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
-    vimeo         Vimeo         1.0.0 ^vimeo.com|^player.vimeo.com
-    soundcloud    SoundCloud    1.0.1 ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
-    tmdb          TMDb          1.0.3 ^themoviedb.org
-    lastfm        Last.fm       1.0.0 ^last.fm
-    opensubtitles OpenSubtitles 1.0.1 ^opensubtitles.org
+    duckduckgo    DuckDuckGo    1.0.0  ^duckduckgo.com
+    bittorrent    BitTorrent    1.0.1  .torrent$|^magnet:?
+    youtube       Youtube       1.0.10 ^youtube.com|^youtu.be
+    dailymotion   Dailymotion   1.0.0  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
+    soundcloud    SoundCloud    1.0.1  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
+    tmdb          TMDb          1.0.3  ^themoviedb.org
+    lastfm        Last.fm       1.0.0  ^last.fm
+    opensubtitles OpenSubtitles 1.0.1  ^opensubtitles.org
 
 covers: |
     duckduckgo  cover/duckduckgo.png
