@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.0
 
-version: 1.0.11
+version: 1.0.12
 
 title: Youtube
 
@@ -189,7 +189,7 @@ EXTRACT_SOURCE: |
             SET listAudios (GET_LIST queryData 1)
             #SET script (JS_EVALUATE (GET_LIST global 1))
             SET script (GET_LIST global 1)
-            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
                 SET source (GET_LIST listMedias i)
                 IF (LENGTH source)
                     APPEND_LIST sources (LIST (REGEXP_CAP source \
@@ -204,7 +204,7 @@ EXTRACT_SOURCE: |
             END
             SET signatures (JS_CALLS script sources)
             SET i 0
-            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
                 SET source (GET_LIST listMedias i)
                 IF (EQUAL (LENGTH source) 0)
                     SET i (ADD i 1)
@@ -244,7 +244,7 @@ EXTRACT_SOURCE: |
         SET listAudios (GET_LIST queryData 1)
         #SET script (JS_EVALUATE script)
         #SET i 0
-        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
             SET source (GET_LIST listMedias i)
             IF (LENGTH source)
                 APPEND_LIST sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
@@ -257,7 +257,7 @@ EXTRACT_SOURCE: |
         END
         SET signatures (JS_CALLS script sources)
         SET i 0
-        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
             SET source (GET_LIST listMedias i)
             IF (EQUAL (LENGTH source) 0)
                 SET i (ADD i 1)
@@ -394,7 +394,7 @@ EXTRACT_SOURCE: |
                 CONTINUE
             FI
             SET quality (SLICE_IN value "\"qualityLabel\":\"" 'p')
-            IF (EQUAL (INDEX_OF quality (REGEXP "240|360|480|720|1080|1440|2160")) -1)
+            IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                 CONTINUE
             FI
             #--------------------------------------------------------------------------------------
@@ -432,12 +432,12 @@ EXTRACT_SOURCE: |
             SET_HASH next "queryData" queryData
             RETURN
         FI
-        FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
             SET string (GET_HASH medias value)
             IF (EQUAL (CONTAIN string "&s=") false)
                 CONTINUE
             FI
-            FOREACH (LIST "240" "360" "480" "720" "1080" "1440" "2160") value
+            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
                 APPEND_LIST listMedias (GET_HASH medias value)
                 APPEND_LIST listAudios (GET_HASH audios value)
             END
