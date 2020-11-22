@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbml
 
-api: 1.0.0
+api: 1.0.1
 
 version: 1.0.0
 
@@ -52,14 +52,14 @@ EXTRACT_FOLDER: |
                 CONTINUE
             FI
             SET source (URL_NAME source)
-            IF (CONTAIN_LIST urls source)
+            IF (LIST_CONTAIN urls source)
                 CONTINUE
             FI
-            APPEND_LIST urls source
-            SET_HASH item "type" "folderSearch"
-            SET_HASH item "state" "default"
-            SET_HASH item "title" source
-            APPEND_LIST items item
+            LIST_APPEND urls source
+            HASH_SET item "type" "folderSearch"
+            HASH_SET item "state" "default"
+            HASH_SET item "title" source
+            LIST_APPEND items item
         END
     ELIF (EQUAL id 3) # Search site
         SET data (SLICE_IN data "('d',[" "]);")
@@ -73,16 +73,16 @@ EXTRACT_FOLDER: |
             IF (EQUAL title "EOF")
                 BREAK
             FI
-            SET_HASH item "type" "folderSearch"
-            SET_HASH item "state" "default"
-            SET_HASH item "source" source
-            SET_HASH item "title" title
-            APPEND_LIST items item
+            HASH_SET item "type" "folderSearch"
+            HASH_SET item "state" "default"
+            HASH_SET item "source" source
+            HASH_SET item "title" title
+            LIST_APPEND items item
         END
     ELSE
         SET data (READ data "utf-8")
         SET data (SLICE_IN data ";nrj('" "'")
-        SET_HASH next "url" (APPEND_CHAR "https://duckduckgo.com" data)
-        SET_HASH next "id" (ADD id 1)
+        HASH_SET next "url" (APPEND "https://duckduckgo.com" data)
+        HASH_SET next "id" (ADD id 1)
     FI
     SET scanItems true

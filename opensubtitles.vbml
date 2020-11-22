@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.vbml
 
-api: 1.0.0
+api: 1.0.1
 
 version: 1.0.1
 
@@ -51,15 +51,15 @@ CREATE_QUERY: |
               "ell" "heb" "hin" "hun" "ice" "ind" "gle" "ita" "jpn" "kan" "kaz" "khm" "kor" "kur" \
               "lav" "lit" "mac" "may" "mal" "nor" "oci" "per" "pol" "por" "rum" "rus" "scc" "sin" \
               "slo" "slv" "spa" "swe" "tam" "tel" "tha" "tur" "urk" "vie"
-    SET index (INDEX_LIST listA label)
+    SET index (LIST_INDEX listA label)
     IF (EQUAL index -1)
         SET language "eng"
     ELSE
-        SET language (GET_LIST listB index)
+        SET language (LIST_GET listB index)
     FI
     SET q (SIMPLIFY q)
-    SET url (APPEND_CHAR "https://www.opensubtitles.org/en/search/sublanguageid-" language \
-                         "/subsumcd-1/subformat-srt/moviename-" (REPLACE q ' ' '+'))
+    SET url (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" language \
+                    "/subsumcd-1/subformat-srt/moviename-" (REPLACE q ' ' '+'))
     SET queryData (LIST language q)
     SET cookies true
     #----------------------------------------------------------------------------------------------
@@ -74,12 +74,12 @@ EXTRACT_FOLDER: |
     # NOTE: We have been redirected to a subtitle page.
     IF (EQUAL id 0)
     AND (CONTAIN urlRedirect "/subtitles/")
-        SET search (GET_LIST queryData 1)
-        SET_HASH item "type" "item"
-        SET_HASH item "state" "default"
-        SET_HASH item "source" urlRedirect
-        SET_HASH item "title" search
-        APPEND_LIST items item
+        SET search (LIST_GET queryData 1)
+        HASH_SET item "type" "item"
+        HASH_SET item "state" "default"
+        HASH_SET item "source" urlRedirect
+        HASH_SET item "title" search
+        LIST_APPEND items item
         #------------------------------------------------------------------------------------------
         # Get query
         #------------------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ EXTRACT_FOLDER: |
             IF (EQUAL (CONTAIN value (REGEXP "^[({\\[]")) false)
                 BREAK
             FI
-            REMOVE_LIST_AT listA 0
+            LIST_REMOVE_AT listA 0
         END
         SET search (JOIN listA ' ')
         SET search (REPLACE search (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
@@ -103,14 +103,14 @@ EXTRACT_FOLDER: |
             IF (EQUAL (NUMBER value) 0)
                 BREAK
             FI
-            REMOVE_LIST_AT listA 0
+            LIST_REMOVE_AT listA 0
         END
         FOREACH listA value
             IF (LESSER (LENGTH value) 4)
             OR (CONTAIN value (REGEXP "720p|1080p|x264|bluray"))
                 CONTINUE
             FI
-            APPEND_LIST listB value
+            LIST_APPEND listB value
             IF (EQUAL (COUNT listB) 5)
                 BREAK
             FI
@@ -119,13 +119,13 @@ EXTRACT_FOLDER: |
         #------------------------------------------------------------------------------------------
         # Apply query
         #------------------------------------------------------------------------------------------
-        SET language (GET_LIST queryData 0)
+        SET language (LIST_GET queryData 0)
         SET search (SIMPLIFY search)
-        SET_HASH next "url" (APPEND_CHAR "https://www.opensubtitles.org/en/search/sublanguageid-" \
+        HASH_SET next "url" (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" \
                              language "/subsumcd-1/subformat-srt/moviename-" \
                              (REPLACE search ' ' '+'))
-        SET_HASH next "id" 1
-        SET_HASH next "queryData" (LIST language search)
+        HASH_SET next "id" 1
+        HASH_SET next "queryData" (LIST language search)
         #------------------------------------------------------------------------------------------
         RETURN
     FI
@@ -141,16 +141,16 @@ EXTRACT_FOLDER: |
             SET title (HTML_ATTRIBUTE title "title")
         FI
         SET title (SIMPLIFY (HTML_TO_UTF8 title))
-        SET_HASH item "type" "item"
-        SET_HASH item "state" "default"
-        SET_HASH item "source" (APPEND_CHAR "https://www.opensubtitles.org" \
-                                            (HTML_ATTRIBUTE value "href"))
-        SET_HASH item "title" title
-        APPEND_LIST items item
+        HASH_SET item "type" "item"
+        HASH_SET item "state" "default"
+        HASH_SET item "source" (APPEND "https://www.opensubtitles.org" \
+                                       (HTML_ATTRIBUTE value "href"))
+        HASH_SET item "title" title
+        LIST_APPEND items item
     END
     IF (EQUAL id 0)
         IF (LESSER (COUNT items) 5)
-            SET search (GET_LIST queryData 1)
+            SET search (LIST_GET queryData 1)
             #--------------------------------------------------------------------------------------
             # Get query
             #--------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ EXTRACT_FOLDER: |
                 IF (EQUAL (CONTAIN value (REGEXP "^[({\\[]")) false)
                     BREAK
                 FI
-                REMOVE_LIST_AT listA 0
+                LIST_REMOVE_AT listA 0
             END
             SET search (JOIN listA ' ')
             SET search (REPLACE search (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
@@ -174,14 +174,14 @@ EXTRACT_FOLDER: |
                 IF (EQUAL (NUMBER value) 0)
                     BREAK
                 FI
-                REMOVE_LIST_AT listA 0
+                LIST_REMOVE_AT listA 0
             END
             FOREACH listA value
                 IF (LESSER (LENGTH value) 4)
                 OR (CONTAIN value (REGEXP "720p|1080p|x264|bluray"))
                     CONTINUE
                 FI
-                APPEND_LIST listB value
+                LIST_APPEND listB value
                 IF (EQUAL (COUNT listB) 5)
                     BREAK
                 FI
@@ -190,13 +190,13 @@ EXTRACT_FOLDER: |
             #--------------------------------------------------------------------------------------
             # Apply query
             #--------------------------------------------------------------------------------------
-            SET language (GET_LIST queryData 0)
-            SET_HASH next "url" (APPEND_CHAR \
+            SET language (LIST_GET queryData 0)
+            HASH_SET next "url" (APPEND \
                                  "https://www.opensubtitles.org/en/search/sublanguageid-" \
                                  language "/subsumcd-1/subformat-srt/moviename-" \
                                  (REPLACE search ' ' '+'))
-            SET_HASH next "id" 1
-            SET_HASH next "queryData" (LIST language search)
+            HASH_SET next "id" 1
+            HASH_SET next "queryData" (LIST language search)
             #--------------------------------------------------------------------------------------
         FI
     ELIF (EQUAL id 3)
@@ -206,7 +206,7 @@ EXTRACT_FOLDER: |
         IF (GREATER (COUNT items) 4)
             RETURN
         FI
-        SET search (GET_LIST queryData 1)
+        SET search (LIST_GET queryData 1)
         IF (EQUAL id 1)
             SET index (INDEX_SKIP search ' ' 2)
         ELSE
@@ -218,13 +218,13 @@ EXTRACT_FOLDER: |
         #------------------------------------------------------------------------------------------
         # Apply query
         #------------------------------------------------------------------------------------------
-        SET language (GET_LIST queryData 0)
+        SET language (LIST_GET queryData 0)
         SET search (MID search 0 index)
-        SET_HASH next "url" (APPEND_CHAR "https://www.opensubtitles.org/en/search/sublanguageid-" \
+        HASH_SET next "url" (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" \
                              language "/subsumcd-1/subformat-srt/moviename-" \
                              (REPLACE search ' ' '+'))
-        SET_HASH next "id" (ADD id 1)
-        SET_HASH next "queryData" (LIST language search)
+        HASH_SET next "id" (ADD id 1)
+        HASH_SET next "queryData" (LIST language search)
         #------------------------------------------------------------------------------------------
     FI
 
@@ -245,15 +245,15 @@ EXTRACT_ITEM: |
         SET source (HTML_ATTRIBUTE data "href" index)
         SET index (INDEX_OF data "function dowSub" index)
         SET string (SLICE_IN data "vrf-" "'" index)
-        SET source (REPLACE source "subtitleserve" (APPEND_CHAR "download/vrf-" string))
-        SET_HASH next "url" (APPEND_CHAR "https://www.opensubtitles.org" source)
-        SET_HASH next "id" 1
-        SET_HASH next "cookies" true
+        SET source (REPLACE source "subtitleserve" (APPEND "download/vrf-" string))
+        HASH_SET next "url" (APPEND "https://www.opensubtitles.org" source)
+        HASH_SET next "id" 1
+        HASH_SET next "cookies" true
         #------------------------------------------------------------------------------------------
         # FIXME OpenSubtitles: We have to delay our requests to avoid the captcha.
         #------------------------------------------------------------------------------------------
-        SET_HASH next "maxHost" 1
-        SET_HASH next "delay" 1000
-        SET_HASH next "timeout" 10000
+        HASH_SET next "maxHost" 1
+        HASH_SET next "delay" 1000
+        HASH_SET next "timeout" 10000
         #------------------------------------------------------------------------------------------
     FI

@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
-api: 1.0.0
+api: 1.0.1
 
 version: 1.0.0
 
@@ -46,8 +46,8 @@ EXTRACT_TRACK: |
         SET cover (HTML_ATTRIBUTE data "content" index)
     ELSE
         SET list (SLICES data "chartlist-row" "</tr>")
-        SET listTitle (SPLIT (GET_LIST queryData 0) ' ')
-        SET listAuthor (SPLIT (GET_LIST queryData 1) ' ')
+        SET listTitle (SPLIT (LIST_GET queryData 0) ' ')
+        SET listAuthor (SPLIT (LIST_GET queryData 1) ' ')
         FOREACH list data
             #--------------------------------------------------------------------------------------
             # Match author
@@ -58,11 +58,11 @@ EXTRACT_TRACK: |
             SET list (SPLIT author ' ')
             SET from 0
             FOREACH list valueA
-                SET from (INDEX_LIST listAuthor valueA from)
+                SET from (LIST_INDEX listAuthor valueA from)
                 IF (EQUAL from -1)
                     SET from 0
                     FOREACH listAuthor valueB
-                        SET from (INDEX_LIST list valueB from)
+                        SET from (LIST_INDEX list valueB from)
                         IF (EQUAL from -1)
                             BREAK
                         FI
@@ -82,11 +82,11 @@ EXTRACT_TRACK: |
             SET list (SPLIT string ' ')
             SET from 0
             FOREACH list valueA
-                SET from (INDEX_LIST listTitle valueA from)
+                SET from (LIST_INDEX listTitle valueA from)
                 IF (EQUAL from -1)
                     SET from 0
                     FOREACH listTitle valueB
-                        SET from (INDEX_LIST list valueB from)
+                        SET from (LIST_INDEX list valueB from)
                         IF (EQUAL from -1)
                             BREAK
                         FI
@@ -99,8 +99,8 @@ EXTRACT_TRACK: |
             FI
             #--------------------------------------------------------------------------------------
             SET source (HTML_ATTRIBUTE_UTF8 data "href" index)
-            SET_HASH next "url" (APPEND_CHAR "https://www.last.fm" source)
-            SET_HASH next "id" 1
+            HASH_SET next "url" (APPEND "https://www.last.fm" source)
+            HASH_SET next "id" 1
             RETURN
         END
     FI

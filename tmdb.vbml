@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
-api: 1.0.0
+api: 1.0.1
 
 version: 1.0.3
 
@@ -38,7 +38,7 @@ CREATE_QUERY: |
         IF (EQUAL (CONTAIN value (REGEXP "^[({\\[]")) false)
             BREAK
         FI
-        REMOVE_LIST_AT list 0
+        LIST_REMOVE_AT list 0
     END
     SET q (JOIN list ' ')
     SET q (REPLACE q (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
@@ -47,7 +47,7 @@ CREATE_QUERY: |
         IF (EQUAL (NUMBER value) 0)
             BREAK
         FI
-        REMOVE_LIST_AT list 0
+        LIST_REMOVE_AT list 0
     END
     #----------------------------------------------------------------------------------------------
     FOREACH list value
@@ -78,10 +78,10 @@ CREATE_QUERY: |
                 FI
                 SET title (CHOP title 1)
             ELSE
-                SET data (GET_LIST list index)
+                SET data (LIST_GET list index)
                 IF (EQUAL (LENGTH data) 4)
                 AND (GREATER_EQUAL data 1800)
-                    SET title (APPEND_CHAR title value)
+                    SET title (APPEND title value)
                     SET value data
                 ELSE
                     IF (EQUAL (LENGTH title) 0)
@@ -91,7 +91,7 @@ CREATE_QUERY: |
                 FI
             FI
             SET url "https://www.themoviedb.org/search"
-            URL_ADD_QUERY url "query" (APPEND_CHAR title " y:" value)
+            URL_ADD_QUERY url "query" (APPEND title " y:" value)
             URL_ADD_QUERY url "language" "en"
             SET id 1
             RETURN
@@ -121,7 +121,7 @@ CREATE_QUERY: |
                 IF (EQUAL (CONTAIN string (REGEXP "^[({\\[]")) false)
                     BREAK
                 FI
-                REMOVE_LIST_AT list 0
+                LIST_REMOVE_AT list 0
             END
             SET label (JOIN list ' ')
             SET label (REPLACE label (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
@@ -130,7 +130,7 @@ CREATE_QUERY: |
                 IF (EQUAL (NUMBER value) 0)
                     BREAK
                 FI
-                REMOVE_LIST_AT list 0
+                LIST_REMOVE_AT list 0
             END
             #--------------------------------------------------------------------------------------
             FOREACH list string
@@ -150,20 +150,20 @@ CREATE_QUERY: |
                     FI
                     SET index (ADD j 1)
                     IF (NOT_EQUAL index (COUNT list))
-                    AND (NUMBER (GET_LIST list index))
+                    AND (NUMBER (LIST_GET list index))
                     AND (NOT_EQUAL (LENGTH show) 0)
                         BREAK
                     FI
                 FI
-                SET show (APPEND_CHAR show (APPEND_CHAR string ' '))
+                SET show (APPEND show (APPEND string ' '))
                 SET j (ADD j 1)
             END
             SET show (CHOP show 1)
             #======================================================================================
-            SET source (GET_HASH (GET_LIST global 1) show)
+            SET source (HASH_GET (LIST_GET global 1) show)
             IF (LENGTH source)
                 SET list show
-                SET url (APPEND_CHAR source (NUMBER season) "/episode/" (NUMBER episode) \
+                SET url (APPEND source (NUMBER season) "/episode/" (NUMBER episode) \
                          "/images/backdrops?language=en")
                 SET id 4
             ELSE
@@ -181,7 +181,7 @@ CREATE_QUERY: |
                 BREAK
             FI
         FI
-        SET title (APPEND_CHAR title value ' ')
+        SET title (APPEND title value ' ')
         SET i (ADD i 1)
     END
     IF (EQUAL (LENGTH title) 0)
@@ -192,7 +192,7 @@ CREATE_QUERY: |
     IF (NOT_EQUAL index -1)
         SET string (MID title (ADD index 1))
         IF (EXTENSION_IS_VIDEO string)
-            SET title (REMOVE_CHAR title index (SUB (LENGTH title) index))
+            SET title (REMOVE title index (SUB (LENGTH title) index))
         FI
     FI
     SET url "https://www.themoviedb.org/search"
@@ -208,19 +208,19 @@ EXTRACT_TRACK: |
         IF (EQUAL index -1)
             RETURN
         FI
-        SET cover (APPEND_CHAR "https:" (HTML_ATTRIBUTE data "href" index))
-        SET_HASH track "cover" cover
+        SET cover (APPEND "https:" (HTML_ATTRIBUTE data "href" index))
+        HASH_SET track "cover" cover
         #------------------------------------------------------------------------------------------
         # Global
         #------------------------------------------------------------------------------------------
         IF (NOT_EQUAL cover "")
             RETURN
         FI
-        SET show (GET_LIST queryData 0)
-        SET list (GET_LIST global 0)
-        SET hash (GET_LIST global 1)
-        REMOVE_LIST list show
-        REMOVE_HASH hash show
+        SET show (LIST_GET queryData 0)
+        SET list (LIST_GET global 0)
+        SET hash (LIST_GET global 1)
+        LIST_REMOVE list show
+        HASH_REMOVE hash show
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 3) # Show
@@ -228,10 +228,10 @@ EXTRACT_TRACK: |
         IF (EQUAL (COUNT list) 0)
             RETURN
         FI
-        SET data (GET_LIST list 0)
+        SET data (LIST_GET list 0)
         #------------------------------------------------------------------------------------------
         # listA
-        SET string (GET_LIST queryData 0)
+        SET string (LIST_GET queryData 0)
         SET string (REPLACE string (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
         SET listA (SPLIT (LOWER (SIMPLIFY string)) ' ')
         #------------------------------------------------------------------------------------------
@@ -250,11 +250,11 @@ EXTRACT_TRACK: |
             FI
             #SET from 0
             FOREACH listA valueA
-                SET from (INDEX_LIST listB valueA from)
+                SET from (LIST_INDEX listB valueA from)
                 IF (EQUAL from -1)
                     SET from 0
                     FOREACH listB valueB
-                        SET from (INDEX_LIST listA valueB from)
+                        SET from (LIST_INDEX listA valueB from)
                         IF (EQUAL from -1)
                             RETURN
                         FI
@@ -265,25 +265,25 @@ EXTRACT_TRACK: |
             #--------------------------------------------------------------------------------------
         FI
         SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
-        SET source (APPEND_CHAR "https://www.themoviedb.org" source "/season/" \
-                                (TAKE_LIST_AT queryData 1) "/episode/" (TAKE_LIST_AT queryData 1) \
-                                "/images/backdrops?language=en")
-        SET_HASH next "url" source
-        SET_HASH next "id" 4
-        SET_HASH next "queryData" queryData
+        SET source (APPEND "https://www.themoviedb.org" source "/season/" \
+                           (LIST_TAKE_AT queryData 1) "/episode/" (LIST_TAKE_AT queryData 1) \
+                           "/images/backdrops?language=en")
+        HASH_SET next "url" source
+        HASH_SET next "id" 4
+        HASH_SET next "queryData" queryData
         #------------------------------------------------------------------------------------------
         # Global
         #------------------------------------------------------------------------------------------
         SET source (MID source 0 (INDEX_END "/season/"))
-        SET list (GET_LIST global 0)
-        SET hash (GET_LIST global 1)
+        SET list (LIST_GET global 0)
+        SET hash (LIST_GET global 1)
         IF (GREATER (COUNT list 100))
-            SET show (TAKE_LIST_AT list 0)
-            REMOVE_HASH hash show
+            SET show (LIST_TAKE_AT list 0)
+            HASH_REMOVE hash show
         FI
-        SET show (GET_LIST queryData 0)
-        REMOVE_LIST list show
-        APPEND_LIST list show
+        SET show (LIST_GET queryData 0)
+        LIST_REMOVE list show
+        LIST_APPEND list show
         SET hash show source
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
@@ -296,9 +296,9 @@ EXTRACT_TRACK: |
         # Apply source
         #------------------------------------------------------------------------------------------
         SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
-        SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
-                                         "/images/backdrops?language=en")
-        SET_HASH next "id" 2
+        HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
+                                    "/images/backdrops?language=en")
+        HASH_SET next "id" 2
         #------------------------------------------------------------------------------------------
     ELSE # Movie
         SET listA (SLICES data "<div class=\"poster\">" "</a>")
@@ -306,10 +306,10 @@ EXTRACT_TRACK: |
             #--------------------------------------------------------------------------------------
             # Apply source
             #--------------------------------------------------------------------------------------
-            SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE (GET_LIST listA 0) "href"))
-            SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
-                                             "/images/backdrops?language=en")
-            SET_HASH next "id" 2
+            SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE (LIST_GET listA 0) "href"))
+            HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
+                                        "/images/backdrops?language=en")
+            HASH_SET next "id" 2
             #--------------------------------------------------------------------------------------
             RETURN
         FI
@@ -327,11 +327,11 @@ EXTRACT_TRACK: |
             OR (EQUAL (COUNT listA) 1)
                 SET from 0
                 FOREACH listA valueA
-                    SET from (INDEX_LIST listB valueA from)
+                    SET from (LIST_INDEX listB valueA from)
                     IF (EQUAL from -1)
                         SET from 0
                         FOREACH listB valueB
-                            SET from (INDEX_LIST listA valueB from)
+                            SET from (LIST_INDEX listA valueB from)
                             IF (EQUAL from -1)
                                 BREAK
                             FI
@@ -345,9 +345,9 @@ EXTRACT_TRACK: |
                 # Apply source
                 #----------------------------------------------------------------------------------
                 SET source (URL_REMOVE_EXTENSION (HTML_ATTRIBUTE data "href"))
-                SET_HASH next "url" (APPEND_CHAR "https://www.themoviedb.org" source \
-                                                 "/images/backdrops?language=en")
-                SET_HASH next "id" 2
+                HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
+                                            "/images/backdrops?language=en")
+                HASH_SET next "id" 2
                 #----------------------------------------------------------------------------------
                 RETURN
             FI

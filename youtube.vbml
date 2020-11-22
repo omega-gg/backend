@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
-api: 1.0.0
+api: 1.0.1
 
 version: 1.0.12
 
@@ -61,7 +61,7 @@ PLAYLIST_INFO: |
                 FI
             ELSE
                 SET type "feed"
-                SET id (APPEND_CHAR "channel/" (URL_ELEMENT url index))
+                SET id (APPEND "channel/" (URL_ELEMENT url index))
             FI
             RETURN true
         FI
@@ -74,13 +74,13 @@ PLAYLIST_INFO: |
     RETURN true
 
 URL_TRACK: |
-    RETURN (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+    RETURN (APPEND "https://www.youtube.com/watch?v=" id)
 
 URL_PLAYLIST: |
     IF (EQUAL type "feed")
-        RETURN (APPEND_CHAR "https://www.youtube.com/" id)
+        RETURN (APPEND "https://www.youtube.com/" id)
     ELSE
-        RETURN (APPEND_CHAR "https://www.youtube.com/playlist?list=" id)
+        RETURN (APPEND "https://www.youtube.com/playlist?list=" id)
     FI
 
 QUERY_SOURCE: |
@@ -96,7 +96,7 @@ QUERY_SOURCE: |
     ELSE
         RETURN false
     FI
-    SET url (APPEND_CHAR "https://www.youtube.com/get_video_info?video_id=" id "&el=detailpage")
+    SET url (APPEND "https://www.youtube.com/get_video_info?video_id=" id "&el=detailpage")
     SET queryData id
     RETURN true
 
@@ -113,7 +113,7 @@ QUERY_TRACK: |
     ELSE
         RETURN false
     FI
-    SET url (APPEND_CHAR "https://www.youtube.com/watch?v=" string)
+    SET url (APPEND "https://www.youtube.com/watch?v=" string)
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -130,22 +130,22 @@ QUERY_PLAYLIST: |
                 SET string (URL_ELEMENT url 12)
                 IF (LENGTH string)
                 AND (EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
-                    SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
+                    SET url (APPEND "https://www.youtube.com/playlist?list=" string)
                 ELSE
                     SET url ""
                 FI
             ELSE
-                SET string (APPEND_CHAR "channel/" (URL_ELEMENT url index))
-                SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
+                SET string (APPEND "channel/" (URL_ELEMENT url index))
+                SET url (APPEND "https://www.youtube.com/" string "/videos?view=0")
                 SET id 1
             FI
             RETURN false
         FI
         SET string (URL_ELEMENT url index)
-        SET url (APPEND_CHAR "https://www.youtube.com/playlist?list=" string)
+        SET url (APPEND "https://www.youtube.com/playlist?list=" string)
     ELSE
         SET string (URL_ELEMENT url 2 (ADD index 1))
-        SET url (APPEND_CHAR "https://www.youtube.com/" string "/videos?view=0")
+        SET url (APPEND "https://www.youtube.com/" string "/videos?view=0")
         SET id 1
     FI
     RETURN true
@@ -169,7 +169,7 @@ CREATE_QUERY: |
         FI
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
-        SET url (APPEND_CHAR "https://www.youtube.com/watch?v=" q)
+        SET url (APPEND "https://www.youtube.com/watch?v=" q)
         SET id 3
     FI
 
@@ -181,23 +181,23 @@ EXTRACT_SOURCE: |
             RETURN
         FI
         SET javascript (URL_GENERATE javascript "https://www.youtube.com")
-        IF (EQUAL (GET_LIST global 0) javascript)
+        IF (EQUAL (LIST_GET global 0) javascript)
             #--------------------------------------------------------------------------------------
             # Apply signature
             #--------------------------------------------------------------------------------------
-            SET listMedias (GET_LIST queryData 0)
-            SET listAudios (GET_LIST queryData 1)
-            #SET script (JS_EVALUATE (GET_LIST global 1))
-            SET script (GET_LIST global 1)
+            SET listMedias (LIST_GET queryData 0)
+            SET listAudios (LIST_GET queryData 1)
+            #SET script (JS_EVALUATE (LIST_GET global 1))
+            SET script (LIST_GET global 1)
             FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                SET source (GET_LIST listMedias i)
+                SET source (LIST_GET listMedias i)
                 IF (LENGTH source)
-                    APPEND_LIST sources (LIST (REGEXP_CAP source \
+                    LIST_APPEND sources (LIST (REGEXP_CAP source \
                                                "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
                 FI
-                SET source (GET_LIST listAudios i)
+                SET source (LIST_GET listAudios i)
                 IF (LENGTH source)
-                    APPEND_LIST sources (LIST (REGEXP_CAP source \
+                    LIST_APPEND sources (LIST (REGEXP_CAP source \
                                                "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
                 FI
                 SET i (ADD i 1)
@@ -205,75 +205,75 @@ EXTRACT_SOURCE: |
             SET signatures (JS_CALLS script sources)
             SET i 0
             FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                SET source (GET_LIST listMedias i)
+                SET source (LIST_GET listMedias i)
                 IF (EQUAL (LENGTH source) 0)
                     SET i (ADD i 1)
                     CONTINUE
                 FI
                 SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
-                SET_HASH medias value source
-                SET source (GET_LIST listAudios i)
+                                           (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
+                HASH_SET medias value source
+                SET source (LIST_GET listAudios i)
                 IF (EQUAL (LENGTH source) 0)
                     SET i (ADD i 1)
                     CONTINUE
                 FI
                 SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
-                SET_HASH audios value source
+                                           (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
+                HASH_SET audios value source
                 SET i (ADD i 1)
             END
             #--------------------------------------------------------------------------------------
         ELSE
-            SET_HASH next "url" javascript
-            SET_HASH next "id" 3
-            SET_HASH next "queryData" queryData
+            HASH_SET next "url" javascript
+            HASH_SET next "id" 3
+            HASH_SET next "queryData" queryData
         FI
     ELIF (EQUAL id 3)
         SET index (LAST_INDEX_OF data "function(a){a=a.split(\"\")")
         SET function (JS_EXTRACT data "function(a)" index)
         SET object (REGEXP_CAP function ";([a-zA-Z0-9$]+)\\." 1)
-        SET object (JS_EXTRACT data (APPEND_CHAR "var " object '='))
+        SET object (JS_EXTRACT data (APPEND "var " object '='))
         SET function (REPLACE function "function(a)" "function b(a)")
-        SET script (APPEND_CHAR "(function(a){" object ';' function "return b(a);})")
+        SET script (APPEND "(function(a){" object ';' function "return b(a);})")
         SET global (LIST url script)
         #------------------------------------------------------------------------------------------
         # Apply signature
         #------------------------------------------------------------------------------------------
-        SET listMedias (GET_LIST queryData 0)
-        SET listAudios (GET_LIST queryData 1)
+        SET listMedias (LIST_GET queryData 0)
+        SET listAudios (LIST_GET queryData 1)
         #SET script (JS_EVALUATE script)
         #SET i 0
         FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET source (GET_LIST listMedias i)
+            SET source (LIST_GET listMedias i)
             IF (LENGTH source)
-                APPEND_LIST sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                LIST_APPEND sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
             FI
-            SET source (GET_LIST listAudios i)
+            SET source (LIST_GET listAudios i)
             IF (LENGTH source)
-                APPEND_LIST sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
+                LIST_APPEND sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
             FI
             SET i (ADD i 1)
         END
         SET signatures (JS_CALLS script sources)
         SET i 0
         FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET source (GET_LIST listMedias i)
+            SET source (LIST_GET listMedias i)
             IF (EQUAL (LENGTH source) 0)
                 SET i (ADD i 1)
                 CONTINUE
             FI
             SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
-            SET_HASH medias value source
-            SET source (GET_LIST listAudios i)
+                                       (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
+            HASH_SET medias value source
+            SET source (LIST_GET listAudios i)
             IF (EQUAL (LENGTH source) 0)
                 SET i (ADD i 1)
                 CONTINUE
             FI
             SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND_CHAR "&sig=" (TAKE_LIST_AT signatures 0)))
-            SET_HASH audios value source
+                                       (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
+            HASH_SET audios value source
             SET i (ADD i 1)
         END
         #------------------------------------------------------------------------------------------
@@ -319,13 +319,13 @@ EXTRACT_SOURCE: |
                 SET source    (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
-                    SET source (URL_DECODE (APPEND_CHAR source "&s=" signature))
+                    SET source (URL_DECODE (APPEND source "&s=" signature))
                 ELSE
                     SET source (URL_DECODE source)
                 FI
             FI
             #--------------------------------------------------------------------------------------
-            SET_HASH medias quality source
+            HASH_SET medias quality source
             #--------------------------------------------------------------------------------------
         END
         #------------------------------------------------------------------------------------------
@@ -347,13 +347,13 @@ EXTRACT_SOURCE: |
                     SET audio     (SLICE_IN value "url=" '&')
                     SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                     IF (LENGTH signature)
-                        SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
+                        SET audio (URL_DECODE (APPEND audio "&s=" signature))
                     ELSE
                         SET audio (URL_DECODE audio)
                     FI
                 FI
                 #----------------------------------------------------------------------------------
-                REMOVE_LIST_AT list i
+                LIST_REMOVE_AT list i
                 BREAK
             FI
             SET i (ADD i 1)
@@ -373,13 +373,13 @@ EXTRACT_SOURCE: |
                         SET audio     (SLICE_IN value "url=" '&')
                         SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                         IF (LENGTH signature)
-                            SET audio (URL_DECODE (APPEND_CHAR audio "&s=" signature))
+                            SET audio (URL_DECODE (APPEND audio "&s=" signature))
                         ELSE
                             SET audio (URL_DECODE audio)
                         FI
                     FI
                     #------------------------------------------------------------------------------
-                    REMOVE_LIST_AT list i
+                    LIST_REMOVE_AT list i
                     BREAK
                 FI
                 SET i (ADD i 1)
@@ -412,13 +412,13 @@ EXTRACT_SOURCE: |
                 SET media     (SLICE_IN value "url=" '&')
                 SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
                 IF (LENGTH signature)
-                    SET media (URL_DECODE (APPEND_CHAR media "&s=" signature))
+                    SET media (URL_DECODE (APPEND media "&s=" signature))
                 ELSE
                     SET media (URL_DECODE media)
                 FI
             FI
-            SET_HASH medias quality media
-            SET_HASH audios quality audio
+            HASH_SET medias quality media
+            HASH_SET audios quality audio
             #--------------------------------------------------------------------------------------
         END
         #------------------------------------------------------------------------------------------
@@ -426,24 +426,24 @@ EXTRACT_SOURCE: |
             IF (EQUAL id 1)
                 RETURN
             FI
-            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com/get_video_info?video_id=" \
-                                             queryData "&el=embedded")
-            SET_HASH next "id" 1
-            SET_HASH next "queryData" queryData
+            HASH_SET next "url" (APPEND "https://www.youtube.com/get_video_info?video_id=" \
+                                        queryData "&el=embedded")
+            HASH_SET next "id" 1
+            HASH_SET next "queryData" queryData
             RETURN
         FI
         FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET string (GET_HASH medias value)
+            SET string (HASH_GET medias value)
             IF (EQUAL (CONTAIN string "&s=") false)
                 CONTINUE
             FI
             FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                APPEND_LIST listMedias (GET_HASH medias value)
-                APPEND_LIST listAudios (GET_HASH audios value)
+                LIST_APPEND listMedias (HASH_GET medias value)
+                LIST_APPEND listAudios (HASH_GET audios value)
             END
-            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com/watch?v=" queryData)
-            SET_HASH next "id" 2
-            SET_HASH next "queryData" (LIST listMedias listAudios)
+            HASH_SET next "url" (APPEND "https://www.youtube.com/watch?v=" queryData)
+            HASH_SET next "id" 2
+            HASH_SET next "queryData" (LIST listMedias listAudios)
             BREAK
         END
     FI
@@ -462,7 +462,7 @@ EXTRACT_TRACK: |
     SET feed (HTML_ATTRIBUTE data "content" index)
     SET index (INDEX_OF data "itemprop=\"uploadDate" index)
     SET date (HTML_ATTRIBUTE data "content" index)
-    SET feed (APPEND_CHAR "https://www.youtube.com/channel/" (URL_PATH feed))
+    SET feed (APPEND "https://www.youtube.com/channel/" (URL_PATH feed))
     SET duration (MULTIPLY duration 1000)
     SET date (DATE date "yyyy-MM-dd")
 
@@ -475,7 +475,7 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_OF "data-uix-load-more-href=\"")
             IF (EQUAL index -1)
                 SET url (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
-                SET url (APPEND_CHAR "https://www.youtube.com" (URL_DECODE url))
+                SET url (APPEND "https://www.youtube.com" (URL_DECODE url))
                 SET id 1
                 SET queryData 1
             FI
@@ -485,48 +485,48 @@ EXTRACT_PLAYLIST: |
         SET list (SLICES data "\"gridVideoRenderer\"" "}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "videoId")
-            SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
             # FIXME: simpleText / text
             SET text (JSON_EXTRACT_UTF8 value "simpleText")
             IF (EQUAL text "")
-                SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
+                HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
             ELSE
-                SET_HASH track "title" text
+                HASH_SET track "title" text
             FI
-            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
-            APPEND_LIST tracks track
+            HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            LIST_APPEND tracks track
         END
     ELIF (EQUAL id 2) # Search tracks
         SET list (SLICES data "\"videoRenderer\"" "}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "videoId")
-            SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "text")
-            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
-            APPEND_LIST tracks track
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
+            HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            LIST_APPEND tracks track
         END
         IF (EQUAL queryData "")
             SET index (INDEX_OF data "class=\"branded-page-box search-pager")
             IF (EQUAL index -1)
                 RETURN
             FI
-            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" \
-                                             (HTML_ATTRIBUTE data "href" index))
-            SET_HASH next "id" 2
-            SET_HASH next "queryData" 1
+            HASH_SET next "url" (APPEND "https://www.youtube.com" \
+                                        (HTML_ATTRIBUTE data "href" index))
+            HASH_SET next "id" 2
+            HASH_SET next "queryData" 1
         FI
     ELIF (EQUAL id 3) # Related tracks
         IF (EQUAL queryData "")
             SET index (INDEX_OF data "\\\"continuation\\\"")
             SET json (SLICE_IN data "\\\"continuation\\\":\\\"" "\\\"" (ADD index 1))
             IF (NOT_EQUAL json "")
-                SET_HASH next "url" (APPEND_CHAR \
+                HASH_SET next "url" (APPEND \
                                      "https://www.youtube.com/related_ajax?continuation=" \
                                      (URL_DECODE json))
-                SET_HASH next "id" 3
-                SET_HASH next "queryData" 1
+                HASH_SET next "id" 3
+                HASH_SET next "queryData" 1
             FI
         ELSE
             SET index (INDEX_OF data "\"body\"")
@@ -535,11 +535,11 @@ EXTRACT_PLAYLIST: |
         SET list (SLICES data "\"compactVideoRenderer\"" "}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "videoId")
-            SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
-            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
-            APPEND_LIST tracks track
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            LIST_APPEND tracks track
         END
     ELSE # Playlist
         IF (EQUAL queryData "")
@@ -547,8 +547,8 @@ EXTRACT_PLAYLIST: |
             SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
             IF (EQUAL index -1)
                 SET data (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
-                SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" (URL_DECODE data))
-                SET_HASH next "queryData" 1
+                HASH_SET next "url" (APPEND "https://www.youtube.com" (URL_DECODE data))
+                HASH_SET next "queryData" 1
             FI
         ELSE
             SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
@@ -556,11 +556,11 @@ EXTRACT_PLAYLIST: |
         SET list (SLICES data "\"playlistVideoRenderer\"" "}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "videoId")
-            SET_HASH track "state" "default"
-            SET_HASH track "source" (APPEND_CHAR "https://www.youtube.com/watch?v=" id)
-            SET_HASH track "title" (JSON_EXTRACT_UTF8 value "simpleText")
-            SET_HASH track "cover" (APPEND_CHAR "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
-            APPEND_LIST tracks track
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            LIST_APPEND tracks track
         END
     FI
 
@@ -572,12 +572,12 @@ EXTRACT_FOLDER: |
             SET id (JSON_EXTRACT value "url")
             SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"thumbnails\""))
             SET cover (MID cover 0 (INDEX_OF cover '='))
-            SET_HASH item "type" "feed"
-            SET_HASH item "state" "default"
-            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com" id)
-            SET_HASH item "title" (JSON_EXTRACT_UTF8 value "simpleText")
-            SET_HASH item "cover" (APPEND_CHAR "https:" cover)
-            APPEND_LIST items item
+            HASH_SET item "type" "feed"
+            HASH_SET item "state" "default"
+            HASH_SET item "source" (APPEND "https://www.youtube.com" id)
+            HASH_SET item "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET item "cover" (APPEND "https:" cover)
+            LIST_APPEND items item
         END
     ELSE # Search playlists
         SET list (SLICES data "\"playlistRenderer\"" "}}}")
@@ -585,21 +585,21 @@ EXTRACT_FOLDER: |
             SET id (JSON_EXTRACT value "playlistId")
             SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"thumbnails\""))
             SET cover (MID cover 0 (INDEX_OF cover '?'))
-            SET_HASH item "type" "playlist"
-            SET_HASH item "state" "default"
-            SET_HASH item "source" (APPEND_CHAR "https://www.youtube.com/playlist?list=" id)
-            SET_HASH item "title" (JSON_EXTRACT_UTF8 value "simpleText")
-            SET_HASH item "cover" cover
-            APPEND_LIST items item
+            HASH_SET item "type" "playlist"
+            HASH_SET item "state" "default"
+            HASH_SET item "source" (APPEND "https://www.youtube.com/playlist?list=" id)
+            HASH_SET item "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET item "cover" cover
+            LIST_APPEND items item
         END
         IF (EQUAL queryData "")
             SET index (INDEX_OF data "class=\"branded-page-box search-pager")
             IF (EQUAL index -1)
                 RETURN
             FI
-            SET_HASH next "url" (APPEND_CHAR "https://www.youtube.com" \
-                                             (HTML_ATTRIBUTE data "href" index))
-            SET_HASH next "id" id
-            SET_HASH next "queryData" 1
+            HASH_SET next "url" (APPEND "https://www.youtube.com" \
+                                        (HTML_ATTRIBUTE data "href" index))
+            HASH_SET next "id" id
+            HASH_SET next "queryData" 1
         FI
     FI
