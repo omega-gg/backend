@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.1
 
-version: 1.0.1
+version: 1.0.2
 
 title: BitTorrent
 
@@ -182,7 +182,7 @@ EXTRACT_TRACK: |
 EXTRACT_PLAYLIST: |
     IF (EQUAL id 2) # Search urls
         SET data (READ data "utf-8")
-        SET source (SLICE_IN data ";nrj('" "'")
+        SET source (SLICE_IN data "initialize('" "'")
         HASH_SET next "backend" "bittorrent"
         HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
         HASH_SET next "id" 3
@@ -361,7 +361,7 @@ EXTRACT_PLAYLIST: |
 EXTRACT_FOLDER: |
     IF (EQUAL id 0) # Search urls
         SET data (READ data "utf-8")
-        SET source (SLICE_IN data ";nrj('" "'")
+        SET source (SLICE_IN data "initialize('" "'")
         HASH_SET next "backend" "bittorrent"
         HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
         HASH_SET next "id" 1

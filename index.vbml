@@ -32,8 +32,8 @@ backend_subtitle: |
 #--------------------------------------------------------------------------------------------------
 
 backends: |
-    duckduckgo    DuckDuckGo    1.0.0  ^duckduckgo.com
-    bittorrent    BitTorrent    1.0.1  .torrent$|^magnet:?
+    duckduckgo    DuckDuckGo    1.0.1  ^duckduckgo.com
+    bittorrent    BitTorrent    1.0.2  .torrent$|^magnet:?
     youtube       Youtube       1.0.12 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.0  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com

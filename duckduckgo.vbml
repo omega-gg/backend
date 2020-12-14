@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.1
 
-version: 1.0.0
+version: 1.0.1
 
 search: tracks
 
@@ -81,7 +81,7 @@ EXTRACT_FOLDER: |
         END
     ELSE
         SET data (READ data "utf-8")
-        SET data (SLICE_IN data ";nrj('" "'")
+        SET data (SLICE_IN data "initialize('" "'")
         HASH_SET next "url" (APPEND "https://duckduckgo.com" data)
         HASH_SET next "id" (ADD id 1)
     FI
