@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.14
+version: 1.0.15
 
 title: Youtube
 
@@ -473,7 +473,7 @@ EXTRACT_PLAYLIST: |
     IF (EQUAL id 1) # Feed
         IF (EQUAL queryData "")
             SET cover (HTML_ATTRIBUTE data "href" (INDEX_OF data "\"image_src\""))
-            SET title (HTML_ATTRIBUTE_UTF8 data "content" (INDEX_OF data "\"title\""))
+            SET title (HTML_ATTRIBUTE_UTF8 data "content" (INDEX_OF data "\"og:title\""))
             SET index (INDEX_OF "data-uix-load-more-href=\"")
             IF (EQUAL index -1)
                 SET url (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
