@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.13
+version: 1.0.14
 
 title: Youtube
 
@@ -224,6 +224,7 @@ EXTRACT_SOURCE: |
                 SET i (ADD i 1)
             END
             #--------------------------------------------------------------------------------------
+            #SET expiry (ADD (DATE) 60) # Two hours
         ELSE
             HASH_SET next "url" javascript
             HASH_SET next "id" 3
@@ -276,6 +277,7 @@ EXTRACT_SOURCE: |
             HASH_SET audios value source
             SET i (ADD i 1)
         END
+        #SET expiry (ADD (DATE) 60) # Two hours
         #------------------------------------------------------------------------------------------
     ELSE # if (id == 0 || id == 1)
         #------------------------------------------------------------------------------------------
@@ -444,8 +446,9 @@ EXTRACT_SOURCE: |
             HASH_SET next "url" (APPEND "https://www.youtube.com/watch?v=" queryData)
             HASH_SET next "id" 2
             HASH_SET next "queryData" (LIST listMedias listAudios)
-            BREAK
+            RETURN
         END
+        #SET expiry (ADD (DATE) 60) # Two hours
     FI
 
 EXTRACT_TRACK: |
