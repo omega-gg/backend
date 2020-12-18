@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.15
+version: 1.0.16
 
 title: Youtube
 
@@ -54,7 +54,8 @@ PLAYLIST_INFO: |
                 SET string (URL_ELEMENT url 12)
                 IF (LENGTH string)
                 AND (EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
-                    SET type "playlist"
+                    # NOTE: We make it a feed by default.
+                    SET type "feed"
                     SET id string
                 ELSE
                     RETURN false
@@ -130,19 +131,22 @@ QUERY_PLAYLIST: |
                 SET string (URL_ELEMENT url 12)
                 IF (LENGTH string)
                 AND (EQUAL (INDEX_OF url (REGEXP "[/\\?#.]") 12) -1)
-                    SET url (APPEND "https://www.youtube.com/playlist?list=" string)
+                    # NOTE: We make it a feed by default.
+                    SET url (APPEND "https://www.youtube.com/" string "/videos?view=0")
+                    SET id 1
                 ELSE
                     SET url ""
+                    RETURN false
                 FI
             ELSE
                 SET string (APPEND "channel/" (URL_ELEMENT url index))
                 SET url (APPEND "https://www.youtube.com/" string "/videos?view=0")
                 SET id 1
             FI
-            RETURN false
+        ELSE
+            SET string (URL_ELEMENT url index)
+            SET url (APPEND "https://www.youtube.com/playlist?list=" string)
         FI
-        SET string (URL_ELEMENT url index)
-        SET url (APPEND "https://www.youtube.com/playlist?list=" string)
     ELSE
         SET string (URL_ELEMENT url 2 (ADD index 1))
         SET url (APPEND "https://www.youtube.com/" string "/videos?view=0")
