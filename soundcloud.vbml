@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.1
+version: 1.0.2
 
 title: SoundCloud
 
@@ -186,7 +186,7 @@ EXTRACT_SOURCE: |
         HASH_SET next "queryData" id
         SET backup id
     ELIF (EQUAL id 0)
-        FOREACH (LIST 16 17 18) value
+        FOREACH (LIST 19 18 20) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
@@ -209,7 +209,7 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    FOREACH (LIST 16 17 18) value
+    FOREACH (LIST 19 18 20) value
         SET index (INDEX_END data (APPEND "\"id\":" value))
         SET string (JSON_EXTRACT data "data" index)
         IF (LENGTH string)
@@ -254,7 +254,7 @@ EXTRACT_PLAYLIST: |
         HASH_SET next "queryData" id
         SET backup id
     ELIF (EQUAL id 1) # playlist
-        FOREACH (LIST 45 46 47) value
+        FOREACH (LIST 47 48 49) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
@@ -262,18 +262,15 @@ EXTRACT_PLAYLIST: |
                 BREAK
             FI
         END
-        SET index (LAST_INDEX_OF string "\"kind\":\"track\"")
-        SET string (MID string index)
-        SET id (JSON_EXTRACT_UTF8 string "id")
+        SET source (REPLACE (JSON_EXTRACT_UTF8 string "uri") "api." "api-v2.")
         SET title (JSON_EXTRACT_UTF8 string "title")
         SET index (INDEX_OF string "<img")
         SET cover (HTML_ATTRIBUTE string "src" index)
         SET cover (REPLACE cover "-large." "-t500x500.")
         # FIXME: We can't seem to be able to retrieve playlist tracks directly.
-        # HASH_SET next "url" (APPEND "https://api-v2.soundcloud.com/playlists/" id \
-        #                             "?client_id=" queryData)
+        #HASH_SET next "url" (APPEND source "?client_id=" queryData)
     ELIF (EQUAL id 2) # feed
-        FOREACH (LIST 30 31 32) value
+        FOREACH (LIST 28 29 30) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
@@ -287,7 +284,7 @@ EXTRACT_PLAYLIST: |
         SET cover (REPLACE cover "-large." "-t500x500.")
         HASH_SET next "url" (APPEND source "/tracks?limit=50&client_id=" queryData)
     ELIF (EQUAL id 3) # related
-        FOREACH (LIST 16 17 18) value
+        FOREACH (LIST 19 20 21) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
