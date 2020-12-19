@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.17
+version: 1.0.18
 
 title: Youtube
 
@@ -493,13 +493,7 @@ EXTRACT_PLAYLIST: |
             SET id (JSON_EXTRACT value "videoId")
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
-            # FIXME: simpleText / text
-            SET text (JSON_EXTRACT_UTF8 value "simpleText")
-            IF (EQUAL text "")
-                HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
-            ELSE
-                HASH_SET track "title" text
-            FI
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
             HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             LIST_APPEND tracks track
         END
@@ -564,7 +558,7 @@ EXTRACT_PLAYLIST: |
             SET id (JSON_EXTRACT value "videoId")
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
             HASH_SET track "cover" (APPEND "http://i.ytimg.com/vi/" id "/hqdefault.jpg")
             LIST_APPEND tracks track
         END
