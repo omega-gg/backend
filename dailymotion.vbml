@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vb
 
 api: 1.0.1
 
-version: 1.0.0
+version: 1.0.1
 
 title: Dailymotion
 
@@ -132,7 +132,8 @@ QUERY_PLAYLIST: |
     FI
     IF (START_WITH url "dailymotion.com/playlist/")
         SET url (APPEND "https://api.dailymotion.com/playlist/" id)
-        URL_ADD_QUERY url "fields" "name,thumbnail_url"
+        # FIXME: thumbnail_url field seems to be broken.
+        URL_ADD_QUERY url "fields" "name"
         SET queryData (APPEND "playlist/" id)
         SET id 1
     ELSE
