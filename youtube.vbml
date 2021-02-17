@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.19
+version: 1.0.20
 
 title: Youtube
 
@@ -30,7 +30,7 @@ validate: ^youtube.com|^youtu.be
 
 TRACK_ID: |
     SET url (URL_REMOVE_PREFIX url)
-    IF (START_WITH url "youtube.be")
+    IF (START_WITH url "youtu.be")
         RETURN (URL_ELEMENT url 9)
     ELIF (EQUAL (START_WITH url "youtube.com") false)
         RETURN
