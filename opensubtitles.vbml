@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.1
+version: 1.0.2
 
 title: OpenSubtitles
 
@@ -29,6 +29,9 @@ QUERY_ITEM: |
     #----------------------------------------------------------------------------------------------
     SET maxHost 1
     SET delay 1000
+    #----------------------------------------------------------------------------------------------
+    # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+    #----------------------------------------------------------------------------------------------
     SET timeout 10000
     #----------------------------------------------------------------------------------------------
     RETURN true
@@ -67,6 +70,9 @@ CREATE_QUERY: |
     #----------------------------------------------------------------------------------------------
     SET maxHost 1
     SET delay 1000
+    #----------------------------------------------------------------------------------------------
+    # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+    #----------------------------------------------------------------------------------------------
     SET timeout 10000
     #----------------------------------------------------------------------------------------------
 
@@ -126,6 +132,10 @@ EXTRACT_FOLDER: |
                              (REPLACE search ' ' '+'))
         HASH_SET next "id" 1
         HASH_SET next "queryData" (LIST language search)
+        #------------------------------------------------------------------------------------------
+        # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+        #------------------------------------------------------------------------------------------
+        HASH_SET next "timeout" 10000
         #------------------------------------------------------------------------------------------
         RETURN
     FI
@@ -198,6 +208,10 @@ EXTRACT_FOLDER: |
             HASH_SET next "id" 1
             HASH_SET next "queryData" (LIST language search)
             #--------------------------------------------------------------------------------------
+            # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+            #--------------------------------------------------------------------------------------
+            HASH_SET next "timeout" 10000
+            #--------------------------------------------------------------------------------------
         FI
     ELIF (EQUAL id 3)
         SET clearDuplicate true
@@ -226,6 +240,10 @@ EXTRACT_FOLDER: |
         HASH_SET next "id" (ADD id 1)
         HASH_SET next "queryData" (LIST language search)
         #------------------------------------------------------------------------------------------
+        # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+        #------------------------------------------------------------------------------------------
+        HASH_SET next "timeout" 10000
+        #------------------------------------------------------------------------------------------
     FI
 
 EXTRACT_ITEM: |
@@ -250,10 +268,13 @@ EXTRACT_ITEM: |
         HASH_SET next "id" 1
         HASH_SET next "cookies" true
         #------------------------------------------------------------------------------------------
+        # FIXME OpenSubtitles: Sometimes we don't receive a reply, so we add a timeout.
+        #------------------------------------------------------------------------------------------
+        HASH_SET next "timeout" 10000
+        #------------------------------------------------------------------------------------------
         # FIXME OpenSubtitles: We have to delay our requests to avoid the captcha.
         #------------------------------------------------------------------------------------------
         HASH_SET next "maxHost" 1
         HASH_SET next "delay" 1000
-        HASH_SET next "timeout" 10000
         #------------------------------------------------------------------------------------------
     FI
