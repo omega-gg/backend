@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 title: BitTorrent
 
@@ -95,7 +95,7 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
             SET backend "bittorrent"
-            SET url "https://duckduckgo.com/"
+            SET url "https://html.duckduckgo.com/html"
             SET q (SIMPLIFY q)
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
@@ -103,10 +103,10 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
-            SET id 2
+            SET id 3
         ELIF (EQUAL label "all")
             SET backend "bittorrent"
-            SET url "https://duckduckgo.com/"
+            SET url "https://html.duckduckgo.com/html"
             SET q (SIMPLIFY q)
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
@@ -114,9 +114,10 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
+            SET id 1
         ELIF (EQUAL label "torrents")
             SET backend "bittorrent"
-            SET url "https://duckduckgo.com/"
+            SET url "https://html.duckduckgo.com/html"
             SET q (SIMPLIFY q)
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
@@ -124,10 +125,11 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
+            SET id 1
             SET queryData 1
         ELIF (EQUAL label "magnets")
             SET backend "bittorrent"
-            SET url "https://duckduckgo.com/"
+            SET url "https://html.duckduckgo.com/html"
             SET q (SIMPLIFY q)
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
@@ -135,6 +137,7 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
+            SET id 1
             SET queryData 2
         FI
     ELIF (EQUAL method "related")
@@ -180,18 +183,20 @@ EXTRACT_TRACK: |
     SET feed url
 
 EXTRACT_PLAYLIST: |
-    IF (EQUAL id 2) # Search urls
-        SET data (READ data "utf-8")
-        SET source (SLICE_IN data "initialize('" "'")
-        HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
-        HASH_SET next "id" 3
-        HASH_SET next "queryData" queryData
-    ELIF (EQUAL id 3) # Extract urls
-        SET data (SLICE_IN data "('d',[" "]);")
-        SET list (JSON_SPLIT data)
+    #IF (EQUAL id 2) # Search urls
+    #    SET data (READ data "utf-8")
+    #    SET source (SLICE_IN data "initialize('" "'")
+    #    HASH_SET next "backend" "bittorrent"
+    #    HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
+    #    HASH_SET next "id" 3
+    #    HASH_SET next "queryData" queryData
+    IF (EQUAL id 3) # Extract urls
+        # NOTE: Skipping advertisement results.
+        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+        SET list (SLICES data "class=\"result__a\"" "</a>" index)
         FOREACH list source
-            SET source (JSON_EXTRACT_UTF8 source 'c')
+            SET source (HTML_ATTRIBUTE source "href")
+            SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
             IF (EQUAL source "")
             OR (LIST_CONTAIN urls source)
                 CONTINUE
@@ -359,19 +364,21 @@ EXTRACT_PLAYLIST: |
     FI
 
 EXTRACT_FOLDER: |
-    IF (EQUAL id 0) # Search urls
-        SET data (READ data "utf-8")
-        SET source (SLICE_IN data "initialize('" "'")
-        HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
-        HASH_SET next "id" 1
-        HASH_SET next "queryData" queryData
-    ELIF (EQUAL id 1) # Extract urls
-        SET string (SLICE_IN data "('d',[" "]);")
-        SET list (JSON_SPLIT string)
-        FOREACH list data
-            SET source (JSON_EXTRACT_UTF8 data 'c')
-            IF (EQUAL (LENGTH source 0))
+    #IF (EQUAL id 0) # Search urls
+    #    SET data (READ data "utf-8")
+    #    SET source (SLICE_IN data "initialize('" "'")
+    #    HASH_SET next "backend" "bittorrent"
+    #    HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
+    #    HASH_SET next "id" 1
+    #    HASH_SET next "queryData" queryData
+    IF (EQUAL id 1) # Extract urls
+        # NOTE: Skipping advertisement results.
+        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+        SET list (SLICES data "class=\"result__a\"" "</a>" index)
+        FOREACH list source
+            SET source (HTML_ATTRIBUTE source "href")
+            SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+            IF (EQUAL source "")
             OR (LIST_CONTAIN urls source)
                 CONTINUE
             FI

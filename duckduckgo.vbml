@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 search: tracks
 
@@ -16,7 +16,7 @@ host: duckduckgo.com
 
 cover: cover/duckduckgo.png
 
-validate: ^duckduckgo.com
+validate: ^html.duckduckgo.com
 
 #--------------------------------------------------------------------------------------------------
 # Interface
@@ -26,39 +26,27 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "urls")
         OR (EQUAL label "site")
-            SET url "https://duckduckgo.com/"
+            SET url "https://html.duckduckgo.com/html"
             SET q (SIMPLIFY q)
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
-            SET data q
         FI
     FI
 
 EXTRACT_FOLDER: |
-    IF (EQUAL id 1) # Search urls / site
-        SET data (SLICE_IN data "('d',[" "]);")
-        SET list (JSON_SPLIT data)
-        FOREACH list data
-            SET source (JSON_EXTRACT_UTF8 data 'c')
-            IF (EQUAL source "")
-                CONTINUE
-            FI
-            # NOTE: We use 'name' because 'title' is the folder title.
-            SET name (JSON_EXTRACT_UTF8 data 't')
-            IF (EQUAL name "EOF")
-                CONTINUE
-            FI
-            HASH_SET item "type" "folderSearch"
-            HASH_SET item "state" "default"
-            HASH_SET item "source" source
-            HASH_SET item "title" name
-            LIST_APPEND items item
-        END
-    ELSE
-        SET data (READ data "utf-8")
-        SET data (SLICE_IN data "initialize('" "'")
-        HASH_SET next "url" (APPEND "https://duckduckgo.com" data)
-        HASH_SET next "id" 1
-    FI
+    # NOTE: Skipping advertisement results.
+    SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+    SET list (SLICES data "class=\"result__a\"" "</a>" index)
+    FOREACH list data
+        SET source (HTML_ATTRIBUTE data "href")
+        SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+        # NOTE: We use 'name' because 'title' is the folder title.
+        SET name (HTML_TO_UTF8 (SLICE_IN data '>' "</a>"))
+        HASH_SET item "type" "folderSearch"
+        HASH_SET item "state" "default"
+        HASH_SET item "source" source
+        HASH_SET item "title" name
+        LIST_APPEND items item
+    END
     SET scanItems true
