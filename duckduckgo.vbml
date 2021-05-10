@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 search: tracks
 
@@ -31,6 +31,7 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
+            SET header true
         FI
     FI
 
@@ -40,7 +41,10 @@ EXTRACT_FOLDER: |
     SET list (SLICES data "class=\"result__a\"" "</a>" index)
     FOREACH list data
         SET source (HTML_ATTRIBUTE data "href")
-        SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+        # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
+        IF (CONTAIN source "?uddg=")
+            SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+        FI
         # NOTE: We use 'name' because 'title' is the folder title.
         SET name (HTML_TO_UTF8 (SLICE_IN data '>' "</a>"))
         HASH_SET item "type" "folderSearch"
