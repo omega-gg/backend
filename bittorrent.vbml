@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 title: BitTorrent
 
