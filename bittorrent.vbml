@@ -294,7 +294,7 @@ EXTRACT_PLAYLIST: |
             SET source (LIST_TAKE_AT sources 0)
             IF (START_WITH source "magnet:?")
                 HASH_SET next "type" "torrent"
-                HASH_SET next "timeout" 10000
+                HASH_SET next "timeout" 60000
             ELSE
                 HASH_SET next "timeout" 3000
             FI
