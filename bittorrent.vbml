@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.1
 
-version: 1.0.4
+version: 1.0.5
 
 title: BitTorrent
 
@@ -95,16 +95,10 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
             SET backend "bittorrent"
-            SET url "https://html.duckduckgo.com/html"
+            SET url "https://torrent-paradise.ml/api/search"
             SET q (SIMPLIFY q)
-            IF (EQUAL (START_WITH "torrent ") false)
-                SET q (PREPEND q "torrent ")
-            FI
             URL_ADD_QUERY url "q" q
-            URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
             SET id 3
-            SET header true
         ELIF (EQUAL label "all")
             SET backend "bittorrent"
             SET url "https://html.duckduckgo.com/html"
@@ -195,33 +189,28 @@ EXTRACT_PLAYLIST: |
     #    HASH_SET next "id" 3
     #    HASH_SET next "queryData" queryData
     IF (EQUAL id 3) # Extract urls
-        # NOTE: Skipping advertisement results.
-        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
-        SET list (SLICES data "class=\"result__a\"" "</a>" index)
-        FOREACH list source
-            SET source (HTML_ATTRIBUTE source "href")
-            # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
-            IF (CONTAIN source "?uddg=")
-                SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
-            FI
-            IF (EQUAL source "")
-            OR (LIST_CONTAIN urls source)
-                CONTINUE
-            FI
-            LIST_APPEND urls source
-            IF (EQUAL (COUNT urls) 20)
+        SET list (JSON_SPLIT data)
+        FOREACH list data
+            SET id (JSON_EXTRACT data "id")
+            SET source (APPEND "magnet:?xt=urn:btih:" id \
+                               "&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce" \
+                               "&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce" \
+                               "&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce")
+            LIST_APPEND sources source
+            SET index (ADD index 1)
+            IF (EQUAL index 20)
                 BREAK
             FI
         END
-        IF (EQUAL urls 0)
+        IF (EQUAL sources 0)
             RETURN
         FI
-        HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (LIST_TAKE_AT urls 0)
-        HASH_SET next "id" 4
-        HASH_SET next "queryData" urls
+        HASH_SET next "type" "torrent"
+        HASH_SET next "url" (LIST_TAKE_AT sources 0)
+        HASH_SET next "id" 5
+        HASH_SET next "queryData" (LIST sources)
         HASH_SET next "skipError" true
-        HASH_SET next "timeout" 3000
+        HASH_SET next "timeout" 10000
     ELIF (EQUAL id 4) # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
         SET list (HASH_GET data "sources")
@@ -320,7 +309,6 @@ EXTRACT_PLAYLIST: |
             HASH_SET next "queryData" urls
             HASH_SET next "skipError" true
             HASH_SET next "timeout" 3000
-        ELSE
         FI
     ELSE
         SET cache data
