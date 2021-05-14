@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.4
+version: 1.0.5
 
 search: coverVideo
 
@@ -94,6 +94,7 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "query" (APPEND title " y:" value)
             URL_ADD_QUERY url "language" "en"
             SET id 1
+            SET header true
             RETURN
         ELIF (EQUAL type 2) # Show
             SET index (INDEX_OF value 'e')
@@ -172,6 +173,7 @@ CREATE_QUERY: |
                 URL_ADD_QUERY url "query" show
                 URL_ADD_QUERY url "language" en
                 SET id 3
+                SET header true
             FI
             SET queryData list
         ELIF (END_WITH value 'p')
@@ -199,6 +201,7 @@ CREATE_QUERY: |
     URL_ADD_QUERY url "query" title
     URL_ADD_QUERY url "language" "en"
     SET queryData title
+    SET header true
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
@@ -271,6 +274,7 @@ EXTRACT_TRACK: |
         HASH_SET next "url" source
         HASH_SET next "id" 4
         HASH_SET next "queryData" queryData
+        HASH_SET next "header" true
         #------------------------------------------------------------------------------------------
         # Global
         #------------------------------------------------------------------------------------------
@@ -299,6 +303,7 @@ EXTRACT_TRACK: |
         HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
                                     "/images/backdrops?language=en")
         HASH_SET next "id" 2
+        HASH_SET next "header" true
         #------------------------------------------------------------------------------------------
     ELSE # Movie
         SET listA (SLICES data "<div class=\"poster\">" "</a>")
@@ -310,6 +315,7 @@ EXTRACT_TRACK: |
             HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
                                         "/images/backdrops?language=en")
             HASH_SET next "id" 2
+            HASH_SET next "header" true
             #--------------------------------------------------------------------------------------
             RETURN
         FI
@@ -348,6 +354,7 @@ EXTRACT_TRACK: |
                 HASH_SET next "url" (APPEND "https://www.themoviedb.org" source \
                                             "/images/backdrops?language=en")
                 HASH_SET next "id" 2
+                HASH_SET next "header" true
                 #----------------------------------------------------------------------------------
                 RETURN
             FI

@@ -198,7 +198,7 @@ EXTRACT_PLAYLIST: |
                                "&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce")
             LIST_APPEND sources source
             SET index (ADD index 1)
-            IF (EQUAL index 20)
+            IF (EQUAL index 10)
                 BREAK
             FI
         END
@@ -210,7 +210,7 @@ EXTRACT_PLAYLIST: |
         HASH_SET next "id" 5
         HASH_SET next "queryData" (LIST sources)
         HASH_SET next "skipError" true
-        HASH_SET next "timeout" 60000
+        HASH_SET next "timeout" 20000
     ELIF (EQUAL id 4) # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
         SET list (HASH_GET data "sources")
@@ -240,7 +240,7 @@ EXTRACT_PLAYLIST: |
             SET source (LIST_TAKE_AT sources 0)
             IF (START_WITH source "magnet:?")
                 HASH_SET next "type" "torrent"
-                HASH_SET next "timeout" 60000
+                HASH_SET next "timeout" 20000
             ELSE
                 HASH_SET next "timeout" 3000
             FI
@@ -294,7 +294,7 @@ EXTRACT_PLAYLIST: |
             SET source (LIST_TAKE_AT sources 0)
             IF (START_WITH source "magnet:?")
                 HASH_SET next "type" "torrent"
-                HASH_SET next "timeout" 60000
+                HASH_SET next "timeout" 20000
             ELSE
                 HASH_SET next "timeout" 3000
             FI
