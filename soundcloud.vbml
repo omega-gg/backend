@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 title: SoundCloud
 
@@ -186,7 +186,7 @@ EXTRACT_SOURCE: |
         HASH_SET next "queryData" id
         SET backup id
     ELIF (EQUAL id 0)
-        FOREACH (LIST 16 17 18) value
+        FOREACH (LIST 19 20 21 22 23) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
@@ -209,7 +209,7 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    FOREACH (LIST 16 17 18) value
+    FOREACH (LIST 19 20 21 22 23) value
         SET index (INDEX_END data (APPEND "\"id\":" value))
         SET string (JSON_EXTRACT data "data" index)
         IF (LENGTH string)
@@ -270,7 +270,7 @@ EXTRACT_PLAYLIST: |
         # FIXME: We can't seem to be able to retrieve playlist tracks directly.
         #HASH_SET next "url" (APPEND source "?client_id=" queryData)
     ELIF (EQUAL id 2) # feed
-        FOREACH (LIST 31 32 33) value
+        FOREACH (LIST 34 35 36 37 38) value
             SET index (INDEX_END data (APPEND "\"id\":" value))
             SET string (JSON_EXTRACT data "data" index)
             IF (LENGTH string)
