@@ -16,7 +16,6 @@ backend_search: |
     duckduckgo
 
 backend_track: |
-    duckduckgo
     bittorrent
     youtube
     dailymotion
