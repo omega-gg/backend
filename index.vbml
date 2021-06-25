@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.40
+version: 1.0.41
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -16,6 +16,7 @@ backend_search: |
     duckduckgo
 
 backend_track: |
+    duckduckgo
     bittorrent
     youtube
     dailymotion
@@ -40,7 +41,7 @@ backends: |
     soundcloud    SoundCloud    1.0.4  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
     tmdb          TMDb          1.0.5  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
-    opensubtitles OpenSubtitles 1.0.2  ^opensubtitles.org
+    opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
 
 covers: |
     duckduckgo  cover/duckduckgo.png

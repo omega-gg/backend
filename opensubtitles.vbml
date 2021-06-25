@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 title: OpenSubtitles
 
@@ -41,19 +41,21 @@ CREATE_QUERY: |
         RETURN
     FI
     SET listA "afrikaans" "albanian" "arabic" "aragonese" "asturian" "azerbaijani" "basque" \
-              "belarusian" "bosnian" "breton" "bulgarian" "burmese" "catalan" "chinese #1" \
-              "chinese #2" "croatian" "czech" "danish" "dutch" "english" "esperanto" "estonian" \
-              "finnish" "french" "gaelic" "galician" "georgian" "german" "greek" "hebrew" "hindi" \
-              "hungarian" "icelandic" "indonesian" "irish" "italian" "japanese" "kannada" \
-              "kazakh" "khmer" "korean" "kurdish" "latvian" "lithuanian" "macedonian" "malay" \
-              "malayalam" "norwegian" "occitan" "persian" "polish" "portuguese" "romanian" \
-              "russian" "serbian" "sinhala" "slovak" "slovenian" "spanish" "swedish" "tamil" \
-              "telugu" "thai" "turkish" "ukranian" "vietnamese"
+              "belarusian" "bosnian" "breton" "bulgarian" "burmese" "catalan" "chinese" \
+              "chinese (tr)" "chinese (bi)" "croatian" "czech" "danish" "dutch" "english" \
+              "esperanto" "estonian" "finnish" "french" "gaelic" "galician" "georgian" "german" \
+              "greek" "hebrew" "hindi" "hungarian" "icelandic" "indonesian" "irish" "italian" \
+              "japanese" "kannada" "kazakh" "khmer" "korean" "kurdish" "latvian" "lithuanian" \
+              "macedonian" "malay" "malayalam" "norwegian" "occitan" "persian" "polish" \
+              "portuguese" "portuguese (br)" "portuguese (mz)" "romanian" "russian" "serbian" \
+              "sinhala" "slovak" "slovenian" "spanish" "spanish (eu)" "spanish (la)" "swedish" \
+              "tamil" "telugu" "thai" "turkish" "ukranian" "vietnamese"
     SET listB "afr" "alb" "ara" "arg" "ast" "aze" "baq" "bel" "bos" "bre" "bul" "bur" "cat" "chi" \
-              "zht" "hrv" "cze" "dan" "dut" "eng" "epo" "est" "fin" "fre" "gla" "glg" "geo" "ger" \
-              "ell" "heb" "hin" "hun" "ice" "ind" "gle" "ita" "jpn" "kan" "kaz" "khm" "kor" "kur" \
-              "lav" "lit" "mac" "may" "mal" "nor" "oci" "per" "pol" "por" "rum" "rus" "scc" "sin" \
-              "slo" "slv" "spa" "swe" "tam" "tel" "tha" "tur" "urk" "vie"
+              "zht" "zhe" "hrv" "cze" "dan" "dut" "eng" "epo" "est" "fin" "fre" "gla" "glg" "geo" \
+              "ger" "ell" "heb" "hin" "hun" "ice" "ind" "gle" "ita" "jpn" "kan" "kaz" "khm" "kor" \
+              "kur" "lav" "lit" "mac" "may" "mal" "nor" "oci" "per" "pol" "por" "pob" "pom" "rum" \
+              "rus" "scc" "sin" "slo" "slv" "spa" "spn" "spl" "swe" "tam" "tel" "tha" "tur" "urk" \
+              "vie"
     SET index (LIST_INDEX listA label)
     IF (EQUAL index -1)
         SET language "eng"

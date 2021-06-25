@@ -4,7 +4,7 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbml
 
-api: 1.0.1
+api: 1.0.2
 
 version: 1.0.4
 
@@ -15,6 +15,12 @@ title: DuckDuckGo
 host: duckduckgo.com
 
 cover: cover/duckduckgo.png
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: Playlists
 
 validate: ^html.duckduckgo.com
 
@@ -31,26 +37,129 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             URL_ADD_QUERY url "kp" "-2"
-            SET header true
+        ELIF (EQUAL label "tracks")
+        OR (EQUAL label "playlists")
+            SET url "https://html.duckduckgo.com/html"
+            URL_ADD_QUERY url "q" (SIMPLIFY q)
+            URL_ADD_QUERY url "kl" "us-en"
+            URL_ADD_QUERY url "kp" "-2"
+            SET id 1
         FI
     FI
 
+EXTRACT_PLAYLIST: |
+    IF (EQUAL id 1)
+        #------------------------------------------------------------------------------------------
+        # Parsing results
+        #------------------------------------------------------------------------------------------
+        # NOTE: Skipping advertisement results.
+        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+        SET list (SLICES data "class=\"result__a\"" "</a>" index)
+        FOREACH list source
+            SET source (HTML_ATTRIBUTE source "href")
+            # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
+            IF (CONTAIN source "?uddg=")
+                SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+            FI
+            IF (EQUAL source "")
+            OR (LIST_CONTAIN urls source)
+                CONTINUE
+            FI
+            LIST_APPEND urls source
+        END
+        HASH_SET next "backend" "duckduckgo"
+        HASH_SET next "url" (LIST_TAKE_AT urls 0)
+        HASH_SET next "queryData" urls
+        HASH_SET next "skipError" true
+        HASH_SET next "timeout" 5000
+        #------------------------------------------------------------------------------------------
+    ELSE # Extract sources
+        SET list (HTML_TRACKS data url (LIST "http"))
+        FOREACH list data
+            SET source data
+            # NOTE: We want to skip media files.
+            IF (NOT_EQUAL (URL_EXTENSION source) "")
+                CONTINUE
+            FI
+            HASH_SET track "state" "default"
+            HASH_SET track "source" source
+            LIST_APPEND tracks track
+            IF (EQUAL (COUNT tracks) 8)
+                BREAK
+            FI
+        END
+        SET clearDuplicate true
+        HASH_SET next "backend" "duckduckgo"
+        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
+        HASH_SET next "queryData" queryData
+        HASH_SET next "skipError" true
+        HASH_SET next "timeout" 5000
+        SET scanItems true
+    FI
+
 EXTRACT_FOLDER: |
-    # NOTE: Skipping advertisement results.
-    SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
-    SET list (SLICES data "class=\"result__a\"" "</a>" index)
-    FOREACH list data
-        SET source (HTML_ATTRIBUTE data "href")
-        # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
-        IF (CONTAIN source "?uddg=")
-            SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
-        FI
-        # NOTE: We use 'name' because 'title' is the folder title.
-        SET name (HTML_TO_UTF8 (SLICE_IN data '>' "</a>"))
-        HASH_SET item "type" "folderSearch"
-        HASH_SET item "state" "default"
-        HASH_SET item "source" source
-        HASH_SET item "title" name
-        LIST_APPEND items item
-    END
-    SET scanItems true
+    IF (EQUAL id 1)
+        #------------------------------------------------------------------------------------------
+        # Parsing results
+        #------------------------------------------------------------------------------------------
+        # NOTE: Skipping advertisement results.
+        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+        SET list (SLICES data "class=\"result__a\"" "</a>" index)
+        FOREACH list source
+            SET source (HTML_ATTRIBUTE source "href")
+            # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
+            IF (CONTAIN source "?uddg=")
+                SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+            FI
+            IF (EQUAL source "")
+            OR (LIST_CONTAIN urls source)
+                CONTINUE
+            FI
+            LIST_APPEND urls source
+        END
+        HASH_SET next "backend" "duckduckgo"
+        HASH_SET next "url" (LIST_TAKE_AT urls 0)
+        HASH_SET next "id" 2
+        HASH_SET next "queryData" urls
+        HASH_SET next "skipError" true
+        HASH_SET next "timeout" 5000
+        #------------------------------------------------------------------------------------------
+    ELIF (EQUAL id 2) # Extract sources
+        SET list (HTML_PLAYLISTS data url (LIST "http"))
+        FOREACH list data
+            HASH_SET item "type" (HASH_GET data "type")
+            HASH_SET item "state" "default"
+            HASH_SET item "source" (HASH_GET data "url")
+            LIST_APPEND items item
+            IF (EQUAL (COUNT items) 8)
+                BREAK
+            FI
+        END
+        SET clearDuplicate true
+        HASH_SET next "backend" "duckduckgo"
+        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
+        HASH_SET next "id" 2
+        HASH_SET next "queryData" queryData
+        HASH_SET next "skipError" true
+        HASH_SET next "timeout" 5000
+        SET scanItems true
+    ELSE
+        # NOTE: Skipping advertisement results.
+        SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
+        SET list (SLICES data "class=\"result__a\"" "</a>" index)
+        FOREACH list data
+            SET source (HTML_ATTRIBUTE data "href")
+            # NOTE: We might get corrupted URL(s) if the 'User-Agent' is invalid.
+            IF (CONTAIN source "?uddg=")
+                SET source (URL_DECODE (SLICE_IN source "?uddg=" "&amp;"))
+            FI
+            # NOTE: We use 'name' because 'title' is the folder title.
+            SET name (HTML_TO_UTF8 (SLICE_IN data '>' "</a>"))
+            HASH_SET item "type" "folderSearch"
+            HASH_SET item "state" "default"
+            HASH_SET item "source" source
+            HASH_SET item "title" name
+            LIST_APPEND items item
+        END
+        SET scanItems true
+    FI
