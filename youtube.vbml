@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.25
+version: 1.0.26
 
 title: Youtube
 
@@ -75,13 +75,13 @@ PLAYLIST_INFO: |
     RETURN true
 
 URL_TRACK: |
-    RETURN (APPEND "https://www.youtube.com/watch?v=" id "&ucbcb=1")
+    RETURN (APPEND "https://www.youtube.com/watch?v=" id)
 
 URL_PLAYLIST: |
     IF (EQUAL type "feed")
-        RETURN (APPEND "https://www.youtube.com/" id "&ucbcb=1")
+        RETURN (APPEND "https://www.youtube.com/" id)
     ELSE
-        RETURN (APPEND "https://www.youtube.com/playlist?list=" id "&ucbcb=1")
+        RETURN (APPEND "https://www.youtube.com/playlist?list=" id)
     FI
 
 QUERY_SOURCE: |
