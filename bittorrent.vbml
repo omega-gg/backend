@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.1
 
-version: 1.0.11
+version: 1.0.12
 
 title: BitTorrent
 
@@ -248,14 +248,15 @@ EXTRACT_PLAYLIST: |
     ELIF (EQUAL id 5) # Extract Torrents
         SET list (JSON_SPLIT data)
         FOREACH list data
-            SET id (JSON_EXTRACT data "id")
             SET seed (JSON_EXTRACT data 's')
             SET leech (JSON_EXTRACT data 'l')
             IF (LESSER seed 4)
             AND (LESSER leech 4)
                 CONTINUE
             FI
-            SET source (APPEND "magnet:?xt=urn:btih:" id global)
+            SET id (JSON_EXTRACT data "id")
+            SET text (URL_ENCODE (JSON_EXTRACT data "text"))
+            SET source (APPEND "magnet:?xt=urn:btih:" id "&dn=" text global)
             LIST_APPEND sources source
             SET index (ADD index 1)
             IF (EQUAL index 10)
