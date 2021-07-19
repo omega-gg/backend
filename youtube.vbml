@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.27
+version: 1.0.28
 
 title: Youtube
 
@@ -253,15 +253,15 @@ EXTRACT_SOURCE: |
             SET quality (MID (SLICE_IN value "\"quality\":\"" '"') 0 3)
             IF (EQUAL quality "sma")
                 SET quality "240"
-            ELIF (NOT_EQUAL quality "med")
+            ELIF (EQUAL quality "med")
                 SET quality "360"
-            ELIF (NOT_EQUAL quality "lar")
+            ELIF (EQUAL quality "lar")
                 SET quality "480"
-            ELIF (NOT_EQUAL quality "hd7")
+            ELIF (EQUAL quality "hd7")
                 SET quality "720"
-            ELIF (NOT_EQUAL quality "hd1")
+            ELIF (EQUAL quality "hd1")
                 SET quality "1080"
-            ELIF (NOT_EQUAL quality "hig")
+            ELIF (EQUAL quality "hig")
                 SET quality "1440"
             ELSE
                 CONTINUE
