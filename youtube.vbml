@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.28
+version: 1.0.29
 
 title: Youtube
 
@@ -289,41 +289,17 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Load "adaptiveFormats"
         #------------------------------------------------------------------------------------------
-        IF (EQUAL id 0)
-            SET sources (SLICE_IN data "\"adaptiveFormats\"" ']')
-        ELSE
-            SET sources (URL_DECODE (SLICE_IN data "%22adaptiveFormats%22" "%5D"))
-        FI
-        SET list (SPLIT sources "},{")
-        #SET i 0
-        FOREACH list value
-            IF (CONTAIN value "+vorbis")
-                #----------------------------------------------------------------------------------
-                # Extract url
-                #----------------------------------------------------------------------------------
-                SET audio (SLICE_IN value "\"url\":\"" '"')
-                IF (LENGTH audio)
-                    SET audio (HTML_TO_UTF8 audio)
-                ELSE
-                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                    SET audio     (SLICE_IN value "url=" '&')
-                    SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                    IF (LENGTH signature)
-                        SET audio (URL_DECODE (APPEND audio "&s=" signature))
-                    ELSE
-                        SET audio (URL_DECODE audio)
-                    FI
-                FI
-                #----------------------------------------------------------------------------------
-                LIST_REMOVE_AT list i
-                BREAK
+        # NOTE: When the source mode is above 'SourceDefault' we skip the adaptative sources.
+        IF (EQUAL mode 0)
+            IF (EQUAL id 0)
+                SET sources (SLICE_IN data "\"adaptiveFormats\"" ']')
+            ELSE
+                SET sources (URL_DECODE (SLICE_IN data "%22adaptiveFormats%22" "%5D"))
             FI
-            SET i (ADD i 1)
-        END
-        IF (EQUAL (LENGTH audio) 0)
-            SET i 0
+            SET list (SPLIT sources "},{")
+            #SET i 0
             FOREACH list value
-                IF (CONTAIN value "\"mp4a")
+                IF (CONTAIN value "+vorbis")
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
@@ -346,43 +322,70 @@ EXTRACT_SOURCE: |
                 FI
                 SET i (ADD i 1)
             END
-        FI
-        FOREACH list value
-            #--------------------------------------------------------------------------------------
-            # Load adaptative
-            #--------------------------------------------------------------------------------------
-            SET mime (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
-            IF (NOT_EQUAL mime "mp4")
-                CONTINUE
+            IF (EQUAL (LENGTH audio) 0)
+                SET i 0
+                FOREACH list value
+                    IF (CONTAIN value "\"mp4a")
+                        #--------------------------------------------------------------------------
+                        # Extract url
+                        #--------------------------------------------------------------------------
+                        SET audio (SLICE_IN value "\"url\":\"" '"')
+                        IF (LENGTH audio)
+                            SET audio (HTML_TO_UTF8 audio)
+                        ELSE
+                            SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
+                            SET audio     (SLICE_IN value "url=" '&')
+                            SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                            IF (LENGTH signature)
+                                SET audio (URL_DECODE (APPEND audio "&s=" signature))
+                            ELSE
+                                SET audio (URL_DECODE audio)
+                            FI
+                        FI
+                        #--------------------------------------------------------------------------
+                        LIST_REMOVE_AT list i
+                        BREAK
+                    FI
+                    SET i (ADD i 1)
+                END
             FI
-            SET quality (SLICE_IN value "\"qualityLabel\":\"" 'p')
-            IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
-                CONTINUE
-            FI
-            #--------------------------------------------------------------------------------------
-            # Extract url
-            #--------------------------------------------------------------------------------------
-            SET media (SLICE_IN value "\"url\":\"" '"')
-            IF (LENGTH media)
-                SET media (HTML_TO_UTF8 media)
-                # NOTE: When the duration is equal zero the source is invalid, so we skip it.
-                IF (NOT_EQUAL (INDEX_OF media "dur=0.000") -1)
+            FOREACH list value
+                #----------------------------------------------------------------------------------
+                # Load adaptative
+                #----------------------------------------------------------------------------------
+                SET mime (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
+                IF (NOT_EQUAL mime "mp4")
                     CONTINUE
                 FI
-            ELSE
-                SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                SET media     (SLICE_IN value "url=" '&')
-                SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                IF (LENGTH signature)
-                    SET media (URL_DECODE (APPEND media "&s=" signature))
-                ELSE
-                    SET media (URL_DECODE media)
+                SET quality (SLICE_IN value "\"qualityLabel\":\"" 'p')
+                IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
+                    CONTINUE
                 FI
-            FI
-            HASH_SET medias quality media
-            HASH_SET audios quality audio
-            #--------------------------------------------------------------------------------------
-        END
+                #----------------------------------------------------------------------------------
+                # Extract url
+                #----------------------------------------------------------------------------------
+                SET media (SLICE_IN value "\"url\":\"" '"')
+                IF (LENGTH media)
+                    SET media (HTML_TO_UTF8 media)
+                    # NOTE: When the duration is equal zero the source is invalid, so we skip it.
+                    IF (NOT_EQUAL (INDEX_OF media "dur=0.000") -1)
+                        CONTINUE
+                    FI
+                ELSE
+                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
+                    SET media     (SLICE_IN value "url=" '&')
+                    SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
+                    IF (LENGTH signature)
+                        SET media (URL_DECODE (APPEND media "&s=" signature))
+                    ELSE
+                        SET media (URL_DECODE media)
+                    FI
+                FI
+                HASH_SET medias quality media
+                HASH_SET audios quality audio
+                #----------------------------------------------------------------------------------
+            END
+        FI
         #------------------------------------------------------------------------------------------
         # NOTE: When the id is 0 we can extract the jsUrl and use it later if necessary.
         IF (EQUAL id 0)
