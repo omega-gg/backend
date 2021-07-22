@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.29
+version: 1.0.30
 
 title: Youtube
 
@@ -290,7 +290,7 @@ EXTRACT_SOURCE: |
         # Load "adaptiveFormats"
         #------------------------------------------------------------------------------------------
         # NOTE: When the source mode is above 'SourceDefault' we skip the adaptative sources.
-        IF (EQUAL mode 0)
+        IF (EQUAL (NUMBER mode) 0)
             IF (EQUAL id 0)
                 SET sources (SLICE_IN data "\"adaptiveFormats\"" ']')
             ELSE
