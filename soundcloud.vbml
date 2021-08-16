@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 title: SoundCloud
 
@@ -186,14 +186,8 @@ EXTRACT_SOURCE: |
         HASH_SET next "queryData" id
         SET backup id
     ELIF (EQUAL id 0)
-        FOREACH (LIST 19 20 21 22 23) value
-            SET index (INDEX_END data (APPEND "\"id\":" value ','))
-            SET string (JSON_EXTRACT data "data" index)
-            IF (LENGTH string)
-            AND (EQUAL (START_WITH string "{\"allows") false)
-                BREAK
-            FI
-        END
+        SET index (INDEX_END data "hydratable\":\"sound\"")
+        SET string (JSON_EXTRACT data "data" index)
         SET id (JSON_EXTRACT_UTF8 string "id")
         HASH_SET next "url" (APPEND "https://api-v2.soundcloud.com/tracks/" id \
                                     "?client_id=" queryData)
@@ -209,14 +203,8 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    FOREACH (LIST 19 20 21 22 23) value
-        SET index (INDEX_END data (APPEND "\"id\":" value ','))
-        SET string (JSON_EXTRACT data "data" index)
-        IF (LENGTH string)
-        AND (EQUAL (START_WITH string "{\"allows") false)
-            BREAK
-        FI
-    END
+    SET index (INDEX_END data "hydratable\":\"sound\"")
+    SET string (JSON_EXTRACT data "data" index)
     SET title (JSON_EXTRACT_UTF8 string "title")
     SET cover (JSON_EXTRACT string "artwork_url")
     IF (EQUAL cover "null")
@@ -254,14 +242,8 @@ EXTRACT_PLAYLIST: |
         HASH_SET next "queryData" id
         SET backup id
     ELIF (EQUAL id 1) # playlist
-        FOREACH (LIST 47 48 49) value
-            SET index (INDEX_END data (APPEND "\"id\":" value ','))
-            SET string (JSON_EXTRACT data "data" index)
-            IF (LENGTH string)
-            AND (EQUAL (START_WITH string "{\"allows") false)
-                BREAK
-            FI
-        END
+        SET index (INDEX_END data "hydratable\":\"playlist\"")
+        SET string (JSON_EXTRACT data "data" index)
         SET source (REPLACE (JSON_EXTRACT_UTF8 string "uri") "api." "api-v2.")
         SET title (JSON_EXTRACT_UTF8 string "title")
         SET index (INDEX_OF string "<img")
@@ -270,28 +252,16 @@ EXTRACT_PLAYLIST: |
         # FIXME: We can't seem to be able to retrieve playlist tracks directly.
         #HASH_SET next "url" (APPEND source "?client_id=" queryData)
     ELIF (EQUAL id 2) # feed
-        FOREACH (LIST 34 35 36 37 38) value
-            SET index (INDEX_END data (APPEND "\"id\":" value ','))
-            SET string (JSON_EXTRACT data "data" index)
-            IF (LENGTH string)
-            AND (EQUAL (START_WITH string "{\"allows") false)
-                BREAK
-            FI
-        END
+        SET index (INDEX_END data "hydratable\":\"user\"")
+        SET string (JSON_EXTRACT data "data" index)
         SET source (REPLACE (JSON_EXTRACT_UTF8 string "uri") "api." "api-v2.")
         SET title (JSON_EXTRACT_UTF8 string "username")
         SET cover (JSON_EXTRACT_UTF8 string "avatar_url")
         SET cover (REPLACE cover "-large." "-t500x500.")
         HASH_SET next "url" (APPEND source "/tracks?limit=50&client_id=" queryData)
     ELIF (EQUAL id 3) # related
-        FOREACH (LIST 19 20 21) value
-            SET index (INDEX_END data (APPEND "\"id\":" value ','))
-            SET string (JSON_EXTRACT data "data" index)
-            IF (LENGTH string)
-            AND (EQUAL (START_WITH string "{\"allows") false)
-                BREAK
-            FI
-        END
+        SET index (INDEX_END data "hydratable\":\"sound\"")
+        SET string (JSON_EXTRACT data "data" index)
         SET id (JSON_EXTRACT_UTF8 string "id")
         HASH_SET next "url" (APPEND "https://api-v2.soundcloud.com/tracks/" id \
                                     "/related?limit=50&client_id=" queryData)
