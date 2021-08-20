@@ -4,9 +4,9 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbml
 
-api: 1.0.2
+api: 1.0.3
 
-version: 1.0.5
+version: 1.0.6
 
 search: tracks
 
@@ -66,12 +66,12 @@ EXTRACT_PLAYLIST: |
                 CONTINUE
             FI
             LIST_APPEND urls source
+            HASH_SET query "backend" "duckduckgo"
+            HASH_SET query "url" source
+            HASH_SET query "skipError" true
+            HASH_SET query "timeout" 10000
+            LIST_APPEND next query
         END
-        HASH_SET next "backend" "duckduckgo"
-        HASH_SET next "url" (LIST_TAKE_AT urls 0)
-        HASH_SET next "queryData" urls
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
         #------------------------------------------------------------------------------------------
     ELSE # Extract sources
         SET list (HTML_TRACKS data url (LIST "http"))
@@ -89,11 +89,6 @@ EXTRACT_PLAYLIST: |
             FI
         END
         SET clearDuplicate true
-        HASH_SET next "backend" "duckduckgo"
-        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
-        HASH_SET next "queryData" queryData
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
         SET scanItems true
     FI
 
@@ -116,13 +111,13 @@ EXTRACT_FOLDER: |
                 CONTINUE
             FI
             LIST_APPEND urls source
+            HASH_SET query "backend" "duckduckgo"
+            HASH_SET query "url" source
+            HASH_SET query "id" 2
+            HASH_SET query "skipError" true
+            HASH_SET query "timeout" 10000
+            LIST_APPEND next query
         END
-        HASH_SET next "backend" "duckduckgo"
-        HASH_SET next "url" (LIST_TAKE_AT urls 0)
-        HASH_SET next "id" 2
-        HASH_SET next "queryData" urls
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 2) # Extract sources
         SET list (HTML_PLAYLISTS data url (LIST "http"))
@@ -136,12 +131,6 @@ EXTRACT_FOLDER: |
             FI
         END
         SET clearDuplicate true
-        HASH_SET next "backend" "duckduckgo"
-        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
-        HASH_SET next "id" 2
-        HASH_SET next "queryData" queryData
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
         SET scanItems true
     ELSE
         # NOTE: Skipping advertisement results.
