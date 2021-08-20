@@ -4,9 +4,9 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbml
 
-api: 1.0.1
+api: 1.0.3
 
-version: 1.0.12
+version: 1.0.13
 
 title: BitTorrent
 
@@ -224,7 +224,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET next "id" 5
             HASH_SET next "queryData" urls
             HASH_SET next "skipError" true
-            HASH_SET next "timeout" 5000
+            HASH_SET next "timeout" 10000
         FI
     ELIF (EQUAL id 4) # Extract Trackers
         SET data (SIMPLIFY data)
@@ -244,7 +244,7 @@ EXTRACT_PLAYLIST: |
         HASH_SET next "id" 5
         HASH_SET next "queryData" (LIST_TAKE_AT queryData 0)
         HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
+        HASH_SET next "timeout" 10000
     ELIF (EQUAL id 5) # Extract Torrents
         SET list (JSON_SPLIT data)
         FOREACH list data
@@ -262,21 +262,20 @@ EXTRACT_PLAYLIST: |
             IF (EQUAL index 10)
                 BREAK
             FI
+            HASH_SET query "type" "torrent"
+            HASH_SET query "url" source
+            HASH_SET query "id" 7
+            HASH_SET query "timeout" 120000 # 2 minutes
+            LIST_APPEND next query
         END
-        IF (COUNT sources)
-            HASH_SET next "type" "torrent"
-            HASH_SET next "url" (LIST_TAKE_AT sources 0)
-            HASH_SET next "id" 7
-            HASH_SET next "queryData" (LIST 10 sources queryData)
-            HASH_SET next "timeout" 20000
-        ELSE
-            HASH_SET next "backend" "bittorrent"
-            HASH_SET next "url" (LIST_TAKE_AT queryData 0)
-            HASH_SET next "id" 6
-            HASH_SET next "queryData" (LIST 10 queryData)
-            HASH_SET next "skipError" true
-            HASH_SET next "timeout" 5000
-        FI
+        FOREACH queryData source
+            HASH_SET query "backend" "bittorrent"
+            HASH_SET query "url" source
+            HASH_SET query "id" 6
+            HASH_SET query "skipError" true
+            HASH_SET query "timeout" 10000
+            LIST_APPEND next query
+        END
     ELIF (EQUAL id 6) # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
         SET list (HASH_GET data "sources")
@@ -302,28 +301,18 @@ EXTRACT_PLAYLIST: |
                 FI
             END
         FI
-        SET count (LIST_GET queryData 0)
-        SET urls  (LIST_GET queryData 1)
-        IF (COUNT sources)
-            SET source (LIST_TAKE_AT sources 0)
+        FOREACH sources source
             IF (START_WITH source "magnet:?")
-                HASH_SET next "type" "torrent"
-                HASH_SET next "timeout" 20000
+                HASH_SET query "type" "torrent"
+                HASH_SET query "timeout" 120000 # 2 minutes
             ELSE
-                HASH_SET next "timeout" 5000
+                HASH_SET query "timeout" 10000
             FI
-            HASH_SET next "url" source
-            HASH_SET next "id" 7
-            HASH_SET next "queryData" (LIST count sources urls)
-            HASH_SET next "skipError" true
-        ELSE
-            HASH_SET next "backend" "bittorrent"
-            HASH_SET next "url" (LIST_TAKE_AT urls 0)
-            HASH_SET next "id" 6
-            HASH_SET next "queryData" (LIST count urls)
-            HASH_SET next "skipError" true
-            HASH_SET next "timeout" 5000
-        FI
+            HASH_SET query "url" source
+            HASH_SET query "id" 7
+            HASH_SET query "skipError" true
+            LIST_APPEND next query
+        END
     ELIF (EQUAL id 7) # Extract torrent
         IF (LENGTH data)
             SET cache data
@@ -355,33 +344,6 @@ EXTRACT_PLAYLIST: |
                 END
             END
             SET clearDuplicate true
-        FI
-        SET count (SUB (LIST_GET queryData 0) 1)
-        # NOTE: We have loaded enough torrents so we return right away.
-        IF (EQUAL count 0)
-            RETURN
-        FI
-        SET sources (LIST_GET queryData 1)
-        SET urls    (LIST_GET queryData 2)
-        IF (COUNT sources)
-            SET source (LIST_TAKE_AT sources 0)
-            IF (START_WITH source "magnet:?")
-                HASH_SET next "type" "torrent"
-                HASH_SET next "timeout" 20000
-            ELSE
-                HASH_SET next "timeout" 5000
-            FI
-            HASH_SET next "url" source
-            HASH_SET next "id" 7
-            HASH_SET next "queryData" (LIST count sources urls)
-            HASH_SET next "skipError" true
-        ELSE
-            HASH_SET next "backend" "bittorrent"
-            HASH_SET next "url" (LIST_TAKE_AT urls 0)
-            HASH_SET next "id" 6
-            HASH_SET next "queryData" (LIST count urls)
-            HASH_SET next "skipError" true
-            HASH_SET next "timeout" 5000
         FI
     ELSE
         SET cache data
@@ -439,7 +401,8 @@ EXTRACT_FOLDER: |
     #    HASH_SET next "url" (APPEND "https://duckduckgo.com" source)
     #    HASH_SET next "id" 1
     #    HASH_SET next "queryData" queryData
-    IF (EQUAL id 1) # Extract urls
+    IF (EQUAL id 1) # Extract DuckDuckGo
+        SET id (ADD queryData 2)
         # NOTE: Skipping advertisement results.
         SET index (INDEX_OF data "class=\"result results_links results_links_deep web-result")
         SET list (SLICES data "class=\"result__a\"" "</a>" index)
@@ -453,20 +416,13 @@ EXTRACT_FOLDER: |
             OR (LIST_CONTAIN urls source)
                 CONTINUE
             FI
-            LIST_APPEND urls source
-            IF (EQUAL (COUNT urls) 20)
-                BREAK
-            FI
+            HASH_SET query "backend" "bittorrent"
+            HASH_SET query "url" source
+            HASH_SET query "id" id
+            HASH_SET query "skipError" true
+            HASH_SET query "timeout" 10000
+            LIST_APPEND next query
         END
-        IF (EQUAL (COUNT urls) 0)
-            RETURN
-        FI
-        HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (LIST_TAKE_AT urls 0)
-        HASH_SET next "id" (ADD queryData 2)
-        HASH_SET next "queryData" urls
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
     ELSE # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
         IF (EQUAL id 2)
@@ -527,11 +483,5 @@ EXTRACT_FOLDER: |
                 FI
             END
         FI
-        HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
-        HASH_SET next "id" id
-        HASH_SET next "queryData" queryData
-        HASH_SET next "skipError" true
-        HASH_SET next "timeout" 5000
         SET clearDuplicate true
     FI
