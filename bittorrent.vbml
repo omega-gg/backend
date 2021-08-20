@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.13
+version: 1.0.14
 
 title: BitTorrent
 
@@ -269,12 +269,12 @@ EXTRACT_PLAYLIST: |
             LIST_APPEND next query
         END
         FOREACH queryData source
-            HASH_SET query "backend" "bittorrent"
-            HASH_SET query "url" source
-            HASH_SET query "id" 6
-            HASH_SET query "skipError" true
-            HASH_SET query "timeout" 10000
-            LIST_APPEND next query
+            HASH_SET queryUrl "backend" "bittorrent"
+            HASH_SET queryUrl "url" source
+            HASH_SET queryUrl "id" 6
+            HASH_SET queryUrl "skipError" true
+            HASH_SET queryUrl "timeout" 10000
+            LIST_APPEND next queryUrl
         END
     ELIF (EQUAL id 6) # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
@@ -306,6 +306,7 @@ EXTRACT_PLAYLIST: |
                 HASH_SET query "type" "torrent"
                 HASH_SET query "timeout" 120000 # 2 minutes
             ELSE
+                HASH_SET query "type" ""
                 HASH_SET query "timeout" 10000
             FI
             HASH_SET query "url" source
