@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.31
+version: 1.0.32
 
 title: Youtube
 
@@ -231,6 +231,13 @@ EXTRACT_SOURCE: |
         END
         #------------------------------------------------------------------------------------------
         SET expiry (ADD (DATE) 60) # Two hours
+    ELIF (EQUAL id 3) # Live
+        SET list (SLICES data "#EXT-X-STREAM-INF" "m3u8")
+        FOREACH list value
+            SET quality (SLICE_IN value 'x' ',')
+            SET source (MID value (INDEX_OF value 'https'))
+            HASH_SET medias quality source
+        END
     ELSE # if (id == 0 || id == 1)
         #------------------------------------------------------------------------------------------
         # Load "formats"
@@ -288,6 +295,15 @@ EXTRACT_SOURCE: |
                 HASH_SET medias quality source
                 #----------------------------------------------------------------------------------
             END
+        FI
+        #------------------------------------------------------------------------------------------
+        # Load "hlsManifestUrl" for a live stream
+        #------------------------------------------------------------------------------------------
+        SET source (SLICE_IN data "\"hlsManifestUrl\":\"" '"')
+        IF (LENGTH source)
+            HASH_SET next "url" source
+            HASH_SET next "id" 3
+            RETURN
         FI
         #------------------------------------------------------------------------------------------
         # Load "adaptiveFormats"
@@ -489,6 +505,9 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
+    IF (CONTAIN data "\"hlsManifestUrl\":\"")
+        SET type "live"
+    FI
     SET index (INDEX_OF data "=\"og:image")
     SET cover (HTML_ATTRIBUTE data "content" index)
     SET cover (REPLACE cover "https://" "http://")
