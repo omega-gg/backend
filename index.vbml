@@ -39,6 +39,7 @@ backends: |
     dailymotion   Dailymotion   1.0.1  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
     soundcloud    SoundCloud    1.0.6  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
+    twitch        Twitch        1.0.0  ^twitch.tv
     tmdb          TMDb          1.0.5  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
@@ -50,3 +51,4 @@ covers: |
     dailymotion cover/dailymotion.png
     vimeo       cover/vimeo.png
     soundcloud  cover/soundcloud.png
+    twitch      cover/twitch.png

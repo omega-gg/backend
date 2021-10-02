@@ -1,0 +1,50 @@
+#--------------------------------------------------------------------------------------------------
+# Settings
+#--------------------------------------------------------------------------------------------------
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
+
+api: 1.0.1
+
+version: 1.0.0
+
+title: Twitch
+
+host: twitch.tv
+
+cover: cover/twitch.png
+
+items:
+    playlist:
+        title: Channels
+
+validate: ^twitch.tv
+
+#--------------------------------------------------------------------------------------------------
+# Interface
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "twitch.tv/") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN ""
+    FI
+    RETURN (URL_ELEMENTS url 2 11)
+
+URL_TRACK: |
+    RETURN (APPEND "https://www.twitch.tv/" id)
+
+CREATE_QUERY: |
+    IF (EQUAL method "search")
+        IF (EQUAL label "channels")
+            SET url "https://www.twitch.tv/search"
+            URL_ADD_QUERY url "term" q
+            URL_ADD_QUERY url "type" "channels"
+            # NOTE: We need to use the web backend because we rely on JavaScript calls.
+            SET type "web"
+        FI
+    FI
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")

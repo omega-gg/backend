@@ -1,10 +1,11 @@
 OTHER_FILES += index.vbml \
-               bittorrent.vbml \
                duckduckgo.vbml \
-               tmdb.vbml \
-               lastfm.vbml \
+               bittorrent.vbml \
                youtube.vbml \
                dailymotion.vbml \
                vimeo.vbml \
                soundcloud.vbml \
+               twitch.vbml \
+               tmdb.vbml \
+               lastfm.vbml \
                opensubtitles.vbml \
