@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.55
+version: 1.0.56
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -38,7 +38,7 @@ backends: |
     youtube       Youtube       1.0.33 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.1  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
-    twitch        Twitch        1.0.1  ^twitch.tv
+    twitch        Twitch        1.0.2  ^twitch.tv
     soundcloud    SoundCloud    1.0.6  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
     tmdb          TMDb          1.0.5  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm

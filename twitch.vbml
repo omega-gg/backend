@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: Twitch
 
@@ -88,7 +88,8 @@ QUERY_SOURCE: |
                      'playerBackend: \\"mediaplayer\\", '       \
                      'playerType: \\"site\\"}) '                \
                      '{ value signature }}" }')
-    SET queryData stream
+    # NOTE: This needs to be lowercase for the POST to succeed.
+    SET queryData (LOWER stream)
     RETURN true
 
 # FIXME: This should be implemented later
