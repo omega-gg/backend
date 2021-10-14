@@ -122,13 +122,13 @@ EXTRACT_TRACK: |
         # NOTE: This means the stream is not live.
         IF (EQUAL index -1)
             SET type "media"
-            #------------------------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------------
             # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
             SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
             SET title (HTML_TO_UTF8 (SLICE_IN data "content=\"" " -" index))
             SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
             SET cover (HTML_ATTRIBUTE data "content" index)
-            #------------------------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------------
             RETURN
         FI
         SET type "live"
