@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.2
+version: 1.0.3
 
 title: Twitch
 
@@ -45,6 +45,8 @@ QUERY_TRACK: |
     IF (CONTAIN url "/videos/")
         SET url (APPEND "https://www.twitch.tv/videos/" (URL_ELEMENT url 17))
         SET id 1
+        # NOTE: We need to wait 1 second before reloading the page.
+        SET delay 1000
         RETURN true
     FI
     IF (NOT_EQUAL (COUNT_STRING url '/') 1)
@@ -112,6 +114,12 @@ EXTRACT_TRACK: |
         # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
         SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
         SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+        # NOTE: Sometimes Twitch returns an empty page so we reload it one second later
+        #       (delay in QUERY_TRACK).
+        IF (EQUAL title "")
+            SET reload true
+            RETURN
+        FI
         SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
         SET cover (HTML_ATTRIBUTE data "content" index)
         #------------------------------------------------------------------------------------------
