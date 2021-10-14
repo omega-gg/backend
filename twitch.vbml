@@ -4,19 +4,15 @@
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
-api: 1.0.1
+api: 1.0.3
 
-version: 1.0.0
+version: 1.0.1
 
 title: Twitch
 
 host: twitch.tv
 
 cover: cover/twitch.png
-
-items:
-    playlist:
-        title: Channels
 
 validate: ^twitch.tv
 
@@ -27,24 +23,158 @@ validate: ^twitch.tv
 TRACK_ID: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "twitch.tv/") false)
-    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+    OR (CONTAIN url (REGEXP "/opensearch.xml|/downloads|/directory"))
         RETURN ""
     FI
-    RETURN (URL_ELEMENTS url 2 11)
+    IF (CONTAIN url "/videos/")
+        RETURN (URL_ELEMENTS url 2 10)
+    FI
+    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN ""
+    FI
+    RETURN (URL_ELEMENT url 10)
 
 URL_TRACK: |
     RETURN (APPEND "https://www.twitch.tv/" id)
 
-CREATE_QUERY: |
-    IF (EQUAL method "search")
-        IF (EQUAL label "channels")
-            SET url "https://www.twitch.tv/search"
-            URL_ADD_QUERY url "term" q
-            URL_ADD_QUERY url "type" "channels"
-            # NOTE: We need to use the web backend because we rely on JavaScript calls.
-            SET type "web"
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "twitch.tv/") false)
+        RETURN false
+    FI
+    IF (CONTAIN url "/videos/")
+        SET url (APPEND "https://www.twitch.tv/videos/" (URL_ELEMENT url 17))
+        SET id 1
+        RETURN true
+    FI
+    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN false
+    FI
+    SET stream (URL_ELEMENT url 10)
+    SET url (APPEND "https://www.twitch.tv/" stream)
+    SET queryData stream
+    RETURN true
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "twitch.tv/") false)
+        RETURN false
+    FI
+    IF (CONTAIN url "/videos/")
+        SET video (URL_ELEMENT url 17)
+        SET url "https://gql.twitch.tv/gql"
+        SET id 1
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+        SET body (APPEND '{ "query": "{ videoPlaybackAccessToken(' \
+                         'id: \\"' video '\\", '                   \
+                         'params: { platform: \\"web\\", '         \
+                         'playerBackend: \\"mediaplayer\\", '      \
+                         'playerType: \\"site\\"}) '               \
+                         '{ value signature }}" }')
+        SET queryData video
+        RETURN true
+    FI
+    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN false
+    FI
+    SET stream (URL_ELEMENT url 10)
+    SET url "https://gql.twitch.tv/gql"
+    SET header (APPEND '"Content-Type" "application/json"' \
+                       '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+    SET body (APPEND '{ "query": "{ streamPlaybackAccessToken(' \
+                     'channelName: \\"' stream '\\", '          \
+                     'params: { platform: \\"web\\", '          \
+                     'playerBackend: \\"mediaplayer\\", '       \
+                     'playerType: \\"site\\"}) '                \
+                     '{ value signature }}" }')
+    SET queryData stream
+    RETURN true
+
+# FIXME: This should be implemented later
+#CREATE_QUERY: |
+#    IF (EQUAL method "search")
+#        IF (EQUAL label "channels")
+#            SET url "https://www.twitch.tv/search"
+#            URL_ADD_QUERY url "term" q
+#            URL_ADD_QUERY url "type" "channels"
+#        FI
+#    FI
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    #IF (EQUAL (CONTAIN data "content=\"video.other\"") false)
+    #    RETURN
+    #FI
+    IF (EQUAL id 1)
+        #------------------------------------------------------------------------------------------
+        # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
+        SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
+        SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+        SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
+        SET cover (HTML_ATTRIBUTE data "content" index)
+        #------------------------------------------------------------------------------------------
+        SET index (LAST_INDEX_OF cover '-')
+        SET cover (MID cover 0 (ADD index 1))
+        SET cover (APPEND cover "1920x1080.jpg")
+    ELSE
+        SET index (INDEX_OF data "\"VideoObject\"")
+        # NOTE: This means the stream is not live.
+        IF (EQUAL index -1)
+            SET type "media"
+            #------------------------------------------------------------------------------------------
+            # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
+            SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
+            SET title (HTML_TO_UTF8 (SLICE_IN data "content=\"" " -" index))
+            SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
+            SET cover (HTML_ATTRIBUTE data "content" index)
+            #------------------------------------------------------------------------------------------
+            RETURN
         FI
+        SET type "live"
+        SET name (HTML_TO_UTF8 (SLICE_IN data "\"name\":\"" " -"))
+        SET description (HTML_TO_UTF8 (SLICE_IN data "\"description\":\"" '"' index))
+        SET title (APPEND name " - " description)
+        SET cover (APPEND "https://static-cdn.jtvnw.net/previews-ttv/live_user_" queryData \
+                          "-1920x1080.jpg")
+        SET author name
     FI
 
-EXTRACT_PLAYLIST: |
+EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
+    IF (EQUAL id 2)
+        IF (EQUAL mode "audio")
+            SET index (INDEX_OF data "VIDEO=\"audio_only\"")
+            SET source (MID data (INDEX_OF data 'https' index))
+            HASH_SET medias "default" source
+        ELSE
+            SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
+            FOREACH list value
+                SET quality (SLICE_IN value 'x' ',')
+                # NOTE: We consider 160p to be 240p.
+                IF (EQUAL quality "160")
+                    SET quality "240"
+                FI
+                SET source (MID value (INDEX_OF value 'https'))
+                HASH_SET medias quality source
+            END
+        FI
+    ELSE
+        SET value (URL_ENCODE (JSON_EXTRACT_UTF8 data "value"))
+        SET signature (URL_ENCODE (JSON_EXTRACT_UTF8 data "signature"))
+        IF (EQUAL id 0)
+            SET url (APPEND "https://usher.ttvnw.net/api/channel/hls/" queryData ".m3u8?" \
+                             "token=" value "&sig=" signature)
+        ELSE
+            SET url (APPEND "https://usher.ttvnw.net/vod/" queryData ".m3u8?" \
+                            "nauth=" value "&nauthsig=" signature )
+        FI
+        IF (EQUAL mode "audio")
+            SET url (APPEND url "&allow_audio_only=true")
+        ELSE
+            SET url (APPEND url "&allow_source=true")
+        FI
+        HASH_SET next "url" url
+        HASH_SET next "id" 2
+        RETURN
+    FI

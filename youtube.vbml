@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.32
+version: 1.0.33
 
 title: Youtube
 
@@ -232,7 +232,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         SET expiry (ADD (DATE) 60) # Two hours
     ELIF (EQUAL id 3) # Live
-        SET list (SLICES data "#EXT-X-STREAM-INF" "m3u8")
+        SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
         FOREACH list value
             SET quality (SLICE_IN value 'x' ',')
             SET source (MID value (INDEX_OF value 'https'))

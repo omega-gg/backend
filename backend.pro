@@ -4,8 +4,8 @@ OTHER_FILES += index.vbml \
                youtube.vbml \
                dailymotion.vbml \
                vimeo.vbml \
-               soundcloud.vbml \
                twitch.vbml \
+               soundcloud.vbml \
                tmdb.vbml \
                lastfm.vbml \
                opensubtitles.vbml \

@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.54
+version: 1.0.55
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -35,11 +35,11 @@ backend_subtitle: |
 backends: |
     duckduckgo    DuckDuckGo    1.0.6  ^html.duckduckgo.com
     bittorrent    BitTorrent    1.0.14 .torrent$|^magnet:?
-    youtube       Youtube       1.0.32 ^youtube.com|^youtu.be
+    youtube       Youtube       1.0.33 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.1  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
+    twitch        Twitch        1.0.1  ^twitch.tv
     soundcloud    SoundCloud    1.0.6  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
-    twitch        Twitch        1.0.0  ^twitch.tv
     tmdb          TMDb          1.0.5  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
@@ -50,5 +50,5 @@ covers: |
     youtube     cover/youtube.png
     dailymotion cover/dailymotion.png
     vimeo       cover/vimeo.png
-    soundcloud  cover/soundcloud.png
     twitch      cover/twitch.png
+    soundcloud  cover/soundcloud.png
