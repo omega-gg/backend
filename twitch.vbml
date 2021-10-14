@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.3
+version: 1.0.4
 
 title: Twitch
 
@@ -123,9 +123,12 @@ EXTRACT_TRACK: |
         SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
         SET cover (HTML_ATTRIBUTE data "content" index)
         #------------------------------------------------------------------------------------------
-        SET index (LAST_INDEX_OF cover '-')
-        SET cover (MID cover 0 (ADD index 1))
-        SET cover (APPEND cover "1920x1080.jpg")
+        # NOTE: We make sure we have a valid cover before fixing it.
+        IF (START_WITH url "https://static-cdn")
+            SET index (LAST_INDEX_OF cover '-')
+            SET cover (MID cover 0 (ADD index 1))
+            SET cover (APPEND cover "1920x1080.jpg")
+        FI
     ELSE
         SET index (INDEX_OF data "\"VideoObject\"")
         # NOTE: This means the stream is not live.
