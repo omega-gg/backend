@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 search: coverVideo
 
@@ -322,9 +322,9 @@ EXTRACT_TRACK: |
         SET queryData (REPLACE queryData (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
         SET listB (SPLIT (LOWER (SIMPLIFY queryData)) ' ')
         FOREACH listA data
-            SET data (LOWER (HTML_ATTRIBUTE_UTF8 data "alt"))
-            SET data (REPLACE data (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
-            SET listA (SIMPLIFY (SPLIT (LOWER data)) ' ')
+            SET value (LOWER (HTML_ATTRIBUTE_UTF8 data "alt"))
+            SET value (REPLACE value (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')
+            SET listA (SIMPLIFY (SPLIT (LOWER value)) ' ')
             #--------------------------------------------------------------------------------------
             # Match
             #--------------------------------------------------------------------------------------

@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.14
+version: 1.0.15
 
 title: BitTorrent
 
@@ -61,13 +61,13 @@ QUERY_TRACK: |
     IF (EQUAL index -1)
         SET queryData -1
     ELSE
-        SET url (MID url 0 index)
         SET indexB (INDEX_OF url '.' index)
         IF (EQUAL indexB -1)
-            SET queryData (MID index)
+            SET queryData (MID url index)
         ELSE
-            SET queryData (MID index (SUB indexB index))
+            SET queryData (MID url index (SUB indexB index))
         FI
+        SET url (MID url 0 (SUB index 1))
     FI
     RETURN true
 
@@ -81,13 +81,13 @@ QUERY_PLAYLIST: |
     IF (EQUAL index -1)
         SET queryData -1
     ELSE
-        SET url (MID url 0 index)
         SET indexB (INDEX_OF url '.' index)
         IF (EQUAL indexB -1)
-            SET queryData (MID index)
+            SET queryData (MID url index)
         ELSE
-            SET queryData (MID index (SUB indexB index))
+            SET queryData (MID url index (SUB indexB index))
         FI
+        SET url (MID url 0 (SUB index 1))
     FI
     RETURN true
 
@@ -176,7 +176,7 @@ EXTRACT_TRACK: |
         ELSE
             SET index 0
         FI
-        SET item (LIST_GET index)
+        SET item (LIST_GET items index)
         SET string (LATIN_TO_UTF8 (HASH_GET item "name"))
         IF (EQUAL (EXTENSION_IS_MEDIA (URL_EXTENSION string)) false)
             RETURN
