@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.34
+version: 1.0.35
 
 title: Youtube
 
@@ -201,7 +201,7 @@ EXTRACT_SOURCE: |
         # NOTE: When the source mode is 'SourceAudio' we skip the video sources.
         IF (NOT_EQUAL mode "audio")
             SET sources (SLICE_IN data '"formats"' ']')
-            SET list (SPLIT sources "},")
+            SET list (SPLIT sources "approxDurationMs")
             FOREACH list value
                 #----------------------------------------------------------------------------------
                 # Load media
@@ -238,7 +238,7 @@ EXTRACT_SOURCE: |
         # NOTE: When the source mode is 'SourceSafe' we skip the adaptative sources.
         IF (NOT_EQUAL mode "safe")
             SET sources (SLICE_IN data '"adaptiveFormats"' ']')
-            SET list (SPLIT sources "},")
+            SET list (SPLIT sources "approxDurationMs")
             FOREACH list value
                 IF (CONTAIN value "+vorbis")
                     #------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ EXTRACT_SOURCE: |
                     IF  (NOT_EQUAL type "mp4")
                         CONTINUE
                     FI
-                    SET quality (SLICE_IN value '"height": ' ',')
+                    SET quality (SLICE_IN value '"qualityLabel": "' 'p')
                     IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                         CONTINUE
                     FI
