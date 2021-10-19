@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.33
+version: 1.0.34
 
 title: Youtube
 
@@ -97,8 +97,13 @@ QUERY_SOURCE: |
     ELSE
         RETURN false
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" id "&ucbcb=1")
-    SET queryData id
+    SET url "https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
+    SET header '"Content-Type" "application/json"'
+    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", '                \
+                     '"clientVersion": "16.20", "hl": "en" }}, "videoId": "' id '", '      \
+                     '"playbackContext": { "contentPlaybackContext": { '                   \
+                     '"html5Preference": "HTML5_PREF_WANTS" } }, "contentCheckOk": true, ' \
+                     '"racyCheckOk": true }')
     RETURN true
 
 QUERY_TRACK: |
@@ -182,116 +187,38 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 2)
-        SET index (LAST_INDEX_OF data "function(a){a=a.split(\"\")")
-        SET function (JS_EXTRACT data "function(a)" index)
-        SET object (REGEXP_CAP function ";([a-zA-Z0-9$]+)\\." 1)
-        SET object (JS_EXTRACT data (APPEND "var " object '='))
-        SET function (REPLACE function "function(a)" "function b(a)")
-        SET script (APPEND "(function(a){" object ';' function "return b(a);})")
-        SET global (LIST url script)
-        #------------------------------------------------------------------------------------------
-        # Apply signature
-        #------------------------------------------------------------------------------------------
-        SET listMedias (LIST_GET queryData 0)
-        SET listAudios (LIST_GET queryData 1)
-        #SET script (JS_EVALUATE script)
-        #SET i 0
-        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET source (LIST_GET listMedias i)
-            IF (LENGTH source)
-                LIST_APPEND sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
-            FI
-            SET source (LIST_GET listAudios i)
-            IF (LENGTH source)
-                LIST_APPEND sources (LIST (REGEXP_CAP source "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
-            FI
-            SET i (ADD i 1)
-        END
-        SET signatures (JS_CALLS script sources)
-        SET i 0
-        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET source (LIST_GET listMedias i)
-            IF (EQUAL (LENGTH source) 0)
-                SET i (ADD i 1)
-                CONTINUE
-            FI
-            SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
-            HASH_SET medias value source
-            SET source (LIST_GET listAudios i)
-            IF (EQUAL (LENGTH source) 0)
-                SET i (ADD i 1)
-                CONTINUE
-            FI
-            SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                       (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
-            HASH_SET audios value source
-            SET i (ADD i 1)
-        END
-        #------------------------------------------------------------------------------------------
-        SET expiry (ADD (DATE) 60) # Two hours
-    ELIF (EQUAL id 3) # Live
+    IF (EQUAL id 1) # Live
         SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
         FOREACH list value
             SET quality (SLICE_IN value 'x' ',')
             SET source (MID value (INDEX_OF value 'https'))
             HASH_SET medias quality source
         END
-    ELSE # if (id == 0 || id == 1)
+    ELSE
         #------------------------------------------------------------------------------------------
         # Load "formats"
         #------------------------------------------------------------------------------------------
         # NOTE: When the source mode is 'SourceAudio' we skip the video sources.
         IF (NOT_EQUAL mode "audio")
-            IF (EQUAL id 0)
-                SET sources (SLICE_IN data "\"formats\"" ']')
-            ELSE
-                SET sources (URL_DECODE (SLICE_IN data "%22formats%22" "%5D"))
-            FI
-            SET list (SPLIT sources "},{")
+            SET sources (SLICE_IN data '"formats"' ']')
+            SET list (SPLIT sources "},")
             FOREACH list value
                 #----------------------------------------------------------------------------------
                 # Load media
                 #----------------------------------------------------------------------------------
-                SET type (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
+                SET type (MID (SLICE_IN value '"mimeType": "' '"') 6 3)
                 IF  (NOT_EQUAL type "mp4")
                 AND (NOT_EQUAL type "web")
                     CONTINUE
                 FI
-                SET quality (MID (SLICE_IN value "\"quality\":\"" '"') 0 3)
-                IF (EQUAL quality "sma")
-                    SET quality "240"
-                ELIF (EQUAL quality "med")
-                    SET quality "360"
-                ELIF (EQUAL quality "lar")
-                    SET quality "480"
-                ELIF (EQUAL quality "hd7")
-                    SET quality "720"
-                ELIF (EQUAL quality "hd1")
-                    SET quality "1080"
-                ELIF (EQUAL quality "hig")
-                    SET quality "1440"
-                ELSE
+                SET quality (SLICE_IN value '"qualityLabel": "' 'p')
+                IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                     CONTINUE
                 FI
                 #----------------------------------------------------------------------------------
                 # Extract url
                 #----------------------------------------------------------------------------------
-                SET source (SLICE_IN value "\"url\":\"" '"')
-                IF (LENGTH source)
-                    SET source (HTML_TO_UTF8 source)
-                ELSE
-                    SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                    SET source    (SLICE_IN value "url=" '&')
-                    SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                    IF (LENGTH signature)
-                        SET source (URL_DECODE (APPEND source "&s=" signature))
-                    ELSE
-                        SET source (URL_DECODE source)
-                    FI
-                FI
-                #----------------------------------------------------------------------------------
+                SET source (HTML_TO_UTF8 (SLICE_IN value '"url": "' '"'))
                 HASH_SET medias quality source
                 #----------------------------------------------------------------------------------
             END
@@ -299,10 +226,10 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Load "hlsManifestUrl" for a live stream
         #------------------------------------------------------------------------------------------
-        SET source (SLICE_IN data "\"hlsManifestUrl\":\"" '"')
+        SET source (SLICE_IN data '"hlsManifestUrl": "' '"')
         IF (LENGTH source)
             HASH_SET next "url" source
-            HASH_SET next "id" 3
+            HASH_SET next "id" 1
             RETURN
         FI
         #------------------------------------------------------------------------------------------
@@ -310,198 +237,63 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # NOTE: When the source mode is 'SourceSafe' we skip the adaptative sources.
         IF (NOT_EQUAL mode "safe")
-            IF (EQUAL id 0)
-                SET sources (SLICE_IN data "\"adaptiveFormats\"" ']')
-            ELSE
-                SET sources (URL_DECODE (SLICE_IN data "%22adaptiveFormats%22" "%5D"))
-            FI
-            SET list (SPLIT sources "},{")
-            #SET i 0
+            SET sources (SLICE_IN data '"adaptiveFormats"' ']')
+            SET list (SPLIT sources "},")
             FOREACH list value
                 IF (CONTAIN value "+vorbis")
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET audio (SLICE_IN value "\"url\":\"" '"')
-                    IF (LENGTH audio)
-                        SET audio (HTML_TO_UTF8 audio)
-                    ELSE
-                        SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                        SET audio     (SLICE_IN value "url=" '&')
-                        SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                        IF (LENGTH signature)
-                            SET audio (URL_DECODE (APPEND audio "&s=" signature))
-                        ELSE
-                            SET audio (URL_DECODE audio)
-                        FI
-                    FI
+                    SET audio (SLICE_IN value '"url": "' '"')
                     #------------------------------------------------------------------------------
                     LIST_REMOVE_AT list i
-                    BREAK
+                    CONTINUE
                 FI
                 SET i (ADD i 1)
             END
             IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
-                    IF (CONTAIN value "\"mp4a")
+                    IF (CONTAIN value '"mp4a')
                         #--------------------------------------------------------------------------
                         # Extract url
                         #--------------------------------------------------------------------------
-                        SET audio (SLICE_IN value "\"url\":\"" '"')
-                        IF (LENGTH audio)
-                            SET audio (HTML_TO_UTF8 audio)
-                        ELSE
-                            SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                            SET audio     (SLICE_IN value "url=" '&')
-                            SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                            IF (LENGTH signature)
-                                SET audio (URL_DECODE (APPEND audio "&s=" signature))
-                            ELSE
-                                SET audio (URL_DECODE audio)
-                            FI
-                        FI
+                        SET audio (SLICE_IN value '"url": "' '"')
                         #--------------------------------------------------------------------------
                         LIST_REMOVE_AT list i
-                        BREAK
+                        CONTINUE
                     FI
                     SET i (ADD i 1)
                 END
             FI
             # NOTE: When the source mode is 'SourceAudio' we skip the video sources.
             IF (EQUAL mode "audio")
-                HASH_SET medias "480" audio
+                HASH_SET medias "default" audio
             ELSE
                 FOREACH list value
                     #------------------------------------------------------------------------------
                     # Load adaptative
                     #------------------------------------------------------------------------------
-                    SET mime (MID (SLICE_IN value "\"mimeType\":\"" '"') 6 3)
-                    IF (NOT_EQUAL mime "mp4")
+                    SET type (MID (SLICE_IN value '"mimeType": "' '"') 6 3)
+                    IF  (NOT_EQUAL type "mp4")
                         CONTINUE
                     FI
-                    SET quality (SLICE_IN value "\"qualityLabel\":\"" 'p')
+                    SET quality (SLICE_IN value '"height": ' ',')
                     IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                         CONTINUE
                     FI
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET media (SLICE_IN value "\"url\":\"" '"')
-                    IF (LENGTH media)
-                        SET media (HTML_TO_UTF8 media)
-                        # NOTE: When the duration is zero the source is invalid, so we skip it.
-                        IF (NOT_EQUAL (INDEX_OF media "dur=0.000") -1)
-                            CONTINUE
-                        FI
-                    ELSE
-                        SET value (HTML_TO_UTF8 (SLICE_IN value "\"signatureCipher\":\"" '"'))
-                        SET media     (SLICE_IN value "url=" '&')
-                        SET signature (SLICE_IN value (REGEXP "^s=|&s=") '&')
-                        IF (LENGTH signature)
-                            SET media (URL_DECODE (APPEND media "&s=" signature))
-                        ELSE
-                            SET media (URL_DECODE media)
-                        FI
-                    FI
-                    HASH_SET medias quality media
+                    SET source (HTML_TO_UTF8 (SLICE_IN value '"url": "' '"'))
+                    HASH_SET medias quality source
                     HASH_SET audios quality audio
                     #------------------------------------------------------------------------------
                 END
             FI
         FI
-        #------------------------------------------------------------------------------------------
-        # NOTE: When the id is 0 we can extract the jsUrl and use it later if necessary.
-        IF (EQUAL id 0)
-            SET javascript (JSON_EXTRACT_HTML data "jsUrl")
-            IF (NOT_EQUAL javascript "")
-                SET javascript (URL_GENERATE javascript "https://www.youtube.com")
-            FI
-        ELSE
-            SET javascript (LIST_GET global 0)
-        FI
-        # NOTE: This request can be useful to bypass the age lock.
-        IF (EQUAL (COUNT medias) 0)
-            IF (EQUAL id 1)
-                RETURN
-            FI
-            # NOTE: When the JavaScript is not the same we'll have to reload later.
-            IF (NOT_EQUAL (LIST_GET global 0) javascript)
-                SET global (LIST javascript "")
-            FI
-            # FIXME: get_video_info seems to be deprecated.
-            HASH_SET next "url" (APPEND \
-                                 "https://www.youtube.com/get_video_info?video_id=" \
-                                 queryData "&el=embedded&html5=1&c=TVHTML5&cver=6.20180913")
-            HASH_SET next "id" 1
-            HASH_SET next "queryData" queryData
-            RETURN
-        FI
-        #------------------------------------------------------------------------------------------
-        # Checking signature
-        #------------------------------------------------------------------------------------------
-        FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-            SET string (HASH_GET medias value)
-            IF (EQUAL (CONTAIN string "&s=") false)
-                CONTINUE
-            FI
-            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                LIST_APPEND listMedias (HASH_GET medias value)
-                LIST_APPEND listAudios (HASH_GET audios value)
-            END
-            # NOTE: If the JavaScript is not loaded we get it first.
-            IF (NOT_EQUAL (LIST_GET global 0) javascript)
-            OR (EQUAL (LIST_GET global 1) "")
-                HASH_SET next "url" javascript
-                HASH_SET next "id" 2
-                HASH_SET next "queryData" (LIST listMedias listAudios)
-                RETURN
-            FI
-            #--------------------------------------------------------------------------------------
-            # Apply signature
-            #--------------------------------------------------------------------------------------
-            SET script (LIST_GET global 1)
-            SET i 0
-            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                SET source (LIST_GET listMedias i)
-                IF (LENGTH source)
-                    LIST_APPEND sources (LIST (REGEXP_CAP source \
-                                               "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
-                FI
-                SET source (LIST_GET listAudios i)
-                IF (LENGTH source)
-                    LIST_APPEND sources (LIST (REGEXP_CAP source \
-                                               "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)" 1))
-                FI
-                SET i (ADD i 1)
-            END
-            SET signatures (JS_CALLS script sources)
-            SET i 0
-            FOREACH (LIST "144" "240" "360" "480" "720" "1080" "1440" "2160") value
-                SET source (LIST_GET listMedias i)
-                IF (EQUAL (LENGTH source) 0)
-                    SET i (ADD i 1)
-                    CONTINUE
-                FI
-                SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
-                HASH_SET medias value source
-                SET source (LIST_GET listAudios i)
-                IF (EQUAL (LENGTH source) 0)
-                    SET i (ADD i 1)
-                    CONTINUE
-                FI
-                SET source (REPLACE source (REGEXP "&s=([a-zA-Z0-9\\.\\-\\_\\=]+)") \
-                                           (APPEND "&sig=" (LIST_TAKE_AT signatures 0)))
-                HASH_SET audios value source
-                SET i (ADD i 1)
-            END
-            #--------------------------------------------------------------------------------------
-            BREAK
-        END
-        #------------------------------------------------------------------------------------------
-        SET expiry (ADD (DATE) 60) # Two hours
     FI
+    SET expiry (ADD (DATE) 60) # Two hours
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
