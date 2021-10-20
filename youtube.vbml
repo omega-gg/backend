@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.35
+version: 1.0.36
 
 title: Youtube
 
@@ -240,7 +240,7 @@ EXTRACT_SOURCE: |
             SET sources (SLICE_IN data '"adaptiveFormats"' ']')
             SET list (SPLIT sources "approxDurationMs")
             FOREACH list value
-                IF (CONTAIN value "+vorbis")
+                IF (CONTAIN value "opus")
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ EXTRACT_SOURCE: |
             IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
-                    IF (CONTAIN value '"mp4a')
+                    IF (CONTAIN value "mp4a")
                         #--------------------------------------------------------------------------
                         # Extract url
                         #--------------------------------------------------------------------------
@@ -299,6 +299,8 @@ EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     IF (CONTAIN data "\"hlsManifestUrl\":\"")
         SET type "live"
+    ELSE
+        SET type "media"
     FI
     SET index (INDEX_OF data "=\"og:image")
     SET cover (HTML_ATTRIBUTE data "content" index)
