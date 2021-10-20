@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.36
+version: 1.0.37
 
 title: Youtube
 
@@ -218,7 +218,7 @@ EXTRACT_SOURCE: |
                 #----------------------------------------------------------------------------------
                 # Extract url
                 #----------------------------------------------------------------------------------
-                SET source (HTML_TO_UTF8 (SLICE_IN value '"url": "' '"'))
+                SET source (SLICE_IN value '"url": "' '"')
                 HASH_SET medias quality source
                 #----------------------------------------------------------------------------------
             END
@@ -285,7 +285,7 @@ EXTRACT_SOURCE: |
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET source (HTML_TO_UTF8 (SLICE_IN value '"url": "' '"'))
+                    SET source (SLICE_IN value '"url": "' '"')
                     HASH_SET medias quality source
                     HASH_SET audios quality audio
                     #------------------------------------------------------------------------------
