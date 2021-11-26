@@ -90,7 +90,7 @@ QUERY_SOURCE: |
     IF (EQUAL index -1)
         RETURN false
     FI
-    SET url (APPEND "https://www.dailymotion.com/embed/video/" (URL_ELEMENT url index))
+    SET url (APPEND "https://www.dailymotion.com/player/metadata/video/" (URL_ELEMENT url index))
     RETURN true
 
 QUERY_TRACK: |
