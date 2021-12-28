@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.69
+version: 1.0.70
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -40,7 +40,7 @@ backends: |
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
     twitch        Twitch        1.0.4  ^twitch.tv
     soundcloud    SoundCloud    1.0.6  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
-    tmdb          TMDb          1.0.6  ^themoviedb.org
+    tmdb          TMDb          1.0.7  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
 

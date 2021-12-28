@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.6
+version: 1.0.7
 
 search: coverVideo
 
@@ -328,7 +328,7 @@ EXTRACT_TRACK: |
             #--------------------------------------------------------------------------------------
             # Match
             #--------------------------------------------------------------------------------------
-            SET from 0
+            SET from -1
             IF (NOT_EQUAL (COUNT listB) 1)
             OR (EQUAL (COUNT listA) 1)
                 SET from 0
