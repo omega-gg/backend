@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.15
+version: 1.0.16
 
 title: BitTorrent
 
@@ -103,7 +103,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
             SET id 3
             SET header true
         ELIF (EQUAL label "all")
@@ -115,7 +115,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
             SET id 1
             SET header true
         ELIF (EQUAL label "torrents")
@@ -127,7 +127,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
             SET id 1
             SET queryData 1
             SET header true
@@ -140,7 +140,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
             SET id 1
             SET queryData 2
             SET header true

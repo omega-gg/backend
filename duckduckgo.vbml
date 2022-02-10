@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 search: tracks
 
@@ -36,13 +36,13 @@ CREATE_QUERY: |
             SET q (SIMPLIFY q)
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
         ELIF (EQUAL label "tracks")
         OR (EQUAL label "playlists")
             SET url "https://html.duckduckgo.com/html"
             URL_ADD_QUERY url "q" (SIMPLIFY q)
             URL_ADD_QUERY url "kl" "us-en"
-            URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-2"
             SET id 1
         FI
     FI
