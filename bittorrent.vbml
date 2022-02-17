@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.16
+version: 1.0.17
 
 title: BitTorrent
 
@@ -210,22 +210,28 @@ EXTRACT_PLAYLIST: |
                 CONTINUE
             FI
             LIST_APPEND urls source
+            HASH_SET queryUrl "backend" "bittorrent"
+            HASH_SET queryUrl "url" source
+            HASH_SET queryUrl "id" 6
+            HASH_SET queryUrl "skipError" true
+            HASH_SET queryUrl "timeout" 10000
+            LIST_APPEND next queryUrl
         END
         # NOTE: We load trackers before searching torrents.
-        IF (EQUAL global "")
-            HASH_SET next "backend" "bittorrent"
-            HASH_SET next "url" "https://ngosang.github.io/trackerslist/trackers_best.txt"
-            HASH_SET next "id" 4
-            HASH_SET next "queryData" (LIST queryData urls)
-            HASH_SET next "skipError" true
-        ELSE
-            HASH_SET next "backend" "bittorrent"
-            HASH_SET next "url" (APPEND "https://torrent-paradise.ml/api/search?q=" queryData)
-            HASH_SET next "id" 5
-            HASH_SET next "queryData" urls
-            HASH_SET next "skipError" true
-            HASH_SET next "timeout" 10000
-        FI
+        #IF (EQUAL global "")
+        #    HASH_SET next "backend" "bittorrent"
+        #    HASH_SET next "url" "https://ngosang.github.io/trackerslist/trackers_best.txt"
+        #    HASH_SET next "id" 4
+        #    HASH_SET next "queryData" (LIST queryData urls)
+        #    HASH_SET next "skipError" true
+        #ELSE
+        #    HASH_SET next "backend" "bittorrent"
+        #    HASH_SET next "url" (APPEND "https://torrent-paradise.ml/api/search?q=" queryData)
+        #    HASH_SET next "id" 5
+        #    HASH_SET next "queryData" urls
+        #    HASH_SET next "skipError" true
+        #    HASH_SET next "timeout" 10000
+        #FI
     ELIF (EQUAL id 4) # Extract Trackers
         SET data (SIMPLIFY data)
         SET list (SPLIT data ' ')
