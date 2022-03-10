@@ -6,7 +6,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.17
+version: 1.0.18
 
 title: BitTorrent
 
@@ -210,79 +210,60 @@ EXTRACT_PLAYLIST: |
                 CONTINUE
             FI
             LIST_APPEND urls source
-            HASH_SET queryUrl "backend" "bittorrent"
-            HASH_SET queryUrl "url" source
-            HASH_SET queryUrl "id" 6
-            HASH_SET queryUrl "skipError" true
-            HASH_SET queryUrl "timeout" 10000
-            LIST_APPEND next queryUrl
         END
-        # NOTE: We load trackers before searching torrents.
-        #IF (EQUAL global "")
-        #    HASH_SET next "backend" "bittorrent"
-        #    HASH_SET next "url" "https://ngosang.github.io/trackerslist/trackers_best.txt"
-        #    HASH_SET next "id" 4
-        #    HASH_SET next "queryData" (LIST queryData urls)
-        #    HASH_SET next "skipError" true
-        #ELSE
-        #    HASH_SET next "backend" "bittorrent"
-        #    HASH_SET next "url" (APPEND "https://torrent-paradise.ml/api/search?q=" queryData)
-        #    HASH_SET next "id" 5
-        #    HASH_SET next "queryData" urls
-        #    HASH_SET next "skipError" true
-        #    HASH_SET next "timeout" 10000
-        #FI
-    ELIF (EQUAL id 4) # Extract Trackers
-        SET data (SIMPLIFY data)
-        SET list (SPLIT data ' ')
-        FOREACH list string
-            SET global (APPEND global &tr= (URL_ENCODE string))
-        END
-        # NOTE: If we have no trackers we set default ones.
-        IF (EQUAL global "")
-            SET global (APPEND "&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce" \
-                               "&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce" \
-                               "&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce")
-        FI
         HASH_SET next "backend" "bittorrent"
-        HASH_SET next "url" (APPEND "https://torrent-paradise.ml/api/search?q=" \
-                             (LIST_TAKE_AT queryData 0))
+        HASH_SET next "url" "https://snowfl.com"
+        HASH_SET next "id" 4
+        HASH_SET next "queryData" (LIST queryData urls)
+        HASH_SET next "skipError" true
+    ELIF (EQUAL id 4) # Extract script
+        SET index (INDEX_OF data "src=\"b.min")
+        SET source (SLICE_IN data '"' '"' index)
+        HASH_SET next "backend" "bittorrent"
+        HASH_SET next "url" (APPEND "https://snowfl.com/" source)
         HASH_SET next "id" 5
+        HASH_SET next "queryData" queryData
+        HASH_SET next "skipError" true
+    ELIF (EQUAL id 5) # Parse script
+        SET index (INDEX_OF data "]}};var")
+        SET url (APPEND "https://snowfl.com/" (SLICE_IN data '"' '"' index) '/')
+        HASH_SET next "backend" "bittorrent"
+        # NOTE: Maybe we should generate a random string instead of 'abcdefgh'.
+        HASH_SET next "url" (APPEND url (LIST_TAKE_AT queryData 0) "/abcdefgh/0/NONE/NONE/1")
+        HASH_SET next "id" 6
         HASH_SET next "queryData" (LIST_TAKE_AT queryData 0)
         HASH_SET next "skipError" true
         HASH_SET next "timeout" 10000
-    ELIF (EQUAL id 5) # Extract Torrents
+    ELIF (EQUAL id 6) # Extract Torrents
         SET list (JSON_SPLIT data)
         FOREACH list data
-            SET seed (JSON_EXTRACT data 's')
-            SET leech (JSON_EXTRACT data 'l')
-            IF (LESSER seed 4)
-            AND (LESSER leech 4)
+            IF (LESSER (JSON_EXTRACT data "seeder") 4)
+            AND (LESSER (JSON_EXTRACT data "leecher") 4)
                 CONTINUE
             FI
-            SET id (JSON_EXTRACT data "id")
-            SET text (URL_ENCODE (JSON_EXTRACT data "text"))
-            SET source (APPEND "magnet:?xt=urn:btih:" id "&dn=" text global)
-            LIST_APPEND sources source
+            SET source (JSON_EXTRACT_UTF8 data "magnet")
+            IF (EQUAL source "")
+                CONTINUE
+            FI
             SET index (ADD index 1)
             IF (EQUAL index 10)
                 BREAK
             FI
             HASH_SET query "type" "torrent"
             HASH_SET query "url" source
-            HASH_SET query "id" 7
+            HASH_SET query "id" 8
             HASH_SET query "timeout" 120000 # 2 minutes
             LIST_APPEND next query
         END
         FOREACH queryData source
             HASH_SET queryUrl "backend" "bittorrent"
             HASH_SET queryUrl "url" source
-            HASH_SET queryUrl "id" 6
+            HASH_SET queryUrl "id" 7
             HASH_SET queryUrl "skipError" true
             HASH_SET queryUrl "timeout" 10000
             LIST_APPEND next queryUrl
         END
-    ELIF (EQUAL id 6) # Extract sources
+    ELIF (EQUAL id 7) # Extract sources
         SET data (HTML_EXTRACT data url (LIST "http" "|.torrent" "magnet:?"))
         SET list (HASH_GET data "sources")
         FOREACH list data
@@ -316,11 +297,11 @@ EXTRACT_PLAYLIST: |
                 HASH_SET query "timeout" 10000
             FI
             HASH_SET query "url" source
-            HASH_SET query "id" 7
+            HASH_SET query "id" 8
             HASH_SET query "skipError" true
             LIST_APPEND next query
         END
-    ELIF (EQUAL id 7) # Extract torrent
+    ELIF (EQUAL id 8) # Extract torrent
         IF (LENGTH data)
             SET cache data
             SET data (READ data "ascii")
