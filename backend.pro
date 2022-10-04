@@ -9,3 +9,4 @@ OTHER_FILES += index.vbml \
                tmdb.vbml \
                lastfm.vbml \
                opensubtitles.vbml \
+               dist/generateLite.sh \

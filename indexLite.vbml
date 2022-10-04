@@ -1,0 +1,54 @@
+# VBML 1.0.0
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: index
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
+
+api: 1.0.0
+
+version: 1.0.74
+
+#--------------------------------------------------------------------------------------------------
+# Backends
+#--------------------------------------------------------------------------------------------------
+
+backend_search: |
+    duckduckgo
+
+backend_track: |
+    duckduckgo
+    youtube
+    dailymotion
+    vimeo
+    soundcloud
+
+backend_cover: |
+    tmdb
+    lastfm
+
+backend_subtitle: |
+    opensubtitles
+
+#--------------------------------------------------------------------------------------------------
+
+backends: |
+    duckduckgo    DuckDuckGo    1.0.7  ^html.duckduckgo.com
+    youtube       Youtube       1.0.38 ^youtube.com|^youtu.be
+    dailymotion   Dailymotion   1.0.2  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
+    twitch        Twitch        1.0.4  ^twitch.tv
+    soundcloud    SoundCloud    1.0.6  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
+    tmdb          TMDb          1.0.7  ^themoviedb.org
+    lastfm        Last.fm       1.0.0  ^last.fm
+    opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
+
+covers: |
+    duckduckgo  cover/duckduckgo.png
+    youtube     cover/youtube.png
+    dailymotion cover/dailymotion.png
+    vimeo       cover/vimeo.png
+    twitch      cover/twitch.png
+    soundcloud  cover/soundcloud.png
