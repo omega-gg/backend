@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.6
+version: 1.0.7
 
 title: SoundCloud
 
@@ -215,7 +215,7 @@ EXTRACT_TRACK: |
     FI
     SET cover (REPLACE cover "-large." "-t500x500.")
     SET author (JSON_EXTRACT string "user")
-    SET feed (JSON_EXTRACT author "permalink")
+    SET feed (APPEND "https://soundcloud.com/" (JSON_EXTRACT author "permalink"))
     SET author (JSON_EXTRACT_UTF8 author "username")
     SET duration (JSON_EXTRACT string "duration")
     SET date (JSON_EXTRACT string "created_at")
@@ -273,8 +273,8 @@ EXTRACT_PLAYLIST: |
          FOREACH (JSON_SPLIT data) data
              SET source (JSON_EXTRACT data "permalink")
              SET user (JSON_EXTRACT data "user")
-             SET feed (JSON_EXTRACT user "permalink")
-             HASH_SET track "source" (APPEND "https://soundcloud.com/" feed '/' source)
+             SET feed (APPEND "https://soundcloud.com/" (JSON_EXTRACT user "permalink"))
+             HASH_SET track "source" (APPEND feed '/' source)
              HASH_SET track "title" (JSON_EXTRACT_UTF8 data "title")
              SET cover (JSON_EXTRACT data "artwork_url")
              IF (EQUAL cover "null")
