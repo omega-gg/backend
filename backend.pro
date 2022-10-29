@@ -1,4 +1,5 @@
 OTHER_FILES += index.vbml \
+               indexLite.vbml \
                duckduckgo.vbml \
                bittorrent.vbml \
                youtube.vbml \

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.38
+version: 1.0.39
 
 title: Youtube
 
@@ -336,7 +336,8 @@ EXTRACT_PLAYLIST: |
         ELSE
             SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "content_html"))
         FI
-        SET list (SLICES data "\"gridVideoRenderer\"" "}}}")
+        # NOTE: It can either be 'gridVideoRenderer' or 'videoRenderer'.
+        SET list (SLICES data "ideoRenderer\"" "}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "videoId")
             HASH_SET track "state" "default"
