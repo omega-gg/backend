@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.39
+version: 1.0.40
 
 title: Youtube
 
@@ -278,7 +278,7 @@ EXTRACT_SOURCE: |
                     # Load adaptative
                     #------------------------------------------------------------------------------
                     SET type (MID (SLICE_IN value '"mimeType": "' '"') 6 3)
-                    IF  (NOT_EQUAL type "mp4")
+                    IF (NOT_EQUAL type "mp4")
                         CONTINUE
                     FI
                     SET quality (SLICE_IN value '"qualityLabel": "' 'p')
@@ -289,6 +289,10 @@ EXTRACT_SOURCE: |
                     # Extract url
                     #------------------------------------------------------------------------------
                     SET source (SLICE_IN value '"url": "' '"')
+                    # NOTE: We skip the source when it has an invalid duration.
+                    IF (CONTAIN source "&dur=0")
+                        CONTINUE
+                    FI
                     HASH_SET medias quality source
                     HASH_SET audios quality audio
                     #------------------------------------------------------------------------------

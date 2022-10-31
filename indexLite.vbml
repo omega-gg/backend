@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.76
+version: 1.0.77
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -36,7 +36,7 @@ backend_subtitle: |
 
 backends: |
     duckduckgo    DuckDuckGo    1.0.7  ^html.duckduckgo.com
-    youtube       Youtube       1.0.39 ^youtube.com|^youtu.be
+    youtube       Youtube       1.0.40 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.2  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
     twitch        Twitch        1.0.4  ^twitch.tv
