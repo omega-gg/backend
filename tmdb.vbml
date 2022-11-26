@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.7
+version: 1.0.8
 
 search: coverVideo
 
@@ -174,7 +174,7 @@ CREATE_QUERY: |
                 SET list show season episode
                 SET url "https://www.themoviedb.org/search/tv"
                 URL_ADD_QUERY url "query" show
-                URL_ADD_QUERY url "language" en
+                URL_ADD_QUERY url "language" "en"
                 SET id 3
                 SET header true
             FI
@@ -230,7 +230,9 @@ EXTRACT_TRACK: |
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 3) # Show
-        SET list (SLICES data "<div class=\"poster\">" "</a>")
+        # NOTE: Skip the movie results.
+        SET index (INDEX_OF data "<div class=\"search_results tv")
+        SET list (SLICES data "<div class=\"poster\">" "</a>" index)
         IF (EQUAL (COUNT list) 0)
             RETURN
         FI
