@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.40
+version: 1.0.41
 
 title: Youtube
 
@@ -100,10 +100,10 @@ QUERY_SOURCE: |
     ELSE
         RETURN false
     FI
-    SET url "https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
+    SET url "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
     SET header '"Content-Type" "application/json"'
     SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", '                \
-                     '"clientVersion": "16.20", "hl": "en" }}, "videoId": "' id '", '      \
+                     '"clientVersion": "17.31.35", "hl": "en" }}, "videoId": "' id '", '   \
                      '"playbackContext": { "contentPlaybackContext": { '                   \
                      '"html5Preference": "HTML5_PREF_WANTS" } }, "contentCheckOk": true, ' \
                      '"racyCheckOk": true }')
