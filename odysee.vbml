@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.0
 
-version: 1.0.0
+version: 1.0.1
 
 title: Odysee
 
@@ -49,8 +49,8 @@ QUERY_SOURCE: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    SET id (JSON_EXTRACT_UTF8 data "claim_id")
+    SET id (JSON_EXTRACT data "claim_id")
     SET name (JSON_EXTRACT_UTF8 data "normalized_name")
-    SET hash (MID (JSON_EXTRACT_UTF8 data "sd_hash") 0 6)
+    SET hash (MID (JSON_EXTRACT data "sd_hash") 0 6)
     SET source (APPEND "https://player.odycdn.com/api/v4/streams/free/" name "/" id "/" hash)
-    HASH_SET medias (JSON_EXTRACT_UTF8 data "height") source
+    HASH_SET medias (JSON_EXTRACT data "height") source
