@@ -5,6 +5,7 @@ OTHER_FILES += index.vbml \
                youtube.vbml \
                dailymotion.vbml \
                vimeo.vbml \
+               odysee.vbml \
                twitch.vbml \
                soundcloud.vbml \
                tmdb.vbml \

@@ -1,0 +1,56 @@
+# VBML 1.0.3
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
+
+api: 1.0.0
+
+version: 1.0.0
+
+title: Odysee
+
+host: odysee.com
+
+cover: cover/odysee.png
+
+validate: ^odysee.com
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "odysee.com/") false)
+    OR (GREATER (COUNT_STRING url '/') 2)
+        RETURN ""
+    FI
+    RETURN (MID url (LAST_INDEX_END url '/'))
+
+URL_TRACK: |
+    RETURN (APPEND "https://odysee.com/" id)
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "odysee.com/") false)
+    OR (GREATER (COUNT_STRING url '/') 2)
+        RETURN false
+    FI
+    SET id (MID url (LAST_INDEX_END url '/'))
+    SET id (REPLACE id ':' '#')
+    SET url "https://api.na-backend.odysee.com/api/v1/proxy"
+    SET header '"Content-Type" "application/json"'
+    SET body (APPEND '{ "method": "resolve", "params" : { "urls": ["lbry://' id '"]}}')
+    RETURN true
+
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    SET id (JSON_EXTRACT_UTF8 data "claim_id")
+    SET name (JSON_EXTRACT_UTF8 data "normalized_name")
+    SET hash (MID (JSON_EXTRACT_UTF8 data "sd_hash") 0 6)
+    SET source (APPEND "https://player.odycdn.com/api/v4/streams/free/" name "/" id "/" hash)
+    HASH_SET medias (JSON_EXTRACT_UTF8 data "height") source

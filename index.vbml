@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.79
+version: 1.0.80
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -41,6 +41,7 @@ backends: |
     youtube       Youtube       1.0.41 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.2  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
+    odysee        Odysee        1.0.0  ^odysee.com
     twitch        Twitch        1.0.4  ^twitch.tv
     soundcloud    SoundCloud    1.0.7  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
     tmdb          TMDb          1.0.8  ^themoviedb.org
@@ -53,5 +54,6 @@ covers: |
     youtube     cover/youtube.png
     dailymotion cover/dailymotion.png
     vimeo       cover/vimeo.png
+    odysee      cover/odysee.png
     twitch      cover/twitch.png
     soundcloud  cover/soundcloud.png
