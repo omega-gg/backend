@@ -44,7 +44,7 @@ QUERY_SOURCE: |
     SET id (REPLACE id ':' '#')
     SET url "https://api.na-backend.odysee.com/api/v1/proxy"
     SET header '"Content-Type" "application/json"'
-    SET body (APPEND '{ "method": "resolve", "params" : { "urls": ["lbry://' id '"]}}')
+    SET body (APPEND '{ "method": "resolve", "params": { "urls": [ "lbry://' id '" ] }}')
     RETURN true
 
 EXTRACT_SOURCE: |
