@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.81
+version: 1.0.82
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -39,7 +39,7 @@ backends: |
     youtube       Youtube       1.0.41 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.2  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
-    odysee        Odysee        1.0.1  ^odysee.com
+    odysee        Odysee        1.0.2  ^odysee.com
     twitch        Twitch        1.0.4  ^twitch.tv
     soundcloud    SoundCloud    1.0.7  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
     tmdb          TMDb          1.0.8  ^themoviedb.org

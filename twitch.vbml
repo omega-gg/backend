@@ -107,6 +107,45 @@ QUERY_SOURCE: |
 #        FI
 #    FI
 
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 2)
+        IF (EQUAL mode "audio")
+            SET index (INDEX_OF data "VIDEO=\"audio_only\"")
+            SET source (MID data (INDEX_OF data 'https' index))
+            HASH_SET medias "default" source
+        ELSE
+            SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
+            FOREACH list value
+                SET quality (SLICE_IN value 'x' ',')
+                # NOTE: We consider 160p to be 240p.
+                IF (EQUAL quality "160")
+                    SET quality "240"
+                FI
+                SET source (MID value (INDEX_OF value 'https'))
+                HASH_SET medias quality source
+            END
+        FI
+    ELSE
+        SET value (URL_ENCODE (JSON_EXTRACT_UTF8 data "value"))
+        SET signature (URL_ENCODE (JSON_EXTRACT_UTF8 data "signature"))
+        IF (EQUAL id 0)
+            SET url (APPEND "https://usher.ttvnw.net/api/channel/hls/" queryData ".m3u8?" \
+                             "token=" value "&sig=" signature)
+        ELSE
+            SET url (APPEND "https://usher.ttvnw.net/vod/" queryData ".m3u8?" \
+                            "nauth=" value "&nauthsig=" signature )
+        FI
+        IF (EQUAL mode "audio")
+            SET url (APPEND url "&allow_audio_only=true")
+        ELSE
+            SET url (APPEND url "&allow_source=true")
+        FI
+        HASH_SET next "url" url
+        HASH_SET next "id" 2
+        RETURN
+    FI
+
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     #IF (EQUAL (CONTAIN data "content=\"video.other\"") false)
@@ -153,43 +192,4 @@ EXTRACT_TRACK: |
         SET cover (APPEND "https://static-cdn.jtvnw.net/previews-ttv/live_user_" queryData \
                           "-1920x1080.jpg")
         SET author name
-    FI
-
-EXTRACT_SOURCE: |
-    SET data (READ data "utf-8")
-    IF (EQUAL id 2)
-        IF (EQUAL mode "audio")
-            SET index (INDEX_OF data "VIDEO=\"audio_only\"")
-            SET source (MID data (INDEX_OF data 'https' index))
-            HASH_SET medias "default" source
-        ELSE
-            SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
-            FOREACH list value
-                SET quality (SLICE_IN value 'x' ',')
-                # NOTE: We consider 160p to be 240p.
-                IF (EQUAL quality "160")
-                    SET quality "240"
-                FI
-                SET source (MID value (INDEX_OF value 'https'))
-                HASH_SET medias quality source
-            END
-        FI
-    ELSE
-        SET value (URL_ENCODE (JSON_EXTRACT_UTF8 data "value"))
-        SET signature (URL_ENCODE (JSON_EXTRACT_UTF8 data "signature"))
-        IF (EQUAL id 0)
-            SET url (APPEND "https://usher.ttvnw.net/api/channel/hls/" queryData ".m3u8?" \
-                             "token=" value "&sig=" signature)
-        ELSE
-            SET url (APPEND "https://usher.ttvnw.net/vod/" queryData ".m3u8?" \
-                            "nauth=" value "&nauthsig=" signature )
-        FI
-        IF (EQUAL mode "audio")
-            SET url (APPEND url "&allow_audio_only=true")
-        ELSE
-            SET url (APPEND url "&allow_source=true")
-        FI
-        HASH_SET next "url" url
-        HASH_SET next "id" 2
-        RETURN
     FI

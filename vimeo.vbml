@@ -34,7 +34,7 @@ validate: ^vimeo.com|^player.vimeo.com
 #--------------------------------------------------------------------------------------------------
 
 TRACK_ID: |
-    SET id (LAST_INDEX_END url "/")
+    SET id (LAST_INDEX_END url '/')
     IF (EQUAL id -1)
         RETURN ""
     FI
@@ -71,7 +71,7 @@ URL_PLAYLIST: |
     RETURN (APPEND "https://vimeo.com/" id)
 
 QUERY_SOURCE: |
-    SET id (LAST_INDEX_END url "/")
+    SET id (LAST_INDEX_END url '/')
     IF (EQUAL id -1)
         RETURN false
     FI
@@ -85,7 +85,7 @@ QUERY_SOURCE: |
     RETURN true
 
 QUERY_TRACK: |
-    SET id (LAST_INDEX_END url "/")
+    SET id (LAST_INDEX_END url '/')
     IF (EQUAL id -1)
         RETURN false
     FI
