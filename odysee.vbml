@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.0
 
-version: 1.0.2
+version: 1.0.3
 
 title: Odysee
 
@@ -29,7 +29,7 @@ TRACK_ID: |
     OR (GREATER (COUNT_STRING url '/') 2)
         RETURN ""
     FI
-    SET url (MID url (LAST_INDEX_END url '/'))
+    SET url (MID url (INDEX_END url '/'))
     IF (CONTAIN url ':')
         RETURN url
     ELSE
@@ -48,7 +48,7 @@ QUERY_SOURCE: |
     OR (GREATER (COUNT_STRING url '/') 2)
         RETURN false
     FI
-    SET id (MID url (LAST_INDEX_END url '/'))
+    SET id (MID url (INDEX_END url '/'))
     SET url "https://api.na-backend.odysee.com/api/v1/proxy"
     SET header '"Content-Type" "application/json"'
     SET body (APPEND '{ "method": "resolve", \
