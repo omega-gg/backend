@@ -17,7 +17,12 @@ host: twitch.tv
 
 cover: cover/twitch.png
 
-validate: ^twitch.tv
+items:
+    playlist:
+        title: Channels
+        label: tracks
+
+validate: ^twitch.tv|^gql.twitch.tv
 
 #--------------------------------------------------------------------------------------------------
 # Routines
@@ -97,15 +102,32 @@ QUERY_SOURCE: |
     SET queryData (LOWER stream)
     RETURN true
 
-# FIXME: This should be implemented later
-#CREATE_QUERY: |
-#    IF (EQUAL method "search")
-#        IF (EQUAL label "channels")
-#            SET url "https://www.twitch.tv/search"
-#            URL_ADD_QUERY url "term" q
-#            URL_ADD_QUERY url "type" "channels"
-#        FI
-#    FI
+CREATE_QUERY: |
+    IF (EQUAL method "search")
+        IF (EQUAL label "tracks")
+            SET url "https://gql.twitch.tv/gql"
+            SET header (APPEND '"Content-Type" "application/json"' \
+                               '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+            SET body (APPEND '{ "query": "query SearchContent_ChannelRefetchQuery($userQuery: ' \
+                             'String! $platform: String! $noQuery: Boolean! $target: ' \
+                             'SearchForTarget) { searchFor(userQuery: $userQuery, platform: ' \
+                             '$platform, target: $target)' \
+                             '@skip(if: $noQuery) { channels { cursor items { id __typename ' \
+                             '...SearchChannelCard_channel }}}}' \
+                             'fragment SearchChannelCard_channel on User { id __typename login ' \
+                             '...SearchOfflineChannel_channel stream { id __typename ' \
+                             '...SearchStreamCard_stream } roles { isPartner }}' \
+                             'fragment SearchOfflineChannel_channel on User { displayName ' \
+                             'followers { totalCount } lastBroadcast { startedAt id __typename } ' \
+                             'login profileImageURL(width: 600) } ' \
+                             'fragment SearchStreamCard_stream on Stream { broadcaster ' \
+                             '{ displayName login broadcastSettings { title id __typename } id ' \
+                             '__typename } game { displayName name id __typename } id ' \
+                             '__typename previewImageURL viewersCount }", ' \
+                             '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
+                             '"noQuery": false, "target": { "index": "CHANNEL", "limit": 30 }}}')
+        FI
+    FI
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -193,3 +215,14 @@ EXTRACT_TRACK: |
                           "-1920x1080.jpg")
         SET author name
     FI
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    SET data (JSON_EXTRACT data "items")
+    FOREACH (JSON_SPLIT data) data
+        SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
+        HASH_SET track "source" source
+        HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
+        HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
+        LIST_APPEND tracks track
+    END
