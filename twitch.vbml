@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.5
+version: 1.0.6
 
 title: Twitch
 
@@ -21,6 +21,8 @@ items:
     playlist:
         title: Channels
         label: tracks
+    playlist:
+        title: Videos
 
 validate: ^twitch.tv|^gql.twitch.tv
 
@@ -54,7 +56,7 @@ QUERY_TRACK: |
         SET url (APPEND "https://www.twitch.tv/videos/" (URL_ELEMENT url 17))
         SET id 1
         # NOTE: We need to wait 1 second before reloading the page.
-        SET delay 1000
+        #SET delay 1000
         RETURN true
     FI
     IF (NOT_EQUAL (COUNT_STRING url '/') 1)
@@ -126,6 +128,23 @@ CREATE_QUERY: |
                              '__typename previewImageURL viewersCount }", ' \
                              '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
                              '"noQuery": false, "target": { "index": "CHANNEL", "limit": 30 }}}')
+        ELIF (EQUAL label "videos")
+            SET url "https://gql.twitch.tv/gql"
+            SET header (APPEND '"Content-Type" "application/json"' \
+                               '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+            SET body (APPEND '{ "query": "query SearchContent_VideoRefetchQuery($userQuery: ' \
+                             'String! $platform: String! $noQuery: Boolean! $target: ' \
+                             'SearchForTarget) { searchFor(userQuery: $userQuery, platform: ' \
+                             '$platform, target: $target)' \
+                             '@skip(if: $noQuery) { videos { cursor items { id  __typename  ' \
+                             '...SearchVideoCard_video }}}}' \
+                             'fragment SearchVideoCard_video on Video { publishedAt owner { id ' \
+                             '__typename displayName login roles { isPartner }} id  __typename ' \
+                             'game { id __typename name displayName } lengthSeconds ' \
+                             'previewThumbnailURL title viewCount }", ' \
+                             '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
+                             '"noQuery": false,"target": { "index": "VOD", "limit": 30 }}}')
+            SET id 1
         FI
     FI
 
@@ -218,11 +237,25 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    SET data (JSON_EXTRACT data "items")
-    FOREACH (JSON_SPLIT data) data
-        SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
-        HASH_SET track "source" source
-        HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
-        HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
-        LIST_APPEND tracks track
-    END
+    IF (EQUAL id 1) # Videos
+        SET data (JSON_EXTRACT data "items")
+        FOREACH (JSON_SPLIT data) data
+            SET source (APPEND "https://www.twitch.tv/videos/" (JSON_EXTRACT data "id"))
+            SET cover (JSON_EXTRACT data "previewThumbnailURL")
+            SET cover (REPLACE cover "{width}" "1920")
+            SET cover (REPLACE cover "{height}" "1080")
+            HASH_SET track "source" source
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "title")
+            HASH_SET track "cover" cover
+            LIST_APPEND tracks track
+        END
+    ELSE # Channels
+        SET data (JSON_EXTRACT data "items")
+        FOREACH (JSON_SPLIT data) data
+            SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
+            HASH_SET track "source" source
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
+            HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
+            LIST_APPEND tracks track
+        END
+    FI
