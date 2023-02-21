@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 title: Twitch
 
@@ -127,7 +127,7 @@ CREATE_QUERY: |
                              '__typename } game { displayName name id __typename } id ' \
                              '__typename previewImageURL viewersCount }", ' \
                              '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
-                             '"noQuery": false, "target": { "index": "CHANNEL", "limit": 30 }}}')
+                             '"noQuery": false, "target": { "index": "CHANNEL", "limit": 40 }}}')
         ELIF (EQUAL label "videos")
             SET url "https://gql.twitch.tv/gql"
             SET header (APPEND '"Content-Type" "application/json"' \
@@ -143,7 +143,7 @@ CREATE_QUERY: |
                              'game { id __typename name displayName } lengthSeconds ' \
                              'previewThumbnailURL title viewCount }", ' \
                              '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
-                             '"noQuery": false,"target": { "index": "VOD", "limit": 30 }}}')
+                             '"noQuery": false,"target": { "index": "VOD", "limit": 40 }}}')
             SET id 1
         FI
     FI
