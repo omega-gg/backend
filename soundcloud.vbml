@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.7
+version: 1.0.8
 
 title: SoundCloud
 
@@ -25,7 +25,7 @@ items:
     folder:
         title: Playlists
 
-validate: ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
+validate: ^soundcloud.com
 
 #--------------------------------------------------------------------------------------------------
 # Routines
@@ -130,6 +130,7 @@ CREATE_QUERY: |
                 SET id -1
                 SET queryData source 0
             ELSE
+                SET backend "soundcloud"
                 SET url (URL_ADD_QUERY source "client_id" id)
                 SET queryData global
             FI
@@ -140,6 +141,7 @@ CREATE_QUERY: |
                 SET id -1
                 SET queryData source 0
             ELSE
+                SET backend "soundcloud"
                 SET url (URL_ADD_QUERY source "client_id" id)
                 SET queryData global
             FI
@@ -151,6 +153,7 @@ CREATE_QUERY: |
                 SET id -1
                 SET queryData source 1
             ELSE
+                SET backend "soundcloud"
                 SET url (URL_ADD_QUERY source "client_id" id)
                 SET id 1
                 SET queryData global
@@ -174,6 +177,7 @@ EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         HASH_SET next "id" -2
         HASH_SET next "queryData" queryData
@@ -184,6 +188,7 @@ EXTRACT_SOURCE: |
         IF (START_WITH string "https://api")
             URL_ADD_QUERY string "client_id" id
         FI
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" string
         HASH_SET next "id" (LIST_GET queryData 1)
         HASH_SET next "queryData" id
@@ -192,12 +197,14 @@ EXTRACT_SOURCE: |
         SET index (INDEX_END data "hydratable\":\"sound\"")
         SET string (JSON_EXTRACT data "data" index)
         SET id (JSON_EXTRACT_UTF8 string "id")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (APPEND "https://api-v2.soundcloud.com/tracks/" id \
                                     "?client_id=" queryData)
         HASH_SET next "id" 1
         HASH_SET next "queryData" queryData
     ELIF (EQUAL id 1)
         SET url (REPLACE (JSON_EXTRACT data "url") "hls" "progressive")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (APPEND url "?client_id=" queryData)
         HASH_SET next "id" 2
     ELSE
@@ -230,6 +237,7 @@ EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         HASH_SET next "id" -2
         HASH_SET next "queryData" queryData
@@ -240,6 +248,7 @@ EXTRACT_PLAYLIST: |
         IF (START_WITH string "https://api")
             URL_ADD_QUERY string "client_id" id
         FI
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" string
         HASH_SET next "id" (LIST_GET queryData 1)
         HASH_SET next "queryData" id
@@ -261,11 +270,13 @@ EXTRACT_PLAYLIST: |
         SET title (JSON_EXTRACT_UTF8 string "username")
         SET cover (JSON_EXTRACT_UTF8 string "avatar_url")
         SET cover (REPLACE cover "-large." "-t500x500.")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (APPEND source "/tracks?limit=50&client_id=" queryData)
     ELIF (EQUAL id 3) # related
         SET index (INDEX_END data "hydratable\":\"sound\"")
         SET string (JSON_EXTRACT data "data" index)
         SET id (JSON_EXTRACT_UTF8 string "id")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (APPEND "https://api-v2.soundcloud.com/tracks/" id \
                                     "/related?limit=50&client_id=" queryData)
      ELSE
@@ -299,6 +310,7 @@ EXTRACT_FOLDER: |
     SET data (READ data "utf-8")
     IF (EQUAL id -1)
         SET index (LAST_INDEX_OF data "<script crossorigin src=")
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" (HTML_ATTRIBUTE_AT data (ADD index 25))
         HASH_SET next "id" -2
         HASH_SET next "queryData" queryData
@@ -309,6 +321,7 @@ EXTRACT_FOLDER: |
         IF (START_WITH string "https://api")
             URL_ADD_QUERY string "client_id" id
         FI
+        HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" string
         HASH_SET next "id" (LIST_GET queryData 1)
         HASH_SET next "queryData" id

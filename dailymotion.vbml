@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vb
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 title: Dailymotion
 
@@ -25,7 +25,7 @@ items:
     folder:
         title: Playlists
 
-validate: ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
+validate: ^dailymotion.com|^games.dailymotion.com
 
 #--------------------------------------------------------------------------------------------------
 # Routines
@@ -108,6 +108,7 @@ QUERY_TRACK: |
     IF (EQUAL index -1)
         RETURN false
     FI
+    SET backend "dailymotion"
     SET url (APPEND "https://api.dailymotion.com/video/" (URL_ELEMENT url index))
     URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
     RETURN true
@@ -133,6 +134,7 @@ QUERY_PLAYLIST: |
             RETURN false
         FI
     FI
+    SET backend "dailymotion"
     IF (START_WITH url "dailymotion.com/playlist/")
         SET url (APPEND "https://api.dailymotion.com/playlist/" id)
         # FIXME: thumbnail_url field seems to be broken.
@@ -150,12 +152,14 @@ QUERY_PLAYLIST: |
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
+            SET backend "dailymotion"
             SET url "https://api.dailymotion.com/videos"
             URL_ADD_QUERY url "search" q
             URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
             URL_ADD_QUERY url "sort" "relevance"
             URL_ADD_QUERY url "limit" 50
         ELIF (EQUAL label "channels")
+            SET backend "dailymotion"
             SET url "https://api.dailymotion.com/users"
             URL_ADD_QUERY url "search" q
             URL_ADD_QUERY url "fields" "username,screenname,avatar_720_url"
@@ -163,6 +167,7 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "limit" 20
             SET id 1
         ELIF (EQUAL label "playlists")
+            SET backend "dailymotion"
             SET url "https://api.dailymotion.com/playlists"
             URL_ADD_QUERY url "search" q
             URL_ADD_QUERY url "fields" "id,name,thumbnail_url"
@@ -171,6 +176,7 @@ CREATE_QUERY: |
         FI
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
+        SET backend "dailymotion"
         SET url (APPEND "https://api.dailymotion.com/video/" q "/related")
         URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
         URL_ADD_QUERY url "limit" 50
@@ -213,6 +219,7 @@ EXTRACT_PLAYLIST: |
         SET url (APPEND "https://api.dailymotion.com/" queryData "/videos")
         URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
         URL_ADD_QUERY url "limit" 50
+        HASH_SET next "backend" "dailymotion"
         HASH_SET next "url" url
     ELIF (EQUAL id 2) # channels
         SET data (JSON_EXTRACT_HTML data)
@@ -221,6 +228,7 @@ EXTRACT_PLAYLIST: |
         SET url (APPEND "https://api.dailymotion.com/" queryData "/videos")
         URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
         URL_ADD_QUERY url "limit" 50
+        HASH_SET next "backend" "dailymotion"
         HASH_SET next "url" url
     ELSE
         SET data (JSON_EXTRACT_HTML data "list")

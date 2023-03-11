@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.7
+version: 1.0.8
 
 title: Twitch
 
@@ -24,7 +24,7 @@ items:
     playlist:
         title: Videos
 
-validate: ^twitch.tv|^gql.twitch.tv
+validate: ^twitch.tv
 
 #--------------------------------------------------------------------------------------------------
 # Routines
@@ -74,6 +74,7 @@ QUERY_SOURCE: |
     FI
     IF (CONTAIN url "/videos/")
         SET video (URL_ELEMENT url 17)
+        SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
         SET id 1
         SET header (APPEND '"Content-Type" "application/json"' \
@@ -91,6 +92,7 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET stream (URL_ELEMENT url 10)
+    SET backend "twitch"
     SET url "https://gql.twitch.tv/gql"
     SET header (APPEND '"Content-Type" "application/json"' \
                        '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
@@ -107,6 +109,7 @@ QUERY_SOURCE: |
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
+            SET backend "twitch"
             SET url "https://gql.twitch.tv/gql"
             SET header (APPEND '"Content-Type" "application/json"' \
                                '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
@@ -129,6 +132,7 @@ CREATE_QUERY: |
                              '"variables": { "userQuery": "' q '", "platform": "mobile_web", ' \
                              '"noQuery": false, "target": { "index": "CHANNEL", "limit": 40 }}}')
         ELIF (EQUAL label "videos")
+            SET backend "twitch"
             SET url "https://gql.twitch.tv/gql"
             SET header (APPEND '"Content-Type" "application/json"' \
                                '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
@@ -182,6 +186,7 @@ EXTRACT_SOURCE: |
         ELSE
             SET url (APPEND url "&allow_source=true")
         FI
+        HASH_SET next "backend" "twitch"
         HASH_SET next "url" url
         HASH_SET next "id" 2
         RETURN

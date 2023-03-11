@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.86
+version: 1.0.87
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -37,12 +37,12 @@ backend_subtitle: |
 
 backends: |
     duckduckgo    DuckDuckGo    1.0.7  ^html.duckduckgo.com
-    youtube       Youtube       1.0.41 ^youtube.com|^youtu.be
-    dailymotion   Dailymotion   1.0.2  ^dailymotion.com|^api.dailymotion.com|^games.dailymotion.com
-    vimeo         Vimeo         1.0.0  ^vimeo.com|^player.vimeo.com
-    odysee        Odysee        1.0.3  ^odysee.com
-    twitch        Twitch        1.0.7  ^twitch.tv|^gql.twitch.tv
-    soundcloud    SoundCloud    1.0.7  ^soundcloud.com|^api-v2.soundcloud.com|^a-v2.sndcdn.com
+    youtube       Youtube       1.0.42 ^youtube.com|^youtu.be
+    dailymotion   Dailymotion   1.0.3  ^dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo         1.0.1  ^vimeo.com
+    odysee        Odysee        1.0.4  ^odysee.com
+    twitch        Twitch        1.0.8  ^twitch.tv
+    soundcloud    SoundCloud    1.0.8  ^soundcloud.com
     tmdb          TMDb          1.0.8  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org

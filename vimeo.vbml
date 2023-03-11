@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.0
+version: 1.0.1
 
 title: Vimeo
 
@@ -27,7 +27,7 @@ items:
     folder:
         title: Groups
 
-validate: ^vimeo.com|^player.vimeo.com
+validate: ^vimeo.com
 
 #--------------------------------------------------------------------------------------------------
 # Routines
@@ -81,6 +81,7 @@ QUERY_SOURCE: |
     OR (CONTAIN url (APPEND "/groups/" id))
         RETURN false
     FI
+    SET backend "vimeo"
     SET url (APPEND "https://player.vimeo.com/video/" id)
     RETURN true
 
