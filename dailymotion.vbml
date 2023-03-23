@@ -252,7 +252,7 @@ EXTRACT_FOLDER: |
     IF (EQUAL id 1) # channels
         FOREACH list data
             SET source (APPEND "https://www.dailymotion.com/user/" \
-                                    (JSON_EXTRACT data "username"))
+                               (JSON_EXTRACT data "username"))
             HASH_SET item "type" "feed"
             HASH_SET item "state" "default"
             HASH_SET item "source" source
@@ -263,7 +263,7 @@ EXTRACT_FOLDER: |
     ELSE # playlists
         FOREACH list data
             SET source (APPEND "https://www.dailymotion.com/playlist/" \
-                                    (JSON_EXTRACT data "id"))
+                               (JSON_EXTRACT data "id"))
             HASH_SET item "type" "playlist"
             HASH_SET item "state" "default"
             HASH_SET item "source" source

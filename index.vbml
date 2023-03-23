@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.87
+version: 1.0.88
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -20,6 +20,7 @@ backend_search: |
 
 backend_track: |
     duckduckgo
+    tmdb
     bittorrent
     youtube
     dailymotion
@@ -45,12 +46,13 @@ backends: |
     odysee        Odysee        1.0.4  ^odysee.com
     twitch        Twitch        1.0.8  ^twitch.tv
     soundcloud    SoundCloud    1.0.8  ^soundcloud.com
-    tmdb          TMDb          1.0.8  ^themoviedb.org
+    tmdb          TMDb          1.0.9  ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
 
 covers: |
     duckduckgo  cover/duckduckgo.png
+    tmdb        cover/tmdb.png
     bittorrent  cover/bittorrent.png
     youtube     cover/youtube.png
     dailymotion cover/dailymotion.png

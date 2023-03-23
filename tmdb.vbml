@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.8
+version: 1.0.9
 
 search: coverVideo
 
@@ -17,13 +17,76 @@ title: TMDb
 
 host: themoviedb.org
 
+cover: cover/tmdb.png
+
+items:
+    playlist:
+        title: Trailers
+        label: tracks
+
 validate: ^themoviedb.org
 
 #--------------------------------------------------------------------------------------------------
 # Routines
 #--------------------------------------------------------------------------------------------------
 
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET url (URL_ELEMENTS url 2 15)
+    IF (START_WITH url "movie/")
+    OR (START_WITH url "tv/")
+        #IF (EQUAL (INDEX_OF url (REGEXP "[0-9]")) -1)
+        #    RETURN ""
+        #ELSE
+            RETURN url
+        #FI
+    ELSE
+        RETURN ""
+    FI
+
+URL_TRACK: |
+    RETURN (APPEND "https://www.themoviedb.org/" id)
+
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET url (URL_ELEMENTS url 2 15)
+    IF (START_WITH url "movie/")
+    OR (START_WITH url "tv/")
+        #IF (EQUAL (INDEX_OF id (REGEXP "[0-9]")) -1)
+        #    RETURN false
+        #FI
+        SET id -1
+        SET url (APPEND "https://www.themoviedb.org/" url)
+        RETURN true
+    ELSE
+        RETURN false
+    FI
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET url (URL_ELEMENTS url 2 15)
+    IF (START_WITH url "movie/")
+    OR (START_WITH url "tv/")
+        #IF (EQUAL (INDEX_OF url (REGEXP "[0-9]")) -1)
+        #    RETURN false
+        #FI
+        SET url (APPEND "https://www.themoviedb.org/" url)
+        RETURN true
+    ELSE
+        RETURN false
+    FI
+
 CREATE_QUERY: |
+    IF (EQUAL label "tracks")
+        IF (EQUAL method "search")
+            SET url (APPEND "https://api.themoviedb.org/3/search/multi?query=" q \
+                            "&api_key=8341de77e3a24593226752d83720f88b")
+        ELIF (EQUAL method "related")
+            SET url (APPEND "https://api.themoviedb.org/3/" q \
+                            "/recommendations?api_key=8341de77e3a24593226752d83720f88b")
+        FI
+        RETURN
+    FI
     #----------------------------------------------------------------------------------------------
     # Get list
     #----------------------------------------------------------------------------------------------
@@ -206,10 +269,30 @@ CREATE_QUERY: |
     SET queryData title
     SET header true
 
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    SET id (HTML_ATTRIBUTE data "data-id" (INDEX_OF data "data-site=\"YouTube\""))
+    IF (EQUAL id "")
+        RETURN
+    FI
+    HASH_SET next "backend" "youtube"
+    HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
+    HASH_SET next "header" '"Content-Type" "application/json"'
+    HASH_SET next "body" (APPEND '{ "context": { "client": { "clientName": "ANDROID", '    \
+                     '"clientVersion": "17.31.35", "hl": "en" }}, "videoId": "' id '", '   \
+                     '"playbackContext": { "contentPlaybackContext": { '                   \
+                     '"html5Preference": "HTML5_PREF_WANTS" } }, "contentCheckOk": true, ' \
+                     '"racyCheckOk": true }')
+
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 2)
-    OR (EQUAL id 4)
+    IF (EQUAL id -1)
+        SET title (HTML_ATTRIBUTE_UTF8 data "content" (INDEX_OF data "\"og:title\""))
+        SET title (APPEND title ' ' (SLICE_IN data "class=\"tag release_date\">" '<'))
+        SET cover (HTML_ATTRIBUTE_UTF8 data "content" (LAST_INDEX_OF data "\"og:image\""))
+        SET cover (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2/" (MID cover (LAST_INDEX_END cover '/')))
+    ELIF (EQUAL id 2)
+    OR   (EQUAL id 4)
         SET index (INDEX_OF data "<a class=\"image\"")
         IF (EQUAL index -1)
             RETURN
@@ -365,3 +448,44 @@ EXTRACT_TRACK: |
             FI
         END
     FI
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    SET data (JSON_EXTRACT data "results")
+    SET list (JSON_SPLIT data)
+    FOREACH list data
+        SET source (APPEND "https://www.themoviedb.org/" (JSON_EXTRACT data "media_type") '/' \
+                                                         (JSON_EXTRACT data "id"))
+        #------------------------------------------------------------------------------------------
+        # Title
+        #------------------------------------------------------------------------------------------
+        SET title (JSON_EXTRACT_UTF8 data "title")
+        IF (EQUAL title "")
+            SET title (JSON_EXTRACT_UTF8 data "name")
+        FI
+        SET date (JSON_EXTRACT data "release_date")
+        IF (EQUAL date "")
+            SET date (JSON_EXTRACT data "first_air_date")
+        FI
+        IF (NOT_EQUAL date "")
+            SET date (MID date 0 (INDEX_OF date '-'))
+            SET title (APPEND title " (" date ')')
+        FI
+        #------------------------------------------------------------------------------------------
+        # Cover
+        #------------------------------------------------------------------------------------------
+        SET cover (JSON_EXTRACT data "backdrop_path")
+        IF (EQUAL cover "null")
+            SET cover (JSON_EXTRACT data "poster_path")
+        FI
+        IF (EQUAL cover "null")
+            SET cover ""
+        ELSE
+            SET cover (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2" cover)
+        FI
+        #------------------------------------------------------------------------------------------
+        HASH_SET track "source" source
+        HASH_SET track "title" title
+        HASH_SET track "cover" cover
+        LIST_APPEND tracks track
+    END
