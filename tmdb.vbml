@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.9
+version: 1.0.10
 
 search: coverVideo
 
@@ -84,6 +84,15 @@ CREATE_QUERY: |
         ELIF (EQUAL method "related")
             SET url (APPEND "https://api.themoviedb.org/3/" q \
                             "/recommendations?api_key=8341de77e3a24593226752d83720f88b")
+        FI
+        RETURN
+    ELIF (EQUAL method "view")
+        SET url (APPEND "https://api.themoviedb.org/3/" q \
+                        "?api_key=8341de77e3a24593226752d83720f88b")
+        IF (START_WITH q "movie/")
+            SET queryData "movie"
+        ELIF (START_WITH q "tv/")
+            SET queryData "tv"
         FI
         RETURN
     FI
@@ -290,7 +299,8 @@ EXTRACT_TRACK: |
         SET title (HTML_ATTRIBUTE_UTF8 data "content" (INDEX_OF data "\"og:title\""))
         SET title (APPEND title ' ' (SLICE_IN data "class=\"tag release_date\">" '<'))
         SET cover (HTML_ATTRIBUTE_UTF8 data "content" (LAST_INDEX_OF data "\"og:image\""))
-        SET cover (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2/" (MID cover (LAST_INDEX_END cover '/')))
+        SET cover (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2/" \
+                          (MID cover (LAST_INDEX_END cover '/')))
     ELIF (EQUAL id 2)
     OR   (EQUAL id 4)
         SET index (INDEX_OF data "<a class=\"image\"")
@@ -454,8 +464,13 @@ EXTRACT_PLAYLIST: |
     SET data (JSON_EXTRACT data "results")
     SET list (JSON_SPLIT data)
     FOREACH list data
-        SET source (APPEND "https://www.themoviedb.org/" (JSON_EXTRACT data "media_type") '/' \
-                                                         (JSON_EXTRACT data "id"))
+        IF (EQUAL queryData "")
+            SET source (APPEND "https://www.themoviedb.org/" (JSON_EXTRACT data "media_type") '/' \
+                                                             (JSON_EXTRACT data "id"))
+        ELSE
+            SET source (APPEND "https://www.themoviedb.org/" queryData '/' \
+                               (JSON_EXTRACT data "id"))
+        FI
         #------------------------------------------------------------------------------------------
         # Title
         #------------------------------------------------------------------------------------------
@@ -489,3 +504,26 @@ EXTRACT_PLAYLIST: |
         HASH_SET track "cover" cover
         LIST_APPEND tracks track
     END
+    # FIXME: Sometimes we have duplicates.
+    SET clearDuplicate true
+    # NOTE: When the tracks are empty we provide the hub by default.
+    IF (EQUAL (COUNT tracks) 0)
+        HASH_SET hub "state" "default"
+        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+        LIST_APPEND tracks hub
+        RETURN
+    ELIF (EQUAL queryData "")
+    AND (EQUAL id 1)
+        HASH_SET hub "state" "default"
+        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+        LIST_APPEND tracks hub
+        RETURN
+    ELIF (EQUAL id 4)
+        HASH_SET hub "state" "default"
+        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+        LIST_APPEND tracks hub
+        RETURN
+    FI
+    HASH_SET next "url" (APPEND url "&page=" (ADD id 2))
+    HASH_SET next "id" (ADD id 1)
+    HASH_SET next "queryData" queryData

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.88
+version: 1.0.89
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -44,7 +44,7 @@ backends: |
     odysee        Odysee        1.0.4  ^odysee.com
     twitch        Twitch        1.0.8  ^twitch.tv
     soundcloud    SoundCloud    1.0.8  ^soundcloud.com
-    tmdb          TMDb          1.0.9  ^themoviedb.org
+    tmdb          TMDb          1.0.10 ^themoviedb.org
     lastfm        Last.fm       1.0.0  ^last.fm
     opensubtitles OpenSubtitles 1.0.3  ^opensubtitles.org
 
