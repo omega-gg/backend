@@ -7,7 +7,7 @@ type: backend
 
 source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
-api: 1.0.0
+api: 1.0.3
 
 version: 1.0.4
 
