@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.11
+version: 1.0.12
 
 search: coverVideo
 
@@ -500,13 +500,18 @@ EXTRACT_PLAYLIST: |
         HASH_SET hub "source" "https://omega.gg/vox/tmdb"
         LIST_APPEND tracks hub
         RETURN
-    ELIF (EQUAL queryData "")
-    AND (EQUAL id 1)
+    # NOTE: When it's a view query we set the title and cover.
+    ELIF (NOT_EQUAL queryData "")
+        SET title "The Movie Database"
+        SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png"
+    ELIF (EQUAL id 1)
         HASH_SET hub "state" "default"
         HASH_SET hub "source" "https://omega.gg/vox/tmdb"
         LIST_APPEND tracks hub
         RETURN
-    ELIF (EQUAL id 4)
+    FI
+    # NOTE: We load four pages on a view query.
+    IF (EQUAL id 4)
         HASH_SET hub "state" "default"
         HASH_SET hub "source" "https://omega.gg/vox/tmdb"
         LIST_APPEND tracks hub
