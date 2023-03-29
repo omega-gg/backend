@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.0
+version: 1.0.1
 
 title: TikTok
 
@@ -79,12 +79,12 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
             SET url "https://urlebird.com/fr/search/"
-            URL_ADD_QUERY url "q" q
+            # NOTE: Removing hashtags because they are badly supported by the search.
+            URL_ADD_QUERY url "q" (REPLACE q '#' '')
             SET id 1
         FI
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
-        PRINT "HELLO" q
         SET url (APPEND "https://tiktok.com/" q)
         SET id 2
     FI
@@ -114,7 +114,6 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_OF data "property=\"og:image\"")
         # NOTE: Utf8 is required for the url extension.
         SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
-        PRINT "cover" cover
         SET url (APPEND url "/video/")
         SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
         SET list (SPLIT list '","')
