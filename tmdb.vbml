@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.13
+version: 1.0.14
 
 search: coverVideo
 
@@ -52,9 +52,9 @@ QUERY_SOURCE: |
     SET url (URL_ELEMENTS url 2 15)
     IF (START_WITH url "movie/")
     OR (START_WITH url "tv/")
-        #IF (EQUAL (INDEX_OF url (REGEXP "[0-9]")) -1)
-        #    RETURN false
-        #FI
+        IF (EQUAL (INDEX_OF url (REGEXP "[0-9]")) -1)
+            RETURN false
+        FI
         SET url (APPEND "https://www.themoviedb.org/" url)
         RETURN true
     ELSE
@@ -62,7 +62,19 @@ QUERY_SOURCE: |
     FI
 
 QUERY_TRACK: |
-    RETURN true
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET url (URL_ELEMENTS url 2 15)
+    IF (START_WITH url "movie/")
+    OR (START_WITH url "tv/")
+        IF (EQUAL (INDEX_OF url (REGEXP "[0-9]")) -1)
+            RETURN false
+        FI
+        SET url (APPEND "https://www.themoviedb.org/" url)
+        SET id -1
+        RETURN true
+    ELSE
+        RETURN false
+    FI
 
 CREATE_QUERY: |
     IF (EQUAL label "tracks")
