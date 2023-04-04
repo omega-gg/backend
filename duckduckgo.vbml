@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.7
+version: 1.0.8
 
 search: tracks
 
@@ -41,7 +41,15 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
         ELIF (EQUAL label "tracks")
-        OR (EQUAL label "playlists")
+            SET q (SIMPLIFY q)
+            SET url "https://duckduckgo.com/"
+            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "kl" "us-en"
+            #URL_ADD_QUERY url "kp" "-2"
+            SET url (APPEND url "&iar=videos&iax=videos&ia=videos")
+            SET id 2
+            SET queryData q
+        ELIF (EQUAL label "playlists")
             SET url "https://html.duckduckgo.com/html"
             URL_ADD_QUERY url "q" (SIMPLIFY q)
             URL_ADD_QUERY url "kl" "us-en"
@@ -76,6 +84,29 @@ EXTRACT_PLAYLIST: |
             LIST_APPEND next query
         END
         #------------------------------------------------------------------------------------------
+    ELIF (EQUAL id 2) # Tracks
+        SET url (SLICE_IN data "vqd='" "'")
+        # NOTE: It seems required to encode the 'q' parameter.
+        SET url (APPEND "https://duckduckgo.com/v.js?q=" (URL_ENCODE queryData) \
+                        "&o=json&p=-1&sr=1&vqd=" url "&f=,,,&l=us-en")
+        HASH_SET next "url" url
+        HASH_SET next "id" 3
+    ELIF (GREATER id 2) # Tracks
+        SET data (READ data "utf-8")
+        IF (EQUAL id 3)
+            # FIXME: For some reason there's a double quote in the middle of the url.
+            SET url (REPLACE (JSON_EXTRACT data "next") '"' '')
+            HASH_SET next "url" (APPEND "https://duckduckgo.com/" url)
+            HASH_SET next "id" 4
+        FI
+        SET list (SLICES data "\"content\"" "\"uploader\"")
+        FOREACH list data
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (JSON_EXTRACT data "content")
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "title")
+            HASH_SET track "cover" (JSON_EXTRACT data "large")
+            LIST_APPEND tracks track
+        END
     ELSE # Extract sources
         SET list (HTML_TRACKS data url (LIST "http"))
         FOREACH list data
