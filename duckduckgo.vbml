@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.8
+version: 1.0.9
 
 search: tracks
 
@@ -33,15 +33,18 @@ validate: ^html.duckduckgo.com
 
 CREATE_QUERY: |
     IF (EQUAL method "search")
+        SET q (SIMPLIFY q)
+        # NOTE: Appending " !" to a search query redirects to the first result by default.
+        IF (EQUAL (INDEX_END q " !") (LENGTH q))
+            SET q (CHOP q 2)
+        FI
         IF (EQUAL label "urls")
         OR (EQUAL label "site")
             SET url "https://html.duckduckgo.com/html"
-            SET q (SIMPLIFY q)
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
         ELIF (EQUAL label "tracks")
-            SET q (SIMPLIFY q)
             SET url "https://duckduckgo.com/"
             URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
@@ -51,7 +54,7 @@ CREATE_QUERY: |
             SET queryData q
         ELIF (EQUAL label "playlists")
             SET url "https://html.duckduckgo.com/html"
-            URL_ADD_QUERY url "q" (SIMPLIFY q)
+            URL_ADD_QUERY url "q" q
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 1
