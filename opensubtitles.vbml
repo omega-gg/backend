@@ -207,7 +207,8 @@ EXTRACT_FOLDER: |
             SET language (LIST_GET queryData 0)
             HASH_SET next "url" (APPEND \
                                  "https://www.opensubtitles.org/en/search/sublanguageid-" \
-                                 language "/subsumcd-1/subformat-srt/moviename-" (URL_ENCODE search))
+                                 language "/subsumcd-1/subformat-srt/moviename-" \
+                                 (URL_ENCODE search))
             HASH_SET next "id" 1
             HASH_SET next "queryData" (LIST language search)
             #--------------------------------------------------------------------------------------
