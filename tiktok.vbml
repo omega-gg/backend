@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: TikTok
 
@@ -80,7 +80,7 @@ CREATE_QUERY: |
         IF (EQUAL label "tracks")
             SET url "https://urlebird.com/fr/search/"
             # NOTE: Removing hashtags because they are badly supported by the search.
-            URL_ADD_QUERY url "q" (REPLACE q '#' '')
+            URL_ADD_QUERY url "q" (URL_ENCODE (REPLACE q '#' ''))
             SET id 1
         FI
     ELIF (EQUAL method "related")

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.19
+version: 1.0.20
 
 title: BitTorrent
 
@@ -104,7 +104,7 @@ CREATE_QUERY: |
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
             FI
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 3
@@ -116,7 +116,7 @@ CREATE_QUERY: |
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
             FI
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 1
@@ -128,7 +128,7 @@ CREATE_QUERY: |
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
             FI
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 1
@@ -141,7 +141,7 @@ CREATE_QUERY: |
             IF (EQUAL (START_WITH "torrent ") false)
                 SET q (PREPEND q "torrent ")
             FI
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 1
@@ -232,7 +232,8 @@ EXTRACT_PLAYLIST: |
         SET url (APPEND "https://snowfl.com/" (SLICE_IN data '"' '"' index) '/')
         HASH_SET next "backend" "bittorrent"
         # NOTE: Maybe we should generate a random string instead of 'abcdefgh'.
-        HASH_SET next "url" (APPEND url (LIST_TAKE_AT queryData 0) "/abcdefgh/0/NONE/NONE/1")
+        HASH_SET next "url" (APPEND url (URL_ENCODE (LIST_TAKE_AT queryData 0)) \
+                                    "/abcdefgh/0/NONE/NONE/1")
         HASH_SET next "id" 6
         HASH_SET next "queryData" (LIST_TAKE_AT queryData 0)
         HASH_SET next "skipError" true

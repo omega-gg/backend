@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.8
+version: 1.0.9
 
 title: SoundCloud
 
@@ -124,7 +124,8 @@ QUERY_PLAYLIST: |
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
-            SET source (APPEND "https://api-v2.soundcloud.com/search/tracks?q=" q "&limit=50")
+            SET source (APPEND "https://api-v2.soundcloud.com/search/tracks?q=" (URL_ENCODE q) \
+                               "&limit=50")
             IF (EQUAL global "")
                 SET url "https://soundcloud.com"
                 SET id -1
@@ -135,7 +136,8 @@ CREATE_QUERY: |
                 SET queryData global
             FI
         ELIF (EQUAL label "people")
-            SET source (APPEND "https://api-v2.soundcloud.com/search/users?q=" q "&limit=50")
+            SET source (APPEND "https://api-v2.soundcloud.com/search/users?q=" (URL_ENCODE q) \
+                               "&limit=50")
             IF (EQUAL global "")
                 SET url "https://soundcloud.com"
                 SET id -1

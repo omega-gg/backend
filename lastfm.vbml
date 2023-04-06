@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
 api: 1.0.1
 
-version: 1.0.0
+version: 1.0.1
 
 search: coverAudio
 
@@ -35,7 +35,7 @@ CREATE_QUERY: |
     FI
     SET q (MID q index (SUB (LAST_INDEX_OF q ' ') index))
     SET url "https://www.last.fm/search/tracks"
-    URL_ADD_QUERY url 'q' q
+    URL_ADD_QUERY url 'q' (URL_ENCODE q)
     SET label (LOWER (SIMPLIFY (REPLACE label (REGEXP "[,.:\\-_(){}\\[\\]]") ' ')))
     SET queryData (LIST q label)
 

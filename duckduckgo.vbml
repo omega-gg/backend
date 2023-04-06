@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 search: tracks
 
@@ -41,12 +41,12 @@ CREATE_QUERY: |
         IF (EQUAL label "urls")
         OR (EQUAL label "site")
             SET url "https://html.duckduckgo.com/html"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
         ELIF (EQUAL label "tracks")
             SET url "https://duckduckgo.com/"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET url (APPEND url "&iar=videos&iax=videos&ia=videos")
@@ -54,7 +54,7 @@ CREATE_QUERY: |
             SET queryData q
         ELIF (EQUAL label "playlists")
             SET url "https://html.duckduckgo.com/html"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
             #URL_ADD_QUERY url "kp" "-2"
             SET id 1
@@ -89,7 +89,6 @@ EXTRACT_PLAYLIST: |
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 2) # Tracks
         SET url (SLICE_IN data "vqd='" "'")
-        # NOTE: It seems required to encode the 'q' parameter.
         SET url (APPEND "https://duckduckgo.com/v.js?q=" (URL_ENCODE queryData) \
                         "&o=json&p=-1&sr=1&vqd=" url "&f=,,,&l=us-en")
         HASH_SET next "url" url

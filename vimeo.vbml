@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.1
+version: 1.0.2
 
 title: Vimeo
 
@@ -127,22 +127,22 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
             SET url "https://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "type" "video"
             SET id 1
             SET header true
         ELIF (EQUAL label "people")
             SET url "https://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET id 1
             SET header true
         ELIF (EQUAL label "channels")
             SET url "https://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET header true
         ELIF (EQUAL label "groups")
             SET url "https://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" q
+            URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET header true
         FI
     ELIF (EQUAL method "related")

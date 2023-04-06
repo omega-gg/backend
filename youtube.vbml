@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.42
+version: 1.0.43
 
 title: Youtube
 
@@ -166,19 +166,19 @@ CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
             SET url "https://www.youtube.com/results"
-            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "search_query" (URL_ENCODE q)
             URL_ADD_QUERY url "sp" "EgIQAQ%253D%253D"
             URL_ADD_QUERY url "ucbcb" "1"
             SET id 2
         ELIF (EQUAL label "channels")
             SET url "https://www.youtube.com/results"
-            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "search_query" (URL_ENCODE q)
             URL_ADD_QUERY url "sp" "EgIQAg%253D%253D"
             URL_ADD_QUERY url "ucbcb" "1"
             SET id 1
         ELIF (EQUAL label "playlists")
             SET url "https://www.youtube.com/results"
-            URL_ADD_QUERY url "search_query" q
+            URL_ADD_QUERY url "search_query" (URL_ENCODE q)
             URL_ADD_QUERY url "sp" "EgIQAw%253D%253D"
             URL_ADD_QUERY url "ucbcb" "1"
         FI

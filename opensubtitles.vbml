@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 title: OpenSubtitles
 
@@ -67,7 +67,7 @@ CREATE_QUERY: |
     FI
     SET q (SIMPLIFY q)
     SET url (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" language \
-                    "/subsumcd-1/subformat-srt/moviename-" (REPLACE q ' ' '+'))
+                    "/subsumcd-1/subformat-srt/moviename-" (URL_ENCODE q))
     SET queryData (LIST language q)
     SET cookies true
     #----------------------------------------------------------------------------------------------
@@ -133,8 +133,7 @@ EXTRACT_FOLDER: |
         SET language (LIST_GET queryData 0)
         SET search (SIMPLIFY search)
         HASH_SET next "url" (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" \
-                             language "/subsumcd-1/subformat-srt/moviename-" \
-                             (REPLACE search ' ' '+'))
+                             language "/subsumcd-1/subformat-srt/moviename-" (URL_ENCODE search))
         HASH_SET next "id" 1
         HASH_SET next "queryData" (LIST language search)
         #------------------------------------------------------------------------------------------
@@ -208,8 +207,7 @@ EXTRACT_FOLDER: |
             SET language (LIST_GET queryData 0)
             HASH_SET next "url" (APPEND \
                                  "https://www.opensubtitles.org/en/search/sublanguageid-" \
-                                 language "/subsumcd-1/subformat-srt/moviename-" \
-                                 (REPLACE search ' ' '+'))
+                                 language "/subsumcd-1/subformat-srt/moviename-" (URL_ENCODE search))
             HASH_SET next "id" 1
             HASH_SET next "queryData" (LIST language search)
             #--------------------------------------------------------------------------------------
@@ -240,8 +238,7 @@ EXTRACT_FOLDER: |
         SET language (LIST_GET queryData 0)
         SET search (MID search 0 index)
         HASH_SET next "url" (APPEND "https://www.opensubtitles.org/en/search/sublanguageid-" \
-                             language "/subsumcd-1/subformat-srt/moviename-" \
-                             (REPLACE search ' ' '+'))
+                             language "/subsumcd-1/subformat-srt/moviename-" (URL_ENCODE search))
         HASH_SET next "id" (ADD id 1)
         HASH_SET next "queryData" (LIST language search)
         #------------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vb
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 title: Dailymotion
 
@@ -154,14 +154,14 @@ CREATE_QUERY: |
         IF (EQUAL label "tracks")
             SET backend "dailymotion"
             SET url "https://api.dailymotion.com/videos"
-            URL_ADD_QUERY url "search" q
+            URL_ADD_QUERY url "search" (URL_ENCODE q)
             URL_ADD_QUERY url "fields" "url,title,thumbnail_url,duration,owner.username,owner.screenname,created_time,available_formats"
             URL_ADD_QUERY url "sort" "relevance"
             URL_ADD_QUERY url "limit" 50
         ELIF (EQUAL label "channels")
             SET backend "dailymotion"
             SET url "https://api.dailymotion.com/users"
-            URL_ADD_QUERY url "search" q
+            URL_ADD_QUERY url "search" (URL_ENCODE q)
             URL_ADD_QUERY url "fields" "username,screenname,avatar_720_url"
             URL_ADD_QUERY url "sort" "relevance"
             URL_ADD_QUERY url "limit" 20
@@ -169,7 +169,7 @@ CREATE_QUERY: |
         ELIF (EQUAL label "playlists")
             SET backend "dailymotion"
             SET url "https://api.dailymotion.com/playlists"
-            URL_ADD_QUERY url "search" q
+            URL_ADD_QUERY url "search" (URL_ENCODE q)
             URL_ADD_QUERY url "fields" "id,name,thumbnail_url"
             URL_ADD_QUERY url "sort" "relevance"
             URL_ADD_QUERY url "limit" 20
