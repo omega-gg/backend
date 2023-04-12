@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.2
+version: 1.0.3
 
 title: TikTok
 
@@ -73,6 +73,13 @@ QUERY_TRACK: |
     RETURN true
 
 QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url "/@") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN false
+    FI
+    SET id (MID url (INDEX_END url '/'))
+    SET url (APPEND "https://tiktok.com/" id)
     RETURN true
 
 CREATE_QUERY: |
@@ -102,7 +109,7 @@ EXTRACT_TRACK: |
     SET cover (HTML_TO_UTF8 (SLICE_IN data "url_list\":[\"" '"' (INDEX_END data "\"cover\"")))
     SET feed (APPEND '@' (JSON_EXTRACT data "unique_id"))
     SET author (JSON_EXTRACT_UTF8 data "nickname")
-    SET duration (JSON_EXTRACT data "duration" (LAST_INDEX_OF data "\"duration\""))
+    SET duration (JSON_EXTRACT data "duration" (INDEX_END data "\"video\""))
     SET date (DATE (JSON_EXTRACT data "create_time") "yyyy-MM-dd")
 
 EXTRACT_PLAYLIST: |

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.43
+version: 1.0.44
 
 title: Youtube
 
@@ -102,11 +102,12 @@ QUERY_SOURCE: |
     FI
     SET url "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
     SET header '"Content-Type" "application/json"'
-    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", '                \
-                     '"clientVersion": "17.31.35", "hl": "en" }}, "videoId": "' id '", '   \
-                     '"playbackContext": { "contentPlaybackContext": { '                   \
-                     '"html5Preference": "HTML5_PREF_WANTS" } }, "contentCheckOk": true, ' \
-                     '"racyCheckOk": true }')
+    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", '                      \
+                     '"clientVersion": "17.31.35", "androidSdkVersion": 30, '                    \
+                     '"userAgent": "com.google.android.youtube/17.31.35 (Linux; U; Android 11) ' \
+                     'gzip", "hl": "en" }}, "videoId": "' id '", "playbackContext": '            \
+                     '{ "contentPlaybackContext": { "html5Preference": "HTML5_PREF_WANTS" } }, ' \
+                     '"contentCheckOk": true, "racyCheckOk": true }')
     RETURN true
 
 QUERY_TRACK: |
@@ -299,6 +300,11 @@ EXTRACT_SOURCE: |
                     #------------------------------------------------------------------------------
                 END
             FI
+        FI
+        # FIXME: Sometimes the request randomly fails.
+        IF (EQUAL (COUNT medias) 0)
+        AND (CONTAIN data "\"status\": \"ERROR\"")
+            SET reload true
         FI
     FI
     SET expiry (ADD (DATE) 60) # Two hours
