@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.15
+version: 1.0.16
 
 search: coverVideo
 
@@ -514,7 +514,7 @@ EXTRACT_PLAYLIST: |
         RETURN
     # NOTE: When it's a view query we set the title and cover.
     ELIF (NOT_EQUAL queryData "")
-        SET title "The Movie Database"
+        SET title (APPEND "The Movie Database: " queryData)
         SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png"
     ELIF (EQUAL id 1)
         HASH_SET hub "state" "default"
