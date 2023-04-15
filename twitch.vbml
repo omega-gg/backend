@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.12
+version: 1.0.13
 
 title: Twitch
 
@@ -358,6 +358,7 @@ EXTRACT_PLAYLIST: |
             SET cover (JSON_EXTRACT data "previewThumbnailURL")
             SET cover (REPLACE cover "{width}" "1920")
             SET cover (REPLACE cover "{height}" "1080")
+            HASH_SET track "state" "default"
             HASH_SET track "source" source
             HASH_SET track "title" (JSON_EXTRACT_UTF8 data "title")
             HASH_SET track "cover" cover
@@ -370,6 +371,7 @@ EXTRACT_PLAYLIST: |
         SET data (JSON_EXTRACT data "edges")
         FOREACH (JSON_SPLIT data) data
             SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
+            HASH_SET track "state" "default"
             HASH_SET track "source" source
             HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
             HASH_SET track "cover" (REPLACE (JSON_EXTRACT data "profileImageURL") \
@@ -380,6 +382,7 @@ EXTRACT_PLAYLIST: |
         SET data (JSON_EXTRACT data "items")
         FOREACH (JSON_SPLIT data) data
             SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
+            HASH_SET track "state" "default"
             HASH_SET track "source" source
             HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
             HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
