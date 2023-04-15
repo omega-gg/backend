@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.10
+version: 1.0.11
 
 title: Twitch
 
@@ -385,3 +385,7 @@ EXTRACT_PLAYLIST: |
             LIST_APPEND tracks track
         END
     FI
+    # NOTE: Appending the hub by default.
+    HASH_SET hub "state" "default"
+    HASH_SET hub "source" "https://omega.gg/vox/twitch"
+    LIST_APPEND tracks hub
