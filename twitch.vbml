@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.11
+version: 1.0.12
 
 title: Twitch
 
@@ -131,8 +131,8 @@ QUERY_PLAYLIST: |
         RETURN false
     FI
     IF (CONTAIN url "/collection/")
-        SET queryData (URL_ELEMENTS url 3 10)
-        SET name (URL_ELEMENT url 31)
+        SET path (URL_ELEMENTS url 3 10)
+        SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
         SET id 2
@@ -170,11 +170,12 @@ QUERY_PLAYLIST: |
                          '{ ...useTagLinkFragment_tag id __typename }} '                          \
                          'fragment useTagLinkFragment_tag on Tag { id __typename tagName '        \
                          'localizedDescription localizedName }", '                                \
-                         '"variables": { "url": "https://m.twitch.tv/' queryData '", "slug": "'   \
-                         name '", "count": 80, "cursor": null }}')
+                         '"variables": { "url": "https://m.twitch.tv/' path '", "slug": "'        \
+                         queryData '", "count": 80, "cursor": null }}')
         RETURN true
     ELIF (CONTAIN url "/directory/")
-        SET queryData (URL_ELEMENTS url 2 10)
+        SET path (URL_ELEMENTS url 2 10)
+        SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
         SET id 2
@@ -209,7 +210,7 @@ QUERY_PLAYLIST: |
                          'localizedDescription localizedName }", '                                \
                          '"variables": { "channelsCount": 30, "cursor": null, "hasTagId": '       \
                          'false, "tagId": "", "tags": null, "url": "https://m.twitch.tv/'         \
-                         queryData '?desktop-redirect=true" }}')
+                         path '?desktop-redirect=true" }}')
         RETURN true
     FI
     RETURN false
