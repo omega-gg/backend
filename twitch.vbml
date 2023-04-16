@@ -17,6 +17,8 @@ host: twitch.tv
 
 cover: cover/twitch.png
 
+hub: https://omega.gg/vox/twitch
+
 items:
     playlist:
         title: Channels

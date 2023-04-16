@@ -19,6 +19,8 @@ host: themoviedb.org
 
 cover: cover/tmdb.png
 
+hub: https://omega.gg/vox/tmdb
+
 items:
     playlist:
         title: Trailers
