@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.13
+version: 1.0.14
 
 title: Twitch
 
@@ -332,7 +332,7 @@ EXTRACT_TRACK: |
         SET index (INDEX_OF data "\"VideoObject\"")
         # NOTE: This means the stream is not live.
         IF (EQUAL index -1)
-            SET type "media"
+            SET type "track"
             #--------------------------------------------------------------------------------------
             # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
             SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.44
+version: 1.0.45
 
 title: Youtube
 
@@ -314,7 +314,7 @@ EXTRACT_TRACK: |
     IF (CONTAIN data "\"hlsManifestUrl\":\"")
         SET type "live"
     ELSE
-        SET type "media"
+        SET type "track"
     FI
     SET index (INDEX_OF data "=\"og:image")
     SET cover (HTML_ATTRIBUTE data "content" index)
