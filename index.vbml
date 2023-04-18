@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.108
+version: 1.0.109
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -45,7 +45,7 @@ backend_subtitle: |
 backends: |
     duckduckgo    DuckDuckGo    1.0.10 ^html.duckduckgo.com
     bittorrent    BitTorrent    1.0.20 .torrent$|^magnet:?
-    youtube       Youtube       1.0.46 ^youtube.com|^youtu.be
+    youtube       Youtube       1.0.47 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.4  ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.2  ^vimeo.com
     odysee        Odysee        1.0.4  ^odysee.com
