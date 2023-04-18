@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.14
+version: 1.0.15
 
 title: Twitch
 
@@ -137,7 +137,7 @@ QUERY_PLAYLIST: |
         SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
-        SET id 2
+        SET id 3
         # NOTE: Device-Id seems to be required here.
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"' \
@@ -353,7 +353,17 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 1) # Videos
+    IF (EQUAL id 0) # Channels
+        SET data (JSON_EXTRACT data "items")
+        FOREACH (JSON_SPLIT data) data
+            SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
+            HASH_SET track "state" "default"
+            HASH_SET track "source" source
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
+            HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
+            LIST_APPEND tracks track
+        END
+    ELIF (EQUAL id 1) # Videos
         SET data (JSON_EXTRACT data "items")
         FOREACH (JSON_SPLIT data) data
             SET source (APPEND "https://www.twitch.tv/videos/" (JSON_EXTRACT data "id"))
@@ -366,7 +376,14 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "cover" cover
             LIST_APPEND tracks track
         END
-    ELIF (EQUAL id 2) # Playlists
+    ELSE # Playlists
+        HASH_SET hub "state" "default"
+        IF (EQUAL id 3) # Collection
+            HASH_SET hub "source" "https://omega.gg/vox/twitch/collection"
+        ELSE
+            HASH_SET hub "source" "https://omega.gg/vox/twitch"
+        FI
+        LIST_APPEND tracks hub
         # NOTE: When it's a view query we set the title and cover.
         SET title (APPEND "Twitch: " queryData)
         SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/twitch.png"
@@ -380,18 +397,8 @@ EXTRACT_PLAYLIST: |
                                             "50x50" "300x300")
             LIST_APPEND tracks track
         END
-    ELSE
-        SET data (JSON_EXTRACT data "items")
-        FOREACH (JSON_SPLIT data) data
-            SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
-            HASH_SET track "state" "default"
-            HASH_SET track "source" source
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
-            HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
-            LIST_APPEND tracks track
-        END
+        RETURN
     FI
-    # NOTE: Appending the hub by default.
     HASH_SET hub "state" "default"
     HASH_SET hub "source" "https://omega.gg/vox/twitch"
     LIST_APPEND tracks hub

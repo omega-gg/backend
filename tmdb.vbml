@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.16
+version: 1.0.17
 
 search: coverVideo
 
@@ -463,6 +463,15 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
+    # NOTE: When it's a view query we set the title and cover and prepend the hub.
+    IF (EQUAL id 0)
+    AND (NOT_EQUAL queryData "")
+        SET title (APPEND "The Movie Database: " queryData)
+        SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png"
+        HASH_SET hub "state" "default"
+        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+        LIST_APPEND tracks hub
+    FI
     SET data (JSON_EXTRACT data "results")
     SET list (JSON_SPLIT data)
     FOREACH list data
@@ -508,27 +517,16 @@ EXTRACT_PLAYLIST: |
     END
     # FIXME: Sometimes we have duplicates.
     SET clearDuplicate true
-    # NOTE: When the tracks are empty we provide the hub by default.
-    IF (EQUAL (COUNT tracks) 0)
-        HASH_SET hub "state" "default"
-        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
-        LIST_APPEND tracks hub
-        RETURN
-    # NOTE: When it's a view query we set the title and cover.
-    ELIF (NOT_EQUAL queryData "")
-        SET title (APPEND "The Movie Database: " queryData)
-        SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png"
-    ELIF (EQUAL id 1)
-        HASH_SET hub "state" "default"
-        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
-        LIST_APPEND tracks hub
-        RETURN
-    FI
+    IF (EQUAL queryData "")
+        IF (EQUAL (COUNT tracks) 0)
+        OR (EQUAL id 1)
+            HASH_SET hub "state" "default"
+            HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+            LIST_APPEND tracks hub
+            RETURN
+        FI
     # NOTE: We load four pages on a view query.
-    IF (EQUAL id 4)
-        HASH_SET hub "state" "default"
-        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
-        LIST_APPEND tracks hub
+    ELIF (EQUAL id 4)
         RETURN
     FI
     HASH_SET next "url" (APPEND url "&page=" (ADD id 2))
