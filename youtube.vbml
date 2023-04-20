@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.50
+version: 1.0.51
 
 title: Youtube
 
@@ -101,7 +101,7 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET url \
-        "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
+        "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w&prettyPrint=false"
     SET header '"Content-Type" "application/json"'
     SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", "clientVersion": '     \
                      '"17.31.35", "androidSdkVersion": 30, "userAgent": '                        \
@@ -212,19 +212,19 @@ EXTRACT_SOURCE: |
                 #----------------------------------------------------------------------------------
                 # Load media
                 #----------------------------------------------------------------------------------
-                SET type (MID (SLICE_IN value '"mimeType": "' '"') 6 3)
+                SET type (MID (SLICE_IN value '"mimeType":"' '"') 6 3)
                 IF  (NOT_EQUAL type "mp4")
                 AND (NOT_EQUAL type "web")
                     CONTINUE
                 FI
-                SET quality (SLICE_IN value '"qualityLabel": "' 'p')
+                SET quality (SLICE_IN value '"qualityLabel":"' 'p')
                 IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                     CONTINUE
                 FI
                 #----------------------------------------------------------------------------------
                 # Extract url
                 #----------------------------------------------------------------------------------
-                SET source (SLICE_IN value '"url": "' '"')
+                SET source (SLICE_IN value '"url":"' '"')
                 HASH_SET medias quality source
                 #----------------------------------------------------------------------------------
             END
@@ -232,7 +232,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Load "hlsManifestUrl" for a live stream
         #------------------------------------------------------------------------------------------
-        SET source (SLICE_IN data '"hlsManifestUrl": "' '"')
+        SET source (SLICE_IN data '"hlsManifestUrl":"' '"')
         IF (LENGTH source)
             HASH_SET next "backend" "youtube"
             HASH_SET next "url" source
@@ -251,7 +251,7 @@ EXTRACT_SOURCE: |
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET audio (SLICE_IN value '"url": "' '"')
+                    SET audio (SLICE_IN value '"url":"' '"')
                     #------------------------------------------------------------------------------
                     LIST_REMOVE_AT list i
                     CONTINUE
@@ -265,7 +265,7 @@ EXTRACT_SOURCE: |
                         #--------------------------------------------------------------------------
                         # Extract url
                         #--------------------------------------------------------------------------
-                        SET audio (SLICE_IN value '"url": "' '"')
+                        SET audio (SLICE_IN value '"url":"' '"')
                         #--------------------------------------------------------------------------
                         LIST_REMOVE_AT list i
                         CONTINUE
@@ -283,18 +283,18 @@ EXTRACT_SOURCE: |
                     #------------------------------------------------------------------------------
                     # Load adaptative
                     #------------------------------------------------------------------------------
-                    SET type (MID (SLICE_IN value '"mimeType": "' '"') 6 3)
+                    SET type (MID (SLICE_IN value '"mimeType":"' '"') 6 3)
                     IF (NOT_EQUAL type "mp4")
                         CONTINUE
                     FI
-                    SET quality (SLICE_IN value '"qualityLabel": "' 'p')
+                    SET quality (SLICE_IN value '"qualityLabel":"' 'p')
                     IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
                         CONTINUE
                     FI
                     #------------------------------------------------------------------------------
                     # Extract url
                     #------------------------------------------------------------------------------
-                    SET source (SLICE_IN value '"url": "' '"')
+                    SET source (SLICE_IN value '"url":"' '"')
                     # NOTE: We skip the source when it has an invalid duration.
                     IF (CONTAIN source "&dur=0")
                         CONTINUE
@@ -307,7 +307,7 @@ EXTRACT_SOURCE: |
         FI
         # FIXME: Sometimes the request randomly fails.
         IF (EQUAL (COUNT medias) 0)
-        AND (CONTAIN data "\"status\": \"ERROR\"")
+        AND (CONTAIN data "\"status\":\"ERROR\"")
             SET reload true
         FI
     FI
