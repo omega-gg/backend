@@ -300,13 +300,15 @@ EXTRACT_SOURCE: |
         RETURN
     FI
     HASH_SET next "backend" "youtube"
-    HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
+    HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w&prettyPrint=false"
     HASH_SET next "header" '"Content-Type" "application/json"'
-    HASH_SET next "body" (APPEND '{ "context": { "client": { "clientName": "ANDROID", '    \
-                     '"clientVersion": "17.31.35", "hl": "en" }}, "videoId": "' id '", '   \
-                     '"playbackContext": { "contentPlaybackContext": { '                   \
-                     '"html5Preference": "HTML5_PREF_WANTS" } }, "contentCheckOk": true, ' \
-                     '"racyCheckOk": true }')
+    HASH_SET next "body" (APPEND '{ "context": { "client": { "clientName": "ANDROID", "clientVersion": '     \
+                                 '"17.31.35", "androidSdkVersion": 30, "userAgent": '                        \
+                                 '"com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip", "hl": ' \
+                                 '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' id         \
+                                 '", "params": "8AEB", "playbackContext": { "contentPlaybackContext": '      \
+                                 '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
+                                 '"racyCheckOk": true }')
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
@@ -535,7 +537,7 @@ EXTRACT_PLAYLIST: |
         OR (EQUAL id 1)
             HASH_SET hub "state" "default"
             HASH_SET hub "source" "https://omega.gg/vox/tmdb"
-            LIST_APPEND tracks (LIST_GET queryData 3)
+            LIST_APPEND tracks hub
             RETURN
         FI
     # NOTE: We load four pages on a view query.
