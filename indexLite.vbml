@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.116
+version: 1.0.117
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -50,7 +50,7 @@ backends: |
     twitch        Twitch        1.0.15 ^twitch.tv
     tiktok        TikTok        1.0.3  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
-    tmdb          TMDB          1.0.18 ^themoviedb.org
+    tmdb          TMDB          1.0.19 ^themoviedb.org
     lastfm        Last.fm       1.0.1  ^last.fm
     opensubtitles OpenSubtitles 1.0.6  ^opensubtitles.org
 

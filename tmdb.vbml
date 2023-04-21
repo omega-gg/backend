@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.18
+version: 1.0.19
 
 search: coverVideo
 
@@ -92,12 +92,23 @@ CREATE_QUERY: |
         IF (START_WITH q "discover")
             SET url (APPEND "https://api.themoviedb.org/3/" q \
                             "&api_key=8341de77e3a24593226752d83720f88b")
-            SET queryData (SLICE_IN q '/' '?')
+            SET label (SLICE_IN q '/' '?')
+            IF (CONTAIN q "with_watch_providers=8") # Netflix
+                SET queryData \
+                    (LIST "Netflix: " label \
+                          "https://omega.gg/vox/repository/hub/tmdb/hub/netflix/netflix.png" \
+                          "https://omega.gg/vox/netflix")
+                RETURN
+            FI
         ELSE
             SET url (APPEND "https://api.themoviedb.org/3/" (URL_ENCODE q) \
                             "?api_key=8341de77e3a24593226752d83720f88b")
-            SET queryData (MID q 0 (INDEX_OF q '/'))
+            SET label (MID q 0 (INDEX_OF q '/'))
         FI
+        SET queryData \
+            (LIST "The Movie Database: " label \
+            "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
+            "https://omega.gg/vox/tmdb")
         RETURN
     FI
     #----------------------------------------------------------------------------------------------
@@ -467,29 +478,29 @@ EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
     # NOTE: When it's a view query we set the title and cover and prepend the hub.
     IF (EQUAL id 0)
-    AND (NOT_EQUAL queryData "")
-        SET title (APPEND "The Movie Database: " queryData)
-        SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png"
+    AND (NOT_EQUAL (COUNT queryData) 0)
+        SET title (APPEND (LIST_GET queryData 0) (LIST_GET queryData 1))
+        SET cover (LIST_GET queryData 2)
         HASH_SET hub "state" "default"
-        HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+        HASH_SET hub "source" (LIST_GET queryData 3)
         LIST_APPEND tracks hub
     FI
     SET data (JSON_EXTRACT data "results")
     SET list (JSON_SPLIT data)
     FOREACH list data
-        IF (EQUAL queryData "")
+        IF (COUNT queryData)
+            SET source (APPEND "https://www.themoviedb.org/" (LIST_GET queryData 1) '/' \
+                               (JSON_EXTRACT data "id"))
+        ELSE
             SET source (APPEND "https://www.themoviedb.org/" (JSON_EXTRACT data "media_type") '/' \
                                                              (JSON_EXTRACT data "id"))
-        ELSE
-            SET source (APPEND "https://www.themoviedb.org/" queryData '/' \
-                               (JSON_EXTRACT data "id"))
         FI
         #------------------------------------------------------------------------------------------
         # Title
         #------------------------------------------------------------------------------------------
-        SET title (JSON_EXTRACT_UTF8 data "title")
-        IF (EQUAL title "")
-            SET title (JSON_EXTRACT_UTF8 data "name")
+        SET name (JSON_EXTRACT_UTF8 data "title")
+        IF (EQUAL name "")
+            SET name (JSON_EXTRACT_UTF8 data "name")
         FI
         SET date (JSON_EXTRACT data "release_date")
         IF (EQUAL date "")
@@ -497,34 +508,34 @@ EXTRACT_PLAYLIST: |
         FI
         IF (NOT_EQUAL date "")
             SET date (MID date 0 (INDEX_OF date '-'))
-            SET title (APPEND title " (" date ')')
+            SET name (APPEND name " (" date ')')
         FI
         #------------------------------------------------------------------------------------------
         # Cover
         #------------------------------------------------------------------------------------------
-        SET cover (JSON_EXTRACT data "backdrop_path")
-        IF (EQUAL cover "null")
-            SET cover (JSON_EXTRACT data "poster_path")
+        SET backdrop (JSON_EXTRACT data "backdrop_path")
+        IF (EQUAL backdrop "null")
+            SET backdrop (JSON_EXTRACT data "poster_path")
         FI
-        IF (EQUAL cover "null")
-            SET cover ""
+        IF (EQUAL backdrop "null")
+            SET backdrop ""
         ELSE
-            SET cover (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2" cover)
+            SET backdrop (APPEND "https://image.tmdb.org/t/p/w1920_and_h1080_bestv2" backdrop)
         FI
         #------------------------------------------------------------------------------------------
         HASH_SET track "source" source
-        HASH_SET track "title" title
-        HASH_SET track "cover" cover
+        HASH_SET track "title" name
+        HASH_SET track "cover" backdrop
         LIST_APPEND tracks track
     END
     # FIXME: Sometimes we have duplicates.
     SET clearDuplicate true
-    IF (EQUAL queryData "")
+    IF (EQUAL (COUNT queryData) 0)
         IF (EQUAL (COUNT tracks) 0)
         OR (EQUAL id 1)
             HASH_SET hub "state" "default"
             HASH_SET hub "source" "https://omega.gg/vox/tmdb"
-            LIST_APPEND tracks hub
+            LIST_APPEND tracks (LIST_GET queryData 3)
             RETURN
         FI
     # NOTE: We load four pages on a view query.
