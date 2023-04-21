@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.17
+version: 1.0.18
 
 search: coverVideo
 
@@ -89,12 +89,14 @@ CREATE_QUERY: |
         FI
         RETURN
     ELIF (EQUAL method "view")
-        SET url (APPEND "https://api.themoviedb.org/3/" (URL_ENCODE q) \
-                        "?api_key=8341de77e3a24593226752d83720f88b")
-        IF (START_WITH q "movie/")
-            SET queryData "movie"
-        ELIF (START_WITH q "tv/")
-            SET queryData "tv"
+        IF (START_WITH q "discover")
+            SET url (APPEND "https://api.themoviedb.org/3/" q \
+                            "&api_key=8341de77e3a24593226752d83720f88b")
+            SET queryData (SLICE_IN q '/' '?')
+        ELSE
+            SET url (APPEND "https://api.themoviedb.org/3/" (URL_ENCODE q) \
+                            "?api_key=8341de77e3a24593226752d83720f88b")
+            SET queryData (MID q 0 (INDEX_OF q '/'))
         FI
         RETURN
     FI
