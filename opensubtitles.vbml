@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 title: OpenSubtitles
 
@@ -147,7 +147,7 @@ EXTRACT_FOLDER: |
     SET data (SLICE_IN data "<tbody>" "</tbody>")
     SET list (SLICES data "<tr onclick" "</tr>")
     FOREACH list value
-        SET title (SLICE_IN value "<br/>" "<br/>")
+        SET title (SLICE_IN value "<br />" "<br />")
         IF (EQUAL (LENGTH title) 0)
             CONTINUE
         FI
