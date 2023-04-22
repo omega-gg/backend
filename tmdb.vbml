@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.20
+version: 1.0.21
 
 search: coverVideo
 
@@ -98,6 +98,12 @@ CREATE_QUERY: |
                     (LIST "Netflix: " label \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/netflix/netflix.png" \
                           "https://omega.gg/vox/netflix")
+                RETURN
+            ELIF (CONTAIN q "with_watch_providers=337") # Disney+
+                SET queryData \
+                    (LIST "Disney+: " label \
+                          "https://omega.gg/vox/repository/hub/tmdb/hub/disney/disney.png" \
+                          "https://omega.gg/vox/disney")
                 RETURN
             FI
         ELSE
