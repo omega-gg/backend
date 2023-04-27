@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.11
+version: 1.0.12
 
 search: tracks
 
@@ -35,6 +35,7 @@ validate: ^html.duckduckgo.com
 
 CREATE_QUERY: |
     IF (EQUAL method "search")
+    OR (EQUAL method "related")
         SET q (SIMPLIFY q)
         # NOTE: Appending " !" to a search query redirects to the first result by default.
         IF (EQUAL (INDEX_END q " !") (LENGTH q))

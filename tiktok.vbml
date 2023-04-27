@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.3
+version: 1.0.4
 
 title: TikTok
 
@@ -82,20 +82,6 @@ QUERY_PLAYLIST: |
     SET url (APPEND "https://tiktok.com/" id)
     RETURN true
 
-CREATE_QUERY: |
-    IF (EQUAL method "search")
-        IF (EQUAL label "tracks")
-            SET url "https://urlebird.com/fr/search/"
-            # NOTE: Removing hashtags because they are badly supported by the search.
-            URL_ADD_QUERY url "q" (URL_ENCODE (REPLACE q '#' ''))
-            SET id 1
-        FI
-    ELIF (EQUAL method "related")
-    AND (EQUAL label "tracks")
-        SET url (APPEND "https://tiktok.com/" q)
-        SET id 2
-    FI
-
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
     SET data (SLICE_IN data "list\":[" "}},{")
@@ -114,60 +100,17 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 0) # Feed
-        SET index (INDEX_OF data "property=\"og:title\"")
-        SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-        SET title (CHOP title 9)
-        SET index (INDEX_OF data "property=\"og:image\"")
-        # NOTE: Utf8 is required for the url extension.
-        SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
-        SET url (APPEND url "/video/")
-        SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
-        SET list (SPLIT list '","')
-        FOREACH list data
-            HASH_SET track "state" "default"
-            HASH_SET track "source" (APPEND url data)
-            LIST_APPEND tracks track
-        END
-        RETURN
-    ELIF (EQUAL id 2) # Related
-        SET data (SLICE_IN data "list\":[" "}},{")
-        # NOTE: Removing hashtags because they are badly supported by the search.
-        SET q (REPLACE (JSON_EXTRACT_UTF8 data "desc") '#' '')
-        SET url "https://urlebird.com/search/"
-        URL_ADD_QUERY url "q" q
-        HASH_SET next "url" url
-        HASH_SET next "id" 1
-        RETURN
-    ELIF (EQUAL id 3)
-        SET data (JSON_EXTRACT_HTML data "thumbs")
-    ELIF (EQUAL id 1)
-        SET body (SLICE_IN data "search_load_more" '<')
-        SET body (APPEND '{"q":"'    (HTML_ATTRIBUTE data "data-q") \
-                           '","c":"' (HTML_ATTRIBUTE data "data-c") \
-                           '","x":"' (HTML_ATTRIBUTE data "data-x") '"}')
-        HASH_SET next "url" "https://urlebird.com/ajax/"
-        HASH_SET next "id" 3
-        HASH_SET next "header" '"Content-Type" "application/x-www-form-urlencoded"'
-        HASH_SET next "body" (APPEND "action=search&data=" (URL_ENCODE body))
-    FI
-    SET list (SLICES data "<div class=\"author text-right\">" \
-                          "<div class=\"overlay-shadow\">")
+    SET index (INDEX_OF data "property=\"og:title\"")
+    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+    SET title (CHOP title 9)
+    SET index (INDEX_OF data "property=\"og:image\"")
+    # NOTE: Utf8 is required for the url extension.
+    SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
+    SET url (APPEND url "/video/")
+    SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
+    SET list (SPLIT list '","')
     FOREACH list data
-        SET index (INDEX_OF data "\"author-name\"")
-        SET feed (SLICE_IN data "/\">" "</a>" index)
-        SET index (INDEX_END data "</div>" index)
-        SET id (SLICE_IN (HTML_ATTRIBUTE data "href" index) "/video/" '/')
-        SET id (MID id (LAST_INDEX_END id '-'))
-        SET title (HTML_TO_UTF8 (SLICE_IN data "<span>" "</span>" index))
-        SET index (LAST_INDEX_END data "<img")
-        SET cover (HTML_ATTRIBUTE data "data-src" index)
-        IF (EQUAL cover "")
-            SET cover (HTML_ATTRIBUTE data "src" index)
-        FI
         HASH_SET track "state" "default"
-        HASH_SET track "source" (APPEND "https://www.tiktok.com/" feed "/video/" id)
-        HASH_SET track "title" title
-        HASH_SET track "cover" cover
+        HASH_SET track "source" (APPEND url data)
         LIST_APPEND tracks track
     END
