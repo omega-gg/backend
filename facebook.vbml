@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.2
+version: 1.0.3
 
 title: Facebook
 
@@ -32,16 +32,28 @@ TRACK_ID: |
     IF (EQUAL (START_WITH url "facebook.com/") false)
         RETURN ""
     FI
-    SET index (INDEX_END url (REGEXP "\\?v=|/embed/|/videos/"))
-    IF (NOT_EQUAL index -1)
+    SET index (INDEX_END url (REGEXP "\\?v=|/embed/|/reel/"))
+    IF (EQUAL index -1)
+        SET index (INDEX_END url "/videos/")
+        IF (EQUAL index -1)
+            RETURN ""
+        FI
+        SET url (URL_REMOVE_EXTENSION url)
+        IF (END_WITH url '/')
+            SET url (CHOP url 1)
+        FI
+        RETURN (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    ELSE
         RETURN (URL_ELEMENT url index)
     FI
 
 PLAYLIST_INFO: |
-    SET url (URL_REMOVE_PREFIX url)
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (START_WITH url "facebook.com/") false)
-    OR (EQUAL (CONTAIN url "/videos") false)
-    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+    OR (CONTAIN url "/reel/")
+        RETURN false
+    ELIF (EQUAL (CONTAIN url "/videos") false)
+    AND (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
     SET type "feed"
@@ -59,11 +71,20 @@ QUERY_SOURCE: |
     IF (EQUAL (START_WITH url "facebook.com/") false)
         RETURN false
     FI
-    SET index (INDEX_END url (REGEXP "\\?v=|/embed/"))
+    SET index (INDEX_END url (REGEXP "\\?v=|/embed/|/reel/"))
     IF (EQUAL index -1)
-        RETURN false
+        SET index (INDEX_END url "/videos/")
+        IF (EQUAL index -1)
+            RETURN false
+        FI
+        SET url (URL_REMOVE_EXTENSION url)
+        IF (END_WITH url '/')
+            SET url (CHOP url 1)
+        FI
+        SET url (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    ELSE
+        SET url (URL_ELEMENT url index)
     FI
-    SET url (URL_ELEMENT url index)
     SET url (APPEND "https://www.facebook.com/video/playback/dash_mpd_debug.mpd?v=" url \
                     "&dummy=.mpd")
     # NOTE: This seems required to get proper results.
@@ -75,20 +96,31 @@ QUERY_TRACK: |
     IF (EQUAL (START_WITH url "facebook.com/") false)
         RETURN false
     FI
-    SET index (INDEX_END url (REGEXP "\\?v=|/embed/|/videos/"))
+    SET index (INDEX_END url (REGEXP "\\?v=|/embed/|/reel/"))
     IF (EQUAL index -1)
-        RETURN false
+        SET index (INDEX_END url "/videos/")
+        IF (EQUAL index -1)
+            RETURN false
+        FI
+        IF (END_WITH url '/')
+            SET url (CHOP url 1)
+        FI
+        SET url (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    ELSE
+        SET url (URL_ELEMENT url index)
     FI
-    SET url (APPEND "https://www.facebook.com/watch/?v=" (URL_ELEMENT url index))
+    SET url (APPEND "https://www.facebook.com/watch/?v=" url)
     # NOTE: This seems required to get proper json results.
     SET header '"accept" "text/html'
     RETURN true
 
 QUERY_PLAYLIST: |
-    SET url (URL_REMOVE_PREFIX url)
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (START_WITH url "facebook.com/") false)
-    OR (EQUAL (CONTAIN url "/videos") false)
-    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+    OR (CONTAIN url "/reel/")
+        RETURN false
+    ELIF (EQUAL (CONTAIN url "/videos") false)
+    AND (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
     SET url (URL_ELEMENT url (INDEX_END url '/'))
@@ -98,11 +130,20 @@ QUERY_PLAYLIST: |
                        '"accept" "text/html')
     RETURN true
 
+CREATE_QUERY: |
+    IF (NOT_EQUAL method "related")
+        RETURN
+    FI
+    SET url (APPEND "https://www.facebook.com/watch/?v=" q)
+    SET id 1
+    # NOTE: This seems required to get proper json results.
+    SET header '"accept" "text/html'
+
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    SET audio (SLICE_IN data "mimeType=\"audio/mp4\"" "</BaseURL>")
+    SET audio (SLICE_IN data "mimeType=\"audio" "</BaseURL>")
     SET audio (HTML_TO_UTF8 (MID audio (INDEX_END audio <BaseURL>)))
-    SET list (SLICES_IN data "mimeType=\"video/mp4\"" "</BaseURL>")
+    SET list (SLICES_IN data "mimeType=\"video" "</BaseURL>")
     FOREACH list value
         SET quality (CHOP (HTML_ATTRIBUTE value "FBQualityLabel") 1)
         SET value (HTML_TO_UTF8 (MID value (INDEX_END value <BaseURL>)))
@@ -121,6 +162,25 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
+    IF (EQUAL id 1) # Related
+        SET data (JSON_EXTRACT_HTML data "edges" \
+                                    (INDEX_END data "\"video_home_www_related_videos_section\""))
+        SET list (JSON_SPLIT data)
+        FOREACH list data
+            HASH_SET track "source" (JSON_EXTRACT_UTF8 data "canonical_uri_with_fallback")
+            SET index (INDEX_END data "\"video\"")
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name" index)
+            SET index (INDEX_END data "\"image\"")
+            HASH_SET track "cover" (JSON_EXTRACT data "uri" index)
+            SET index (INDEX_END data "\"owner\"")
+            HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" INDEX)
+            HASH_SET track "feed" (JSON_EXTRACT data "uri_token" INDEX)
+            HASH_SET track "duration" (JSON_EXTRACT data "playable_duration_in_ms")
+            HASH_SET track "date" (JSON_EXTRACT data "publish_time")
+            LIST_APPEND tracks track
+        END
+        RETURN
+    FI
     SET index (INDEX_OF data "property=\"og:title\"")
     SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET index (INDEX_OF data "property=\"og:image\"")
@@ -129,8 +189,7 @@ EXTRACT_PLAYLIST: |
     SET list (JSON_SPLIT data)
     FOREACH list data
         SET index (INDEX_END data "\"VideoPageVideoThumbnailVideoChannel\"")
-        # NOTE: For some reason there's an extra '/' at the end of the url.
-        HASH_SET track "source" (CHOP (JSON_EXTRACT data "url" index) 1)
+        HASH_SET track "source" (JSON_EXTRACT_UTF8 data "url" index)
         SET index (INDEX_END data "\"savable_title\"")
         HASH_SET track "title" (JSON_EXTRACT_UTF8 data "text" index)
         SET index (INDEX_END data "\"VideoThumbnailImage\"")

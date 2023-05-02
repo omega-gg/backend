@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.126
+version: 1.0.127
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -49,7 +49,7 @@ backends: |
     youtube       Youtube       1.0.51 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.4  ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.2  ^vimeo.com
-    facebook      Facebook      1.0.2  ^facebook.com
+    facebook      Facebook      1.0.3  ^facebook.com
     odysee        Odysee        1.0.4  ^odysee.com
     twitch        Twitch        1.0.15 ^twitch.tv
     tiktok        TikTok        1.0.4  ^tiktok.com
