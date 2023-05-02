@@ -39,9 +39,6 @@ TRACK_ID: |
 URL_TRACK: |
     RETURN (APPEND "https://odysee.com/" id)
 
-QUERY_TRACK: |
-    RETURN true
-
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (START_WITH url "odysee.com/") false)
@@ -55,6 +52,9 @@ QUERY_SOURCE: |
     SET body (APPEND '{ "method": "resolve", \
                         "params": { "urls": [ "lbry://' (REPLACE id ':' '#') '" ] }}')
     SET queryData id
+    RETURN true
+
+QUERY_TRACK: |
     RETURN true
 
 EXTRACT_SOURCE: |
