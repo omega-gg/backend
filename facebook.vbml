@@ -9,13 +9,17 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.0
+version: 1.0.1
 
 title: Facebook
 
 host: facebook.com
 
 cover: cover/facebook.png
+
+items:
+    playlist:
+        title: Tracks
 
 validate: ^facebook.com
 
