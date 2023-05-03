@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.15
+version: 1.0.16
 
 title: Twitch
 
@@ -311,7 +311,7 @@ EXTRACT_TRACK: |
     IF (EQUAL id 1)
         #------------------------------------------------------------------------------------------
         # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
-        SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
+        SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
         SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
         # NOTE: Sometimes Twitch returns an empty page so we reload it one second later
         #       (delay in QUERY_TRACK).
@@ -319,7 +319,7 @@ EXTRACT_TRACK: |
             SET reload true
             RETURN
         FI
-        SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
+        SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
         SET cover (HTML_ATTRIBUTE data "content" index)
         #------------------------------------------------------------------------------------------
         # NOTE: We make sure we have a valid cover before fixing it.
@@ -335,9 +335,9 @@ EXTRACT_TRACK: |
             SET type "track"
             #--------------------------------------------------------------------------------------
             # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
-            SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:title\""))
+            SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
             SET title (HTML_TO_UTF8 (SLICE_IN data "content=\"" " -" index))
-            SET index (LAST_INDEX_OF data '<' (INDEX_OF data "property=\"og:image\""))
+            SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
             SET cover (HTML_ATTRIBUTE data "content" index)
             #--------------------------------------------------------------------------------------
             RETURN

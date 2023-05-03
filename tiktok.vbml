@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.4
+version: 1.0.5
 
 title: TikTok
 
@@ -100,10 +100,10 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    SET index (INDEX_OF data "property=\"og:title\"")
+    SET index (INDEX_END data "property=\"og:title\"")
     SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET title (CHOP title 9)
-    SET index (INDEX_OF data "property=\"og:image\"")
+    SET index (INDEX_END data "property=\"og:image\"")
     # NOTE: Utf8 is required for the url extension.
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET url (APPEND url "/video/")

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.3
+version: 1.0.4
 
 title: Facebook
 
@@ -102,6 +102,7 @@ QUERY_TRACK: |
         IF (EQUAL index -1)
             RETURN false
         FI
+        SET url (URL_REMOVE_EXTENSION url)
         IF (END_WITH url '/')
             SET url (CHOP url 1)
         FI
@@ -153,12 +154,14 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET index (INDEX_OF data "property=\"og:title\"")
+    SET index (INDEX_END data "property=\"og:title\"")
     SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-    SET index (INDEX_OF data "property=\"og:image\"")
+    SET index (INDEX_END data "property=\"og:image\"")
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET feed (JSON_EXTRACT data "page_token")
     SET author (JSON_EXTRACT_UTF8 data "name" (INDEX_END data "\"actors\""))
+    SET duration (JSON_EXTRACT data "playable_duration_in_ms")
+    SET date (JSON_EXTRACT data "publish_time")
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
@@ -173,17 +176,17 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_END data "\"image\"")
             HASH_SET track "cover" (JSON_EXTRACT data "uri" index)
             SET index (INDEX_END data "\"owner\"")
-            HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" INDEX)
-            HASH_SET track "feed" (JSON_EXTRACT data "uri_token" INDEX)
+            HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" index)
+            HASH_SET track "feed" (JSON_EXTRACT data "uri_token" index)
             HASH_SET track "duration" (JSON_EXTRACT data "playable_duration_in_ms")
             HASH_SET track "date" (JSON_EXTRACT data "publish_time")
             LIST_APPEND tracks track
         END
         RETURN
     FI
-    SET index (INDEX_OF data "property=\"og:title\"")
+    SET index (INDEX_END data "property=\"og:title\"")
     SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-    SET index (INDEX_OF data "property=\"og:image\"")
+    SET index (INDEX_END data "property=\"og:image\"")
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET data (JSON_EXTRACT_HTML data "edges" (INDEX_END data "\"all_videos\""))
     SET list (JSON_SPLIT data)
