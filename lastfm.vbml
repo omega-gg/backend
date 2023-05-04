@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
 api: 1.0.1
 
-version: 1.0.4
+version: 1.0.5
 
 search: coverAudio
 
@@ -212,22 +212,6 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_END data "property=\"og:image\"")
         SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
         SET list (SLICES_IN data "chartlist-play-button" "</div")
-        FOREACH list data
-            SET source (SLICE_IN data "data-track-url=\"" '"')
-            IF (EQUAL source "")
-                CONTINUE
-            FI
-            SET name (HTML_TO_UTF8 (SLICE_IN data "data-track-name=\"" '"'))
-            SET author (HTML_TO_UTF8 (SLICE_IN data "data-artist-name=\"" '"'))
-            SET url (REPLACE (SLICE_IN data "src=\"" '"') (REGEXP "/300x300/|/64s/") "/ar0/")
-            HASH_SET track "state" "default"
-            HASH_SET track "source" (APPEND "https://www.last.fm" (HTML_TO_UTF8 source))
-            HASH_SET track "title" (APPEND author " - " name)
-            HASH_SET track "cover" url
-            HASH_SET track "author" author
-            LIST_APPEND tracks track
-        END
-        RETURN
     ELIF (EQUAL id 1) # Search
         SET list (SLICES_IN data "chartlist-play-button" "</div")
     ELIF (EQUAL id 2) # Related
