@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 search: coverAudio
 
@@ -37,7 +37,20 @@ TRACK_ID: |
     FI
     RETURN (URL_ELEMENTS url 3 (INDEX_END url "/music/"))
 
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (START_WITH url "last.fm/") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+        RETURN false
+    FI
+    SET type "feed"
+    SET id (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    RETURN true
+
 URL_TRACK: |
+    RETURN (APPEND "https://www.last.fm/music/" id)
+
+URL_PLAYLIST: |
     RETURN (APPEND "https://www.last.fm/music/" id)
 
 QUERY_SOURCE: |
@@ -60,11 +73,24 @@ QUERY_TRACK: |
     SET url (APPEND "https://www.last.fm/music/" url)
     RETURN true
 
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (START_WITH url "last.fm/") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+        RETURN false
+    FI
+    SET url (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    SET url (APPEND "https://www.last.fm/music/" url "/+tracks?date_preset=LAST_7_DAYS")
+    RETURN true
+
 CREATE_QUERY: |
     IF (EQUAL method "search")
+        SET url (APPEND "https://www.last.fm/search/tracks?q=" q)
+        SET id 1
         RETURN
     ELIF (EQUAL method "related")
         SET url (APPEND "https://www.last.fm/music/" q)
+        SET id 2
         RETURN
     ELIF (NOT_EQUAL method "cover")
         RETURN
@@ -97,15 +123,12 @@ EXTRACT_SOURCE: |
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     IF (EQUAL id 0)
-        SET index (INDEX_END data "property=\"og:title\"")
-        SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-        # NOTE: The title is encoded twice so we call HTML_TO_UTF8 a second time.
-        SET title (HTML_TO_UTF8 (MID title 0 (INDEX_OF title " —")))
+        SET title (HTML_TO_UTF8 (SLICE_IN data "data-page-resource-name=\"" '"'))
         SET index (INDEX_END data "property=\"og:image\"")
         SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
         SET index (INDEX_END data "header-new-crumb")
         SET feed (APPEND "https://www.last.fm" (HTML_ATTRIBUTE data "href" index))
-        SET author (SLICE_IN data "\"name\">" '<' index)
+        SET author (HTML_TO_UTF8 (SLICE_IN data "\"name\">" '<' index))
         SET title (APPEND author " - " title)
         SET index (INDEX_END data "\"catalogue-metadata-description\"")
         SET duration (SIMPLIFY (SLICE_IN data '>' '<' index))
@@ -181,19 +204,46 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    SET list (SLICES_IN data "<div class=\"media-item" "</div")
+    IF (EQUAL id 0) # Feed
+        SET title (HTML_TO_UTF8 (SLICE_IN data "data-page-resource-name=\"" '"'))
+        SET index (INDEX_END data "property=\"og:image\"")
+        SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
+        SET list (SLICES_IN data "chartlist-play-button" "</div")
+        FOREACH list data
+            SET source (SLICE_IN data "data-track-url=\"" '"')
+            IF (EQUAL source "")
+                CONTINUE
+            FI
+            SET name (HTML_TO_UTF8 (SLICE_IN data "data-track-name=\"" '"'))
+            SET author (HTML_TO_UTF8 (SLICE_IN data "data-artist-name=\"" '"'))
+            SET url (REPLACE (SLICE_IN data "src=\"" '"') (REGEXP "/300x300/|/64s/") "/ar0/")
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.last.fm" (HTML_TO_UTF8 source))
+            HASH_SET track "title" (APPEND author " - " name)
+            HASH_SET track "cover" url
+            HASH_SET track "author" author
+            LIST_APPEND tracks track
+        END
+        RETURN
+    ELIF (EQUAL id 1) # Search
+        SET list (SLICES_IN data "chartlist-play-button" "</div")
+    ELIF (EQUAL id 2) # Related
+        SET list (SLICES_IN data "<div class=\"media-item" "</div")
+    FI
     FOREACH list data
         SET source (SLICE_IN data "data-track-url=\"" '"')
         IF (EQUAL source "")
+        OR (LIST_CONTAIN urls source)
             CONTINUE
         FI
-        SET title (HTML_TO_UTF8 (SLICE_IN data "data-track-name=\"" '"'))
+        LIST_APPEND urls source
+        SET name (HTML_TO_UTF8 (SLICE_IN data "data-track-name=\"" '"'))
         SET author (HTML_TO_UTF8 (SLICE_IN data "data-artist-name=\"" '"'))
-        SET cover (REPLACE (SLICE_IN data "src=\"" '"') "/300x300/" "/ar0/")
+        SET url (REPLACE (SLICE_IN data "src=\"" '"') (REGEXP "/300x300/|/64s/") "/ar0/")
         HASH_SET track "state" "default"
-        HASH_SET track "source" (APPEND "https://www.last.fm" source)
-        HASH_SET track "title" (APPEND author " - " title)
-        HASH_SET track "cover" cover
+        HASH_SET track "source" (APPEND "https://www.last.fm" (HTML_TO_UTF8 source))
+        HASH_SET track "title" (APPEND author " - " name)
+        HASH_SET track "cover" url
         HASH_SET track "author" author
         LIST_APPEND tracks track
     END
