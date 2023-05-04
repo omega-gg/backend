@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.4
+version: 1.0.5
 
 title: Facebook
 
@@ -156,6 +156,7 @@ EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     SET index (INDEX_END data "property=\"og:title\"")
     SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+    SET title (MID title 0 (INDEX_OF title " |"))
     SET index (INDEX_END data "property=\"og:image\"")
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET feed (JSON_EXTRACT data "page_token")
