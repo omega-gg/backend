@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.5
+version: 1.0.6
 
 title: Facebook
 
@@ -154,8 +154,8 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET index (INDEX_END data "property=\"og:title\"")
-    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+    # NOTE: For some reason, when parsing the og:title we get invalid emoticons.
+    SET title (HTML_TO_UTF8 (SLICE_IN data "<title>" "</title>"))
     SET title (MID title 0 (INDEX_OF title " |"))
     SET index (INDEX_END data "property=\"og:image\"")
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
@@ -173,7 +173,7 @@ EXTRACT_PLAYLIST: |
         FOREACH list data
             HASH_SET track "source" (JSON_EXTRACT_UTF8 data "canonical_uri_with_fallback")
             SET index (INDEX_END data "\"video\"")
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name" index)
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "text" index)
             SET index (INDEX_END data "\"image\"")
             HASH_SET track "cover" (JSON_EXTRACT data "uri" index)
             SET index (INDEX_END data "\"owner\"")
@@ -185,8 +185,8 @@ EXTRACT_PLAYLIST: |
         END
         RETURN
     FI
-    SET index (INDEX_END data "property=\"og:title\"")
-    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+    # NOTE: For some reason, when parsing the og:title we get invalid emoticons.
+    SET title (HTML_TO_UTF8 (SLICE_IN data "<title>" "</title>"))
     SET index (INDEX_END data "property=\"og:image\"")
     SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
     SET data (JSON_EXTRACT_HTML data "edges" (INDEX_END data "\"all_videos\""))

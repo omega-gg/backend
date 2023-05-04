@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 search: coverAudio
 
@@ -131,8 +131,11 @@ EXTRACT_TRACK: |
         SET author (HTML_TO_UTF8 (SLICE_IN data "\"name\">" '<' index))
         SET title (APPEND author " - " title)
         SET index (INDEX_END data "\"catalogue-metadata-description\"")
-        SET duration (SIMPLIFY (SLICE_IN data '>' '<' index))
-        SET duration (TIME duration "m:ss")
+        # NOTE: Sometimes the duration is missing from the page.
+        IF (NOT_EQUAL index -1)
+            SET duration (SIMPLIFY (SLICE_IN data '>' '<' index))
+            SET duration (TIME duration "m:ss")
+        FI
         RETURN
     FI
     IF (EQUAL id 2)
