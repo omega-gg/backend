@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.51
+version: 1.0.52
 
 title: Youtube
 
@@ -327,10 +327,9 @@ EXTRACT_TRACK: |
     SET title (JSON_EXTRACT_UTF8 json "title")
     SET author (JSON_EXTRACT_UTF8 json "author")
     SET duration (JSON_EXTRACT json "lengthSeconds")
-    SET index (INDEX_OF data "itemprop=\"channelId")
-    SET feed (HTML_ATTRIBUTE data "content" index)
-    SET index (INDEX_OF data "itemprop=\"uploadDate" index)
-    SET date (HTML_ATTRIBUTE data "content" index)
+    SET feed (JSON_EXTRACT json "channelId")
+    SET index (INDEX_OF data "\"uploadDate\":" index)
+    SET date (JSON_EXTRACT data "uploadDate" index)
     SET feed (APPEND "https://www.youtube.com/channel/" (URL_PATH feed))
     SET duration (MULTIPLY duration 1000)
     SET date (DATE date "yyyy-MM-dd")
