@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.12
+version: 1.0.13
 
 search: tracks
 
@@ -91,7 +91,7 @@ EXTRACT_PLAYLIST: |
         END
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 2) # Tracks
-        SET url (SLICE_IN data "vqd='" "'")
+        SET url (SLICE_IN data "vqd=\"" '"')
         SET url (APPEND "https://duckduckgo.com/v.js?q=" (URL_ENCODE queryData) \
                         "&o=json&p=-1&sr=1&vqd=" url "&f=,,,&l=us-en")
         HASH_SET next "url" url
