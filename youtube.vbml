@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.53
+version: 1.0.54
 
 title: Youtube
 
@@ -247,12 +247,14 @@ EXTRACT_SOURCE: |
             SET sources (SLICE_IN data '"adaptiveFormats"' ']')
             SET list (SPLIT sources "approxDurationMs")
             FOREACH list value
-                IF (CONTAIN value "opus")
-                    #------------------------------------------------------------------------------
-                    # Extract url
-                    #------------------------------------------------------------------------------
-                    SET audio (SLICE_IN value '"url":"' '"')
-                    #------------------------------------------------------------------------------
+                IF (CONTAIN value "ec-3")
+                    IF (EQUAL (CONTAIN value "AUDIO_QUALITY_ULTRALOW") false)
+                        #--------------------------------------------------------------------------
+                        # Extract url
+                        #--------------------------------------------------------------------------
+                        SET audio (SLICE_IN value '"url":"' '"')
+                        #--------------------------------------------------------------------------
+                    FI
                     LIST_REMOVE_AT list i
                     CONTINUE
                 FI
@@ -261,12 +263,30 @@ EXTRACT_SOURCE: |
             IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
+                    IF (CONTAIN value "opus")
+                        IF (EQUAL (CONTAIN value "AUDIO_QUALITY_ULTRALOW") false)
+                            #----------------------------------------------------------------------
+                            # Extract url
+                            #----------------------------------------------------------------------
+                            SET audio (SLICE_IN value '"url":"' '"')
+                            #----------------------------------------------------------------------
+                        FI
+                        LIST_REMOVE_AT list i
+                        CONTINUE
+                    FI
+                    SET i (ADD i 1)
+                END
+            ELIF (EQUAL (LENGTH audio) 0)
+                SET i 0
+                FOREACH list value
                     IF (CONTAIN value "mp4a")
-                        #--------------------------------------------------------------------------
-                        # Extract url
-                        #--------------------------------------------------------------------------
-                        SET audio (SLICE_IN value '"url":"' '"')
-                        #--------------------------------------------------------------------------
+                        IF (EQUAL (CONTAIN value "AUDIO_QUALITY_ULTRALOW") false)
+                            #----------------------------------------------------------------------
+                            # Extract url
+                            #----------------------------------------------------------------------
+                            SET audio (SLICE_IN value '"url":"' '"')
+                            #----------------------------------------------------------------------
+                        FI
                         LIST_REMOVE_AT list i
                         CONTINUE
                     FI
