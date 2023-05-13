@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.6
+version: 1.0.7
 
 title: OpenSubtitles
 
@@ -147,9 +147,13 @@ EXTRACT_FOLDER: |
     SET data (SLICE_IN data "<tbody>" "</tbody>")
     SET list (SLICES data "<tr onclick" "</tr>")
     FOREACH list value
+        # FIXME: Sometimes the 'br' syntax changes overnight.
         SET title (SLICE_IN value "<br />" "<br />")
         IF (EQUAL (LENGTH title) 0)
-            CONTINUE
+            SET title (SLICE_IN value "<br/>" "<br/>")
+            IF (EQUAL (LENGTH title) 0)
+                CONTINUE
+            FI
         FI
         IF (START_WITH title "<span ")
             SET title (HTML_ATTRIBUTE title "title")
