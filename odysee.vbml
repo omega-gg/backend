@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.3
 
-version: 1.0.5
+version: 1.0.6
 
 title: Odysee
 
@@ -49,8 +49,8 @@ QUERY_SOURCE: |
     SET id (MID url (INDEX_END url '/'))
     SET url "https://api.na-backend.odysee.com/api/v1/proxy"
     SET header '"Content-Type" "application/json"'
-    SET body (APPEND '{ "method": "resolve", \
-                        "params": { "urls": [ "lbry://' (REPLACE id ':' '#') '" ] }}')
+    SET body (APPEND '{ "method": "resolve", ' \
+                     '"params": { "urls": [ "lbry://' (REPLACE id ':' '#') '" ] }}')
     SET queryData id
     RETURN true
 
