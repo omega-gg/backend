@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.16
+version: 1.0.17
 
 title: Twitch
 
@@ -137,7 +137,7 @@ QUERY_PLAYLIST: |
         SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
-        SET id 3
+        SET id 4
         # NOTE: Device-Id seems to be required here.
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"' \
@@ -180,7 +180,7 @@ QUERY_PLAYLIST: |
         SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
-        SET id 2
+        SET id 3
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
         SET body (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: Int! '         \
@@ -261,6 +261,16 @@ CREATE_QUERY: |
                              '"variables": { "userQuery": "' q '", "platform": "mobile_web", '   \
                              '"noQuery": false,"target": { "index": "VOD", "limit": 40 }}}')
         FI
+    ELIF (EQUAL method "related")
+    AND (EQUAL label "tracks")
+        SET url "https://gql.twitch.tv/gql"
+        SET id 2
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+        SET body (APPEND '[{ "operationName": "VideoPlayerStreamInfoOverlayChannel", ' \
+                         '"variables": { "channel": "' q '" }, "extensions": { '       \
+                         '"persistedQuery": { "version": 1, "sha256Hash": '            \
+                         '"a5f2e34d626a9f4f5c0204f910bab2194948a9502089be558bb6e779a9e1b3d2" }}}]')
     FI
 
 EXTRACT_SOURCE: |
@@ -376,9 +386,54 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "cover" cover
             LIST_APPEND tracks track
         END
+    ELIF (EQUAL id 2) # Related
+        SET tag (SLICE_IN data "\"id\":\"" '"' (INDEX_END data "\"tags\""))
+        HASH_SET next "queryData" name
+        HASH_SET next "url" "https://gql.twitch.tv/gql"
+        HASH_SET next "id" 3
+        HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
+                                       '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+        HASH_SET next "body" (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: '  \
+                                     'Int! $cursor: Cursor $hasTagId: Boolean! $tagId: ID! '      \
+                                     '$tags: [String!] $url: String!) { ...TopChannels_query '    \
+                                     '...SeoHead_query } '                                        \
+                                     'fragment DirectoryStreamCard_stream on Stream { '           \
+                                     '...useStreamCardCommonFragment_stream broadcaster { login ' \
+                                     'id __typename }} '                                          \
+                                     'fragment SeoHead_query on Query { urlMetadata(url: $url) '  \
+                                     '{ title metatags { name attributes { key value }} jsonld '  \
+                                     'share { title text url }}} '                                \
+                                     'fragment StreamCardDropDownMenu_broadcaster on User { id '  \
+                                     '__typename login displayName } '                            \
+                                     'fragment TopChannels_query on Query { '                     \
+                                     '...useActiveTagFilterFragment_query @include(if: '          \
+                                     '$hasTagId) streams(first: $channelsCount, after: $cursor, ' \
+                                     'tags: $tags) { edges { cursor node { id __typename '        \
+                                     '...DirectoryStreamCard_stream }}}} '                        \
+                                     'fragment useActiveTagFilterFragment_query on Query '        \
+                                     '{ contentTag(id: $tagId) { ...useTagLinkFragment_tag id '   \
+                                     '__typename }} '                                             \
+                                     'fragment useStreamCardCommonFragment_stream on Stream { '   \
+                                     'id __typename viewersCount previewImageURL type game { id ' \
+                                     '__typename name } broadcaster { id __typename '             \
+                                     'broadcastSettings { title id __typename } login '           \
+                                     'displayName profileImageURL(width: 50) '                    \
+                                     '...StreamCardDropDownMenu_broadcaster } '                   \
+                                     '...useStreamTagListFragment_stream } '                      \
+                                     'fragment useStreamTagListFragment_stream on Stream { '      \
+                                     'streamTags: tags { ...useTagLinkFragment_tag id '           \
+                                     '__typename }} '                                             \
+                                     'fragment useTagLinkFragment_tag on Tag { id __typename '    \
+                                     'tagName localizedDescription localizedName }", '            \
+                                     '"variables": { "channelsCount": 30, "cursor": null, '       \
+                                     '"hasTagId": true, "tagId": "' tag '", "tags": '             \
+                                     '["' tag '"], "url": '                                       \
+                                     '"https://m.twitch.tv/directory/all?tl=Tag%7D%7C%7B3'        \
+                                     tagId '" }}')
+        RETURN
     ELSE # Playlists
         HASH_SET hub "state" "default"
-        IF (EQUAL id 3) # Collection
+        IF (EQUAL id 4) # Collection
             HASH_SET hub "source" "https://omega.gg/vox/twitch/collection"
         ELSE
             HASH_SET hub "source" "https://omega.gg/vox/twitch"
