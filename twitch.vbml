@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.17
+version: 1.0.18
 
 title: Twitch
 
@@ -265,6 +265,7 @@ CREATE_QUERY: |
     AND (EQUAL label "tracks")
         SET url "https://gql.twitch.tv/gql"
         SET id 2
+        SET queryData q
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
         SET body (APPEND '[{ "operationName": "VideoPlayerStreamInfoOverlayChannel", ' \
@@ -388,6 +389,13 @@ EXTRACT_PLAYLIST: |
         END
     ELIF (EQUAL id 2) # Related
         SET tag (SLICE_IN data "\"id\":\"" '"' (INDEX_END data "\"tags\""))
+        # NOTE: When the tag is empty we run a generic search query.
+        IF (EQUAL (LENGTH tag) 0)
+            SET q (URL_ENCODE (APPEND "twitch " queryData))
+            HASH_SET next "url" \
+                          (APPEND "vbml://run?backend=duckduckgo&method=search&label=tracks&q=" q)
+            RETURN
+        FI
         HASH_SET next "queryData" name
         HASH_SET next "url" "https://gql.twitch.tv/gql"
         HASH_SET next "id" 3
