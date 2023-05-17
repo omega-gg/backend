@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.26
+version: 1.0.27
 
 search: coverVideo
 
@@ -92,45 +92,45 @@ CREATE_QUERY: |
         IF (START_WITH q "discover")
             SET url (APPEND "https://api.themoviedb.org/3/" q \
                             "&api_key=8341de77e3a24593226752d83720f88b")
-            SET label (SLICE_IN q '/' '?')
-            IF (CONTAIN label "tv")
-                SET type "TV Shows"
+            SET type (SLICE_IN q '/' '?')
+            IF (CONTAIN type "tv")
+                SET label "TV Shows"
             ELSE
-                SET type "Movies"
+                SET label "Movies"
             FI
             IF (CONTAIN q "with_watch_providers=8") # Netflix
                 SET queryData \
-                    (LIST (APPEND "Netflix: " type) label \
+                    (LIST (APPEND "Netflix: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/netflix/netflix.png" \
                           "https://omega.gg/vox/netflix")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=337") # Disney+
                 SET queryData \
-                    (LIST (APPEND "Disney+: " type) label \
+                    (LIST (APPEND "Disney+: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/disney/disney.png" \
                           "https://omega.gg/vox/disney")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=350") # Apple TV+
                 SET queryData \
-                    (LIST (APPEND "Apple TV+: " type) label \
+                    (LIST (APPEND "Apple TV+: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/apple/apple.png" \
                           "https://omega.gg/vox/apple")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=384") # HBO Max
                 SET queryData \
-                    (LIST (APPEND "HBO Max: " type) label \
+                    (LIST (APPEND "HBO Max: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/max/max.png" \
                           "https://omega.gg/vox/max")
                 RETURN
             ELIF (CONTAIN label "movie") # Movies
                 SET queryData \
-                    (LIST (APPEND "The Movie Database: " type) label \
+                    (LIST (APPEND "The Movie Database: " label) type \
                           "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
                           "https://omega.gg/vox/tmdb/movies")
                 RETURN
             ELIF (CONTAIN label "tv") # TV Shows
                 SET queryData \
-                    (LIST (APPEND "The Movie Database: " type) label \
+                    (LIST (APPEND "The Movie Database: " label) type \
                           "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
                           "https://omega.gg/vox/tmdb/shows")
                 RETURN
@@ -138,15 +138,15 @@ CREATE_QUERY: |
         ELSE
             SET url (APPEND "https://api.themoviedb.org/3/" (URL_ENCODE q) \
                             "?api_key=8341de77e3a24593226752d83720f88b")
-            SET label (MID q 0 (INDEX_OF q '/'))
+            SET type (MID q 0 (INDEX_OF q '/'))
             IF (CONTAIN label "tv")
-                SET type "TV Shows"
+                SET label "TV Shows"
             ELSE
-                SET type "Movies"
+                SET label "Movies"
             FI
         FI
         SET queryData \
-            (LIST (APPEND "The Movie Database: " type) label \
+            (LIST (APPEND "The Movie Database: " label) type \
             "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
             "https://omega.gg/vox/tmdb")
         RETURN
