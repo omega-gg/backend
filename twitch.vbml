@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.18
+version: 1.0.19
 
 title: Twitch
 
@@ -398,7 +398,7 @@ EXTRACT_PLAYLIST: |
         FI
         HASH_SET next "queryData" name
         HASH_SET next "url" "https://gql.twitch.tv/gql"
-        HASH_SET next "id" 3
+        HASH_SET next "id" 5
         HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                        '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
         HASH_SET next "body" (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: '  \
@@ -446,7 +446,9 @@ EXTRACT_PLAYLIST: |
         ELSE
             HASH_SET hub "source" "https://omega.gg/vox/twitch"
         FI
-        LIST_APPEND tracks hub
+        IF (NOT_EQUAL id 5) # Related
+            LIST_APPEND tracks hub
+        FI
         # NOTE: When it's a view query we set the title and cover.
         SET title (APPEND "Twitch: " queryData)
         SET cover "https://raw.githubusercontent.com/omega-gg/backend/master/cover/twitch.png"
@@ -460,6 +462,9 @@ EXTRACT_PLAYLIST: |
                                             "50x50" "300x300")
             LIST_APPEND tracks track
         END
+        IF (EQUAL id 5) # Related
+            LIST_APPEND tracks hub
+        FI
         RETURN
     FI
     HASH_SET hub "state" "default"
