@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.142
+version: 1.0.143
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -55,7 +55,7 @@ backends: |
     twitch        Twitch        1.0.19 ^twitch.tv
     tiktok        TikTok        1.0.6  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
-    tmdb          TMDB          1.0.27 ^themoviedb.org
+    tmdb          TMDB          1.0.28 ^themoviedb.org
     lastfm        Last.fm       1.0.6  ^last.fm
     opensubtitles OpenSubtitles 1.0.7  ^opensubtitles.org
 
