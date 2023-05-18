@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 title: TikTok
 
@@ -35,10 +35,10 @@ TRACK_ID: |
     RETURN (MID url (INDEX_END url '/'))
 
 URL_TRACK: |
-    RETURN (APPEND "https://tiktok.com/" id)
+    RETURN (APPEND "https://www.tiktok.com/" id)
 
 URL_PLAYLIST: |
-    RETURN (APPEND "https://tiktok.com/" id)
+    RETURN (APPEND "https://www.tiktok.com/" id)
 
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
@@ -79,7 +79,7 @@ QUERY_PLAYLIST: |
         RETURN false
     FI
     SET id (MID url (INDEX_END url '/'))
-    SET url (APPEND "https://tiktok.com/" id)
+    SET url (APPEND "https://www.tiktok.com/" id)
     RETURN true
 
 EXTRACT_SOURCE: |
