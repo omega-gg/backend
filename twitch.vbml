@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.20
+version: 1.0.21
 
 title: Twitch
 
@@ -423,8 +423,11 @@ EXTRACT_PLAYLIST: |
             SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
             HASH_SET track "state" "default"
             HASH_SET track "source" source
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
+            SET name (JSON_EXTRACT_UTF8 data "displayName")
+            HASH_SET track "title" name
             HASH_SET track "cover" (JSON_EXTRACT data "profileImageURL")
+            HASH_SET track "author" name
+            HASH_SET track "feed" (JSON_EXTRACT data "login")
             LIST_APPEND tracks track
         END
     ELIF (EQUAL id 1) # Videos
