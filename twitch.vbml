@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.19
+version: 1.0.20
 
 title: Twitch
 
@@ -37,11 +37,9 @@ TRACK_ID: |
     IF (EQUAL (START_WITH url "twitch.tv/") false)
     OR (CONTAIN url (REGEXP "/opensearch.xml|/downloads|/directory"))
         RETURN ""
-    FI
-    IF (CONTAIN url "/videos/")
+    ELIF (CONTAIN url "/videos/")
         RETURN (URL_ELEMENTS url 2 10)
-    FI
-    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+    ELIF (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN ""
     FI
     RETURN (URL_ELEMENT url 10)
@@ -50,14 +48,17 @@ PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "twitch.tv/") false)
         RETURN false
-    FI
-    IF (CONTAIN url "/collection/")
+    ELIF (CONTAIN url "/collection/")
         SET type "playlist"
         SET id (URL_ELEMENTS url 3 10)
         RETURN true
     ELIF (CONTAIN url "/directory/")
         SET type "playlist"
         SET id (URL_ELEMENTS url 2 10)
+        RETURN true
+    ELIF (EQUAL (COUNT_STRING url '/') 1)
+        SET type "feed"
+        SET id (URL_ELEMENT url 10)
         RETURN true
     FI
     RETURN false
@@ -72,8 +73,7 @@ QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "twitch.tv/") false)
         RETURN false
-    FI
-    IF (CONTAIN url "/videos/")
+    ELIF (CONTAIN url "/videos/")
         SET video (URL_ELEMENT url 17)
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
@@ -88,8 +88,7 @@ QUERY_SOURCE: |
                          '{ value signature }}" }')
         SET queryData video
         RETURN true
-    FI
-    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+    ELIF (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
     SET stream (URL_ELEMENT url 10)
@@ -111,15 +110,13 @@ QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "twitch.tv/") false)
         RETURN false
-    FI
-    IF (CONTAIN url "/videos/")
+    ELIF (CONTAIN url "/videos/")
         SET url (APPEND "https://www.twitch.tv/videos/" (URL_ELEMENT url 17))
         SET id 1
         # NOTE: We need to wait 1 second before reloading the page.
         #SET delay 1000
         RETURN true
-    FI
-    IF (NOT_EQUAL (COUNT_STRING url '/') 1)
+    ELIF (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
     SET stream (URL_ELEMENT url 10)
@@ -131,13 +128,12 @@ QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "twitch.tv/") false)
         RETURN false
-    FI
-    IF (CONTAIN url "/collection/")
+    ELIF (CONTAIN url "/collection/")
         SET path (URL_ELEMENTS url 3 10)
         SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
-        SET id 4
+        SET id 5
         # NOTE: Device-Id seems to be required here.
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"' \
@@ -180,7 +176,7 @@ QUERY_PLAYLIST: |
         SET queryData (MID path (LAST_INDEX_END path '/'))
         SET backend "twitch"
         SET url "https://gql.twitch.tv/gql"
-        SET id 3
+        SET id 4
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
         SET body (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: Int! '         \
@@ -213,6 +209,56 @@ QUERY_PLAYLIST: |
                          '"variables": { "channelsCount": 30, "cursor": null, "hasTagId": '       \
                          'false, "tagId": "", "tags": null, "url": "https://m.twitch.tv/'         \
                          path '?desktop-redirect=true" }}')
+        RETURN true
+    ELIF (EQUAL (COUNT_STRING url '/') 1)
+        SET queryData (URL_ELEMENT url 10)
+        SET url "https://gql.twitch.tv/gql"
+        SET id 2
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+        SET body (APPEND '{ "query": "query ChannelVideosPage_Query($login: String! $first: '     \
+                         'Int = 10 $cursor: Cursor $url: String!) { channel: user(login: '        \
+                         '$login) { id __typename login ...ChannelLayout_user stream { id '       \
+                         '__typename }} ...ChannelVideosShelves_query ...SeoHead_query } '        \
+                         'fragment ChannelCover_user on User { login bannerImageURL '             \
+                         'primaryColorHex } fragment ChannelDescription_user on User { login '    \
+                         'displayName description lastBroadcast { game { displayName id '         \
+                         '__typename } id __typename } videos(first: 30) { edges { node { id '    \
+                         '__typename game { id __typename displayName }}}}} '                     \
+                         'fragment ChannelLayout_user on User { ...ChannelCover_user '            \
+                         '...ChannelProfileInfo_user id __typename login } '                      \
+                         'fragment ChannelName_user on User { displayName login roles { '         \
+                         'isPartner }} '                                                          \
+                         'fragment ChannelProfileInfo_user on User { ...ChannelStatus_user '      \
+                         '...ChannelDescription_user ...ChannelName_user '                        \
+                         '...SocialMediaLinks_user ...useFollowChannelFragment '                  \
+                         'profileImageURL(width: 150) login displayName primaryColorHex '         \
+                         'followers { totalCount } stream { id __typename }} '                    \
+                         'fragment ChannelStatus_user on User { lastBroadcast { id __typename '   \
+                         'startedAt game { id __typename displayName }} stream { id __typename '  \
+                         'createdAt game { id __typename displayName } type viewersCount }} '     \
+                         'fragment ChannelVideosShelves_query on Query { channel: '               \
+                         'user(login: $login) { login videoShelves(first: $first, after: '        \
+                         '$cursor) { edges { cursor node { id __typename title description type ' \
+                         'items { __typename ... on Video { id __typename __typename '            \
+                         '...useVideoCardFragment_video } ... on Clip { id __typename }}}} '      \
+                         'pageInfo { hasNextPage }} id __typename }} fragment SeoHead_query on '  \
+                         'Query { urlMetadata(url: $url) { title metatags { name attributes { '   \
+                         'key value }} jsonld share { title text url }}} '                        \
+                         'fragment SocialMediaLinks_user on User { channel { id __typename '      \
+                         'socialMedias { id __typename name title url }}} '                       \
+                         'fragment TagList_video on Video { videoTags: contentTags { '            \
+                         '...useTagLinkFragment_tag id __typename }} '                            \
+                         'fragment useFollowChannelFragment on User { id __typename self { '      \
+                         'follower { followedAt }}} '                                             \
+                         'fragment useTagLinkFragment_tag on Tag { id __typename tagName '        \
+                         'localizedDescription localizedName } '                                  \
+                         'fragment useVideoCardFragment_video on Video { id __typename '          \
+                         'previewThumbnailURL title lengthSeconds viewCount publishedAt game { '  \
+                         'displayName boxArtURL name id __typename } owner { login displayName '  \
+                         'id __typename } ...TagList_video }", '                                  \
+                         '"variables": { "login": "' queryData '", "first": 10, "cursor": null, ' \
+                         '"url": "https://m.twitch.tv/' queryData '/videos?filter=all" }}')
         RETURN true
     FI
     RETURN false
@@ -264,7 +310,7 @@ CREATE_QUERY: |
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
         SET url "https://gql.twitch.tv/gql"
-        SET id 2
+        SET id 3
         SET queryData q
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
@@ -338,9 +384,15 @@ EXTRACT_TRACK: |
             SET index (LAST_INDEX_OF cover '-')
             SET cover (MID cover 0 (ADD index 1))
             SET cover (APPEND cover "1920x1080.jpg")
+        ELIF (CONTAIN cover "/_404/")
+            SET cover ""
         FI
+        SET index (INDEX_END data "name=\"title\"")
+        SET feed (HTML_TO_UTF8 (SLICE_IN data "content=\"" " on Twitch" index))
+        SET feed (MID feed (LAST_INDEX_END feed "- "))
     ELSE
         SET index (INDEX_OF data "\"VideoObject\"")
+        SET feed (SLICE_IN data "?channel=" '&')
         # NOTE: This means the stream is not live.
         IF (EQUAL index -1)
             SET type "track"
@@ -350,6 +402,7 @@ EXTRACT_TRACK: |
             SET title (HTML_TO_UTF8 (SLICE_IN data "content=\"" " -" index))
             SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
             SET cover (HTML_ATTRIBUTE data "content" index)
+            SET author title
             #--------------------------------------------------------------------------------------
             RETURN
         FI
@@ -375,19 +428,30 @@ EXTRACT_PLAYLIST: |
             LIST_APPEND tracks track
         END
     ELIF (EQUAL id 1) # Videos
+    OR (EQUAL id 2) # Feed
+        IF (EQUAL id 2) # Feed
+            SET title (JSON_EXTRACT_UTF8 data "displayName" (INDEX_END data "\"owner"\"))
+            SET cover (REPLACE (JSON_EXTRACT data "profileImageURL") "150x150" "300x300")
+            HASH_SET track "state" "default"
+            HASH_SET track "source" (APPEND "https://www.twitch.tv/" queryData)
+            HASH_SET track "title" title
+            HASH_SET track "cover" cover
+            LIST_APPEND tracks track
+        FI
         SET data (JSON_EXTRACT data "items")
         FOREACH (JSON_SPLIT data) data
             SET source (APPEND "https://www.twitch.tv/videos/" (JSON_EXTRACT data "id"))
-            SET cover (JSON_EXTRACT data "previewThumbnailURL")
-            SET cover (REPLACE cover "{width}" "1920")
-            SET cover (REPLACE cover "{height}" "1080")
             HASH_SET track "state" "default"
             HASH_SET track "source" source
             HASH_SET track "title" (JSON_EXTRACT_UTF8 data "title")
-            HASH_SET track "cover" cover
+            HASH_SET track "cover" (REPLACE (JSON_EXTRACT data "previewThumbnailURL") \
+                                            "{width}x{height}" "1920x1080")
+            SET index (INDEX_END data "\"owner\"")
+            HASH_SET track "author" (JSON_EXTRACT_UTF8 data "displayName" index)
+            HASH_SET track "feed" (JSON_EXTRACT data "login" index)
             LIST_APPEND tracks track
         END
-    ELIF (EQUAL id 2) # Related
+    ELIF (EQUAL id 3) # Related
         SET tag (SLICE_IN data "\"id\":\"" '"' (INDEX_END data "\"tags\""))
         # NOTE: When the tag is empty we run a generic search query.
         IF (EQUAL (LENGTH tag) 0)
@@ -398,7 +462,7 @@ EXTRACT_PLAYLIST: |
         FI
         HASH_SET next "queryData" name
         HASH_SET next "url" "https://gql.twitch.tv/gql"
-        HASH_SET next "id" 5
+        HASH_SET next "id" 6
         HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                        '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
         HASH_SET next "body" (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: '  \
@@ -441,12 +505,12 @@ EXTRACT_PLAYLIST: |
         RETURN
     ELSE # Playlists
         HASH_SET hub "state" "default"
-        IF (EQUAL id 4) # Collection
+        IF (EQUAL id 5) # Collection
             HASH_SET hub "source" "https://omega.gg/vox/twitch/collection"
         ELSE
             HASH_SET hub "source" "https://omega.gg/vox/twitch"
         FI
-        IF (NOT_EQUAL id 5) # Related
+        IF (NOT_EQUAL id 6) # Related
             LIST_APPEND tracks hub
         FI
         # NOTE: When it's a view query we set the title and cover.
@@ -457,12 +521,15 @@ EXTRACT_PLAYLIST: |
             SET source (APPEND "https://www.twitch.tv/" (JSON_EXTRACT data "login"))
             HASH_SET track "state" "default"
             HASH_SET track "source" source
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "displayName")
+            SET name (JSON_EXTRACT_UTF8 data "displayName")
+            HASH_SET track "title" name
             HASH_SET track "cover" (REPLACE (JSON_EXTRACT data "profileImageURL") \
                                             "50x50" "300x300")
+            HASH_SET track "author" name
+            HASH_SET track "feed" (JSON_EXTRACT data "login")
             LIST_APPEND tracks track
         END
-        IF (EQUAL id 5) # Related
+        IF (EQUAL id 6) # Related
             LIST_APPEND tracks hub
         FI
         RETURN
