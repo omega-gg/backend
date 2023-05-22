@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.21
+version: 1.0.22
 
 title: Twitch
 
@@ -370,6 +370,7 @@ EXTRACT_TRACK: |
         # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
         SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
         SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+        SET title (MID title 0 (LAST_INDEX_OF title " -"))
         # NOTE: Sometimes Twitch returns an empty page so we reload it one second later
         #       (delay in QUERY_TRACK).
         IF (EQUAL title "")
@@ -390,6 +391,9 @@ EXTRACT_TRACK: |
         SET index (INDEX_END data "name=\"title\"")
         SET feed (HTML_TO_UTF8 (SLICE_IN data "content=\"" " on Twitch" index))
         SET feed (MID feed (LAST_INDEX_END feed "- "))
+        SET duration (SLICE_IN (JSON_EXTRACT data "duration") "PT" 'S')
+        SET duration (MULTIPLY duration 1000)
+        SET date (DATE (JSON_EXTRACT data "uploadDate") "yyyy-MM-ddThh:mm:ssZ")
     ELSE
         SET index (INDEX_OF data "\"VideoObject\"")
         SET feed (SLICE_IN data "?channel=" '&')
@@ -399,7 +403,8 @@ EXTRACT_TRACK: |
             #--------------------------------------------------------------------------------------
             # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
             SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
-            SET title (HTML_TO_UTF8 (SLICE_IN data "content=\"" " -" index))
+            SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+            SET title (MID title 0 (LAST_INDEX_OF title " -"))
             SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
             SET cover (HTML_ATTRIBUTE data "content" index)
             SET author title
