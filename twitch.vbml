@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.23
+version: 1.0.24
 
 title: Twitch
 
@@ -314,9 +314,9 @@ CREATE_QUERY: |
         SET queryData q
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
-        SET body (APPEND '[{ "operationName": "StreamTagsTrackingChannel", ' \
-                         '"variables": { "channel": "' q '" }, "extensions": { '       \
-                         '"persistedQuery": { "version": 1, "sha256Hash": '            \
+        SET body (APPEND '[{ "operationName": "StreamTagsTrackingChannel", "variables": { ' \
+                         '"channel": "' q '" }, "extensions": { "persistedQuery": {       ' \
+                         '"version": 1, "sha256Hash":                                     ' \
                          '"6aa3851aaaf88c320d514eb173563d430b28ed70fdaaf7eeef6ed4b812f48608" }}}]')
     FI
 
