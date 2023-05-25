@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.22
+version: 1.0.23
 
 title: Twitch
 
@@ -314,10 +314,10 @@ CREATE_QUERY: |
         SET queryData q
         SET header (APPEND '"Content-Type" "application/json"' \
                            '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
-        SET body (APPEND '[{ "operationName": "VideoPlayerStreamInfoOverlayChannel", ' \
+        SET body (APPEND '[{ "operationName": "StreamTagsTrackingChannel", ' \
                          '"variables": { "channel": "' q '" }, "extensions": { '       \
                          '"persistedQuery": { "version": 1, "sha256Hash": '            \
-                         '"a5f2e34d626a9f4f5c0204f910bab2194948a9502089be558bb6e779a9e1b3d2" }}}]')
+                         '"6aa3851aaaf88c320d514eb173563d430b28ed70fdaaf7eeef6ed4b812f48608" }}}]')
     FI
 
 EXTRACT_SOURCE: |
@@ -460,7 +460,7 @@ EXTRACT_PLAYLIST: |
             LIST_APPEND tracks track
         END
     ELIF (EQUAL id 3) # Related
-        SET tag (SLICE_IN data "\"id\":\"" '"' (INDEX_END data "\"tags\""))
+        SET tag (SLICE_IN data "\"name\":\"" '"' (INDEX_END data "\"freeformTags\""))
         # NOTE: When the tag is empty we run a generic search query.
         IF (EQUAL (LENGTH tag) 0)
             SET q (URL_ENCODE (APPEND "twitch " queryData))
@@ -468,48 +468,20 @@ EXTRACT_PLAYLIST: |
                           (APPEND "vbml://run?backend=duckduckgo&method=search&label=tracks&q=" q)
             RETURN
         FI
-        HASH_SET next "queryData" name
+        HASH_SET next "queryData" tag
         HASH_SET next "url" "https://gql.twitch.tv/gql"
         HASH_SET next "id" 6
         HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                        '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
-        HASH_SET next "body" (APPEND '{ "query": "query GameDirectoryAll_Query($channelsCount: '  \
-                                     'Int! $cursor: Cursor $hasTagId: Boolean! $tagId: ID! '      \
-                                     '$tags: [String!] $url: String!) { ...TopChannels_query '    \
-                                     '...SeoHead_query } '                                        \
-                                     'fragment DirectoryStreamCard_stream on Stream { '           \
-                                     '...useStreamCardCommonFragment_stream broadcaster { login ' \
-                                     'id __typename }} '                                          \
-                                     'fragment SeoHead_query on Query { urlMetadata(url: $url) '  \
-                                     '{ title metatags { name attributes { key value }} jsonld '  \
-                                     'share { title text url }}} '                                \
-                                     'fragment StreamCardDropDownMenu_broadcaster on User { id '  \
-                                     '__typename login displayName } '                            \
-                                     'fragment TopChannels_query on Query { '                     \
-                                     '...useActiveTagFilterFragment_query @include(if: '          \
-                                     '$hasTagId) streams(first: $channelsCount, after: $cursor, ' \
-                                     'tags: $tags) { edges { cursor node { id __typename '        \
-                                     '...DirectoryStreamCard_stream }}}} '                        \
-                                     'fragment useActiveTagFilterFragment_query on Query '        \
-                                     '{ contentTag(id: $tagId) { ...useTagLinkFragment_tag id '   \
-                                     '__typename }} '                                             \
-                                     'fragment useStreamCardCommonFragment_stream on Stream { '   \
-                                     'id __typename viewersCount previewImageURL type game { id ' \
-                                     '__typename name } broadcaster { id __typename '             \
-                                     'broadcastSettings { title id __typename } login '           \
-                                     'displayName profileImageURL(width: 50) '                    \
-                                     '...StreamCardDropDownMenu_broadcaster } '                   \
-                                     '...useStreamTagListFragment_stream } '                      \
-                                     'fragment useStreamTagListFragment_stream on Stream { '      \
-                                     'streamTags: tags { ...useTagLinkFragment_tag id '           \
-                                     '__typename }} '                                             \
-                                     'fragment useTagLinkFragment_tag on Tag { id __typename '    \
-                                     'tagName localizedDescription localizedName }", '            \
-                                     '"variables": { "channelsCount": 30, "cursor": null, '       \
-                                     '"hasTagId": true, "tagId": "' tag '", "tags": '             \
-                                     '["' tag '"], "url": '                                       \
-                                     '"https://m.twitch.tv/directory/all?tl=Tag%7D%7C%7B3'        \
-                                     tagId '" }}')
+        HASH_SET next "body" (APPEND '[{ "operationName": "BrowsePage_Popular", "variables": { ' \
+                                     '"imageWidth": 50, "limit": 30, "platformType": "all", '    \
+                                     '"options": { "sort": "RELEVANCE", "freeformTags": '        \
+                                     '[ "' tag '" ], "tags": [], "recommendationsContext": { '   \
+                                     '"platform": "web" }, "requestID": "JIRA-VXP-2397", '       \
+                                     '"broadcasterLanguages": [] }, "sortTypeIsRecency": false ' \
+                                     '}, "extensions": { "persistedQuery": { "version": 1, '     \
+                                     '"sha256Hash": "b32fa28ffd43e370b42de7d9e6e3b8a7ca310035fd' \
+                                     'bb83932150443d6b693e4d"}}}]')
         RETURN
     ELSE # Playlists
         HASH_SET hub "state" "default"
