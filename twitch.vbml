@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.24
+version: 1.0.25
 
 title: Twitch
 
@@ -395,8 +395,8 @@ EXTRACT_TRACK: |
         SET duration (MULTIPLY duration 1000)
         SET date (DATE (JSON_EXTRACT data "uploadDate") "yyyy-MM-ddThh:mm:ssZ")
     ELSE
-        SET index (INDEX_OF data "\"VideoObject\"")
         SET feed (SLICE_IN data "?channel=" '&')
+        SET index (INDEX_OF data "\"VideoObject\"")
         # NOTE: This means the stream is not live.
         IF (EQUAL index -1)
             SET type "track"
