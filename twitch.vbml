@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.25
+version: 1.0.26
 
 title: Twitch
 
@@ -438,7 +438,10 @@ EXTRACT_PLAYLIST: |
     ELIF (EQUAL id 1) # Videos
     OR (EQUAL id 2) # Feed
         IF (EQUAL id 2) # Feed
-            SET title (JSON_EXTRACT_UTF8 data "displayName" (INDEX_END data "\"owner"\"))
+            SET title (JSON_EXTRACT_UTF8 data "displayName" (INDEX_END data "\"viewersCount"\"))
+            IF (EQUAL (LENGTH tag) 0)
+                SET title queryData
+            FI
             SET cover (REPLACE (JSON_EXTRACT data "profileImageURL") "150x150" "300x300")
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.twitch.tv/" queryData)
