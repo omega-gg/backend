@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.28
+version: 1.0.29
 
 search: coverVideo
 
@@ -121,18 +121,6 @@ CREATE_QUERY: |
                     (LIST (APPEND "HBO Max: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/max/max.png" \
                           "https://omega.gg/vox/max")
-                RETURN
-            ELIF (CONTAIN type "movie") # Movies
-                SET queryData \
-                    (LIST (APPEND "The Movie Database: " label) type \
-                          "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
-                          "https://omega.gg/vox/tmdb/movies")
-                RETURN
-            ELIF (CONTAIN type "tv") # TV Shows
-                SET queryData \
-                    (LIST (APPEND "The Movie Database: " label) type \
-                          "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
-                          "https://omega.gg/vox/tmdb/shows")
                 RETURN
             FI
         ELSE

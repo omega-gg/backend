@@ -44,16 +44,16 @@ backend_subtitle: |
 #--------------------------------------------------------------------------------------------------
 
 backends: |
-    duckduckgo    DuckDuckGo    1.0.13 ^html.duckduckgo.com
+    duckduckgo    DuckDuckGo    1.0.14 ^html.duckduckgo.com
     youtube       Youtube       1.0.54 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.4  ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    twitch        Twitch        1.0.26 ^twitch.tv
+    twitch        Twitch        1.0.27 ^twitch.tv
     tiktok        TikTok        1.0.7  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
-    tmdb          TMDB          1.0.28 ^themoviedb.org
+    tmdb          TMDB          1.0.29 ^themoviedb.org
     lastfm        Last.fm       1.0.6  ^last.fm
     opensubtitles OpenSubtitles 1.0.7  ^opensubtitles.org
 
@@ -71,6 +71,5 @@ covers: |
     lastfm      cover/lastfm.png
 
 hubs: |
-    duckduckgo https://omega.gg/vox/hubs
-    tmdb       https://omega.gg/vox/tmdb
-    twitch     https://omega.gg/vox/twitch
+    tmdb   https://omega.gg/vox/tmdb
+    twitch https://omega.gg/vox/twitch

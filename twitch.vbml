@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.26
+version: 1.0.27
 
 title: Twitch
 
@@ -488,11 +488,7 @@ EXTRACT_PLAYLIST: |
         RETURN
     ELSE # Playlists
         HASH_SET hub "state" "default"
-        IF (EQUAL id 5) # Collection
-            HASH_SET hub "source" "https://omega.gg/vox/twitch/collection"
-        ELSE
-            HASH_SET hub "source" "https://omega.gg/vox/twitch"
-        FI
+        HASH_SET hub "source" "https://omega.gg/vox/twitch"
         IF (NOT_EQUAL id 6) # Related
             LIST_APPEND tracks hub
         FI

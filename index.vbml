@@ -52,10 +52,10 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    twitch        Twitch        1.0.26 ^twitch.tv
+    twitch        Twitch        1.0.27 ^twitch.tv
     tiktok        TikTok        1.0.7  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
-    tmdb          TMDB          1.0.28 ^themoviedb.org
+    tmdb          TMDB          1.0.29 ^themoviedb.org
     lastfm        Last.fm       1.0.6  ^last.fm
     opensubtitles OpenSubtitles 1.0.7  ^opensubtitles.org
 
