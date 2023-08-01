@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.29
+version: 1.0.30
 
 search: coverVideo
 
@@ -116,7 +116,7 @@ CREATE_QUERY: |
                           "https://omega.gg/vox/repository/hub/tmdb/hub/apple/apple.png" \
                           "https://omega.gg/vox/apple")
                 RETURN
-            ELIF (CONTAIN q "with_watch_providers=384") # HBO Max
+            ELIF (CONTAIN q "with_watch_providers=1899") # HBO Max
                 SET queryData \
                     (LIST (APPEND "HBO Max: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/max/max.png" \
