@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.54
+version: 1.0.55
 
 title: Youtube
 
@@ -107,7 +107,7 @@ QUERY_SOURCE: |
                      '"17.31.35", "androidSdkVersion": 30, "userAgent": '                        \
                      '"com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip", "hl": ' \
                      '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' id         \
-                     '", "params": "8AEB", "playbackContext": { "contentPlaybackContext": '      \
+                     '", "params": "CgIQBg==", "playbackContext": { "contentPlaybackContext": '  \
                      '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
                      '"racyCheckOk": true }')
     RETURN true
