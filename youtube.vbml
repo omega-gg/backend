@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.55
+version: 1.0.56
 
 title: Youtube
 
@@ -377,7 +377,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
             HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
-            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
     ELIF (EQUAL id 2) # Search tracks
@@ -387,7 +387,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
             HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
-            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
         IF (EQUAL queryData "")
@@ -421,7 +421,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
             HASH_SET track "title" (JSON_EXTRACT_UTF8 value "simpleText")
-            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
     ELSE # Playlist
@@ -442,7 +442,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
             HASH_SET track "title" (JSON_EXTRACT_UTF8 value "text")
-            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/hqdefault.jpg")
+            HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
     FI
