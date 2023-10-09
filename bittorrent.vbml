@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.20
+version: 1.0.21
 
 title: BitTorrent
 
@@ -255,7 +255,7 @@ EXTRACT_PLAYLIST: |
             HASH_SET query "type" "torrent"
             HASH_SET query "url" source
             HASH_SET query "id" 8
-            HASH_SET query "timeout" 120000 # 2 minutes
+            HASH_SET query "timeout" 60000 # 1 minute
             LIST_APPEND next query
         END
         FOREACH queryData source
@@ -294,7 +294,7 @@ EXTRACT_PLAYLIST: |
         FOREACH sources source
             IF (START_WITH source "magnet:?")
                 HASH_SET query "type" "torrent"
-                HASH_SET query "timeout" 120000 # 2 minutes
+                HASH_SET query "timeout" 60000 # 1 minute
             ELSE
                 HASH_SET query "type" ""
                 HASH_SET query "timeout" 10000

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.154
+version: 1.0.155
 
 #--------------------------------------------------------------------------------------------------
 # Backends
