@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.56
+version: 1.0.57
 
 title: Youtube
 
@@ -351,8 +351,8 @@ EXTRACT_TRACK: |
     SET duration (JSON_EXTRACT json "lengthSeconds")
     SET duration (MULTIPLY duration 1000)
     SET index (INDEX_OF data "\"uploadDate\":" index)
-    SET date (JSON_EXTRACT data "uploadDate" index)
-    SET date (DATE date "yyyy-MM-dd")
+    SET date (MID (JSON_EXTRACT data "uploadDate" index) 0 19)
+    SET date (DATE date "yyyy-MM-ddThh:mm:ss")
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
