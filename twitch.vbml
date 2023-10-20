@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.27
+version: 1.0.28
 
 title: Twitch
 
@@ -468,7 +468,7 @@ EXTRACT_PLAYLIST: |
         IF (EQUAL (LENGTH tag) 0)
             SET q (URL_ENCODE (APPEND "twitch " queryData))
             HASH_SET next "url" \
-                          (APPEND "vbml://run?backend=duckduckgo&method=search&label=tracks&q=" q)
+                          (APPEND "vbml:run?backend=duckduckgo&method=search&label=tracks&q=" q)
             RETURN
         FI
         HASH_SET next "queryData" tag
