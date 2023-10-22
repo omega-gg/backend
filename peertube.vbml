@@ -1,0 +1,61 @@
+# VBML 1.0.3
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
+
+api: 1.0.3
+
+version: 1.0.0
+
+title: PeerTube
+
+host: peertube.fr
+
+cover: cover/peertube.png
+
+validate: watch/[a-z0-9]{8}|w/[a-z0-9]{8}
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    IF (EQUAL (CONTAIN url (REGEXP "watch/[a-z0-9]{8}|w/[a-z0-9]{8}")) false)
+        RETURN ""
+    FI
+    RETURN url
+
+URL_TRACK: |
+    RETURN id
+
+QUERY_SOURCE: |
+    SET index (INDEX_OF url (REGEXP "watch/[a-z0-9]{8}|w/[a-z0-9]{8}"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET backend "peertube"
+    SET url (APPEND (MID url 0 index) "api/v1/videos/" (MID url (INDEX_END url '/' index)))
+    RETURN true
+
+QUERY_TRACK: |
+    RETURN true
+
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    SET data (JSON_EXTRACT data "files")
+    SET list (JSON_SPLIT data)
+    FOREACH list data
+        SET quality (CHOP (JSON_EXTRACT data "label") 1)
+        HASH_SET medias quality (JSON_EXTRACT data "fileDownloadUrl")
+    END
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    SET index (INDEX_END data "property=\"og:title\"")
+    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+    SET index (INDEX_END data "property=\"og:image\"")
+    SET cover (HTML_ATTRIBUTE data "content" index)

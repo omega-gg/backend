@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.158
+version: 1.0.159
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -52,6 +52,7 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
+    peertube      PeerTube      1.0.0  watch/[a-z0-9]{8}|w/[a-z0-9]{8}
     twitch        Twitch        1.0.28 ^twitch.tv
     tiktok        TikTok        1.0.7  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
@@ -67,6 +68,7 @@ covers: |
     vimeo       cover/vimeo.png
     facebook    cover/facebook.png
     odysee      cover/odysee.png
+    peertube    cover/peertube.png
     twitch      cover/twitch.png
     tiktok      cover/tiktok.png
     soundcloud  cover/soundcloud.png

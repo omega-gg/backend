@@ -7,6 +7,7 @@ OTHER_FILES += index.vbml \
                vimeo.vbml \
                facebook.vbml \
                odysee.vbml \
+               peertube.vbml \
                twitch.vbml \
                tiktok.vbml \
                soundcloud.vbml \
