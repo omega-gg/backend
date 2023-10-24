@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.3
+version: 1.0.4
 
 title: PeerTube
 
@@ -40,8 +40,8 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET backend "peertube"
-    SET url (APPEND "https://" (MID url 0 index) "api/v1/videos/" \
-                    (MID url (INDEX_END url '/' index)))
+    SET url (APPEND "https://" (MID url 0 index) "/api/v1/videos/" \
+                    (MID url (INDEX_END url '/' (ADD index 1))))
     RETURN true
 
 QUERY_TRACK: |
