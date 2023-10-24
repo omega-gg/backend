@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.160
+version: 1.0.161
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -50,7 +50,7 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    peertube      PeerTube      1.0.1  watch/[a-zA-Z0-9]{8}|w/[a-zA-Z0-9]{8}
+    peertube      PeerTube      1.0.2  watch/[a-zA-Z0-9]{8}|w/[a-zA-Z0-9]{8}
     twitch        Twitch        1.0.28 ^twitch.tv
     tiktok        TikTok        1.0.7  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com

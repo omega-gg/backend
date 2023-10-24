@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: PeerTube
 
@@ -24,21 +24,24 @@ validate: watch/[a-zA-Z0-9]{8}|w/[a-zA-Z0-9]{8}
 #--------------------------------------------------------------------------------------------------
 
 TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (CONTAIN url (REGEXP "watch/[a-zA-Z0-9]{8}|w/[a-zA-Z0-9]{8}")) false)
         RETURN ""
     FI
     RETURN url
 
 URL_TRACK: |
-    RETURN id
+    RETURN (APPEND "https://" id)
 
 QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     SET index (INDEX_OF url (REGEXP "watch/[a-zA-Z0-9]{8}|w/[a-zA-Z0-9]{8}"))
     IF (EQUAL index -1)
         RETURN false
     FI
     SET backend "peertube"
-    SET url (APPEND (MID url 0 index) "api/v1/videos/" (MID url (INDEX_END url '/' index)))
+    SET url (APPEND "https://" (MID url 0 index) "api/v1/videos/" \
+                    (MID url (INDEX_END url '/' index)))
     RETURN true
 
 QUERY_TRACK: |
