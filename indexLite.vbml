@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.163
+version: 1.0.164
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -28,6 +28,7 @@ backend_track: |
     youtube
     dailymotion
     vimeo
+    iptv
     twitch
     tiktok
     facebook
@@ -51,6 +52,7 @@ backends: |
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
     peertube      PeerTube      1.0.4  /watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}
+    iptv          IPTV          1.0.0  ^iptv:
     twitch        Twitch        1.0.28 ^twitch.tv
     tiktok        TikTok        1.0.7  ^tiktok.com
     soundcloud    SoundCloud    1.0.9  ^soundcloud.com
@@ -66,6 +68,7 @@ covers: |
     facebook    cover/facebook.png
     odysee      cover/odysee.png
     peertube    cover/peertube.png
+    iptv        cover/iptv.png
     twitch      cover/twitch.png
     tiktok      cover/tiktok.png
     soundcloud  cover/soundcloud.png

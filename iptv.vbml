@@ -1,0 +1,50 @@
+# VBML 1.0.3
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
+
+api: 1.0.3
+
+version: 1.0.0
+
+title: IPTV
+
+cover: cover/iptv.png
+
+items:
+    playlist:
+        title: Tracks
+
+validate: ^itpv:
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+CREATE_QUERY: |
+    IF (NOT_EQUAL method "search")
+    OR (NOT_EQUAL label "tracks")
+        RETURN
+    FI
+    SET url "https://iptv-org.github.io/api/streams.json"
+    SET queryData q
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    SET queryData (LOWER (REPLACE queryData ' ' ''))
+    SET list (SLICES_IN data '"channel":"' '}')
+    FOREACH list item
+        SET title (LOWER (MID item 0 (INDEX_OF item '"')))
+        IF (CONTAIN title queryData)
+            SET source (SLICE_IN item '"url":"' '"')
+            IF (LENGTH source)
+                HASH_SET track "source" source
+                HASH_SET track "title" title
+                LIST_APPEND tracks track
+            FI
+        FI
+    END
