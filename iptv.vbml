@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.0
+version: 1.0.1
 
 title: IPTV
 
@@ -39,7 +39,7 @@ EXTRACT_PLAYLIST: |
     SET list (SLICES_IN data '"channel":"' '}')
     FOREACH list item
         SET title (LOWER (MID item 0 (INDEX_OF item '"')))
-        IF (CONTAIN title queryData)
+        IF (CONTAIN (REPLACE title '.' '') queryData)
             SET source (SLICE_IN item '"url":"' '"')
             IF (LENGTH source)
                 HASH_SET track "source" source
