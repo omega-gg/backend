@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: IPTV
 
@@ -35,16 +35,32 @@ CREATE_QUERY: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    SET queryData (LOWER (REPLACE queryData ' ' ''))
-    SET list (SLICES_IN data '"channel":"' '}')
-    FOREACH list item
-        SET title (LOWER (MID item 0 (INDEX_OF item '"')))
-        IF (CONTAIN (REPLACE title '.' '') queryData)
-            SET source (SLICE_IN item '"url":"' '"')
-            IF (LENGTH source)
-                HASH_SET track "source" source
-                HASH_SET track "title" title
-                LIST_APPEND tracks track
+    IF (EQUAL id 1)
+        FOREACH queryData item
+            SET title (LIST_GET item 1)
+            SET index (INDEX_OF data (APPEND '"id":"' title '"'))
+            IF (NOT_EQUAL index -1)
+                HASH_SET track "cover" (SLICE_IN data '"logo":"' '"' index)
             FI
+            HASH_SET track "source" (LIST_GET item 0)
+            HASH_SET track "title" title
+            LIST_APPEND tracks track
+        END
+    ELSE
+        SET queryData (LOWER (REPLACE queryData ' ' ''))
+        SET list (SLICES_IN data '"channel":"' '}')
+        FOREACH list item
+            SET title (MID item 0 (INDEX_OF item '"'))
+            IF (CONTAIN (LOWER (REPLACE title '.' '')) queryData)
+                SET source (SLICE_IN item '"url":"' '"')
+                IF (LENGTH source)
+                    LIST_APPEND sources (LIST source title)
+                FI
+            FI
+        END
+        IF (COUNT sources)
+            HASH_SET next "url" "https://iptv-org.github.io/api/channels.json"
+            HASH_SET next "id" 1
+            HASH_SET next "queryData" sources
         FI
-    END
+    FI
