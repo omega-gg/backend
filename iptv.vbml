@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.5
+version: 1.0.6
 
 title: IPTV
 
@@ -43,7 +43,7 @@ EXTRACT_PLAYLIST: |
             # FIXME: When the updated extractString is available.
             # SET source (SLICE item "http" '\n' (LAST_INDEX_OF item "http"))
             # HASH_SET track "source" (CHOP source 1)
-            SET source (SLICE_IN item "http" '\n' (LAST_INDEX_OF item "http"))
+            SET source (CHOP (SLICE_IN item "http" '\n' (LAST_INDEX_OF item "http")) 1)
             HASH_SET track "source" (APPEND "http" source)
             HASH_SET track "title" title
             HASH_SET track "cover" (SLICE_IN item 'tvg-logo="' '"')
