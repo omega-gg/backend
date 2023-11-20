@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.2
+version: 1.0.3
 
 title: IPTV
 
@@ -30,37 +30,19 @@ CREATE_QUERY: |
     OR (NOT_EQUAL label "tracks")
         RETURN
     FI
-    SET url "https://iptv-org.github.io/api/streams.json"
+    SET url "https://iptv-org.github.io/iptv/index.m3u"
     SET queryData q
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 1)
-        FOREACH queryData item
-            SET title (LIST_GET item 1)
-            SET index (INDEX_OF data (APPEND '"id":"' title '"'))
-            IF (NOT_EQUAL index -1)
-                HASH_SET track "cover" (SLICE_IN data '"logo":"' '"' index)
-            FI
-            HASH_SET track "source" (LIST_GET item 0)
+    SET list (SLICES_IN data "INF:" "#EXT")
+    FOREACH list item
+        SET title (SLICE_IN item 'tvg-id="' '"')
+        IF (CONTAIN (LOWER (REPLACE title '.' '')) queryData)
+            SET source (SLICE item "http" '\n' (LAST_INDEX_OF item "http"))
+            HASH_SET track "source" (CHOP source 1)
             HASH_SET track "title" title
+            HASH_SET track "cover" (SLICE_IN item 'tvg-logo="' '"')
             LIST_APPEND tracks track
-        END
-    ELSE
-        SET queryData (LOWER (REPLACE queryData ' ' ''))
-        SET list (SLICES_IN data '"channel":"' '}')
-        FOREACH list item
-            SET title (MID item 0 (INDEX_OF item '"'))
-            IF (CONTAIN (LOWER (REPLACE title '.' '')) queryData)
-                SET source (SLICE_IN item '"url":"' '"')
-                IF (LENGTH source)
-                    LIST_APPEND sources (LIST source title)
-                FI
-            FI
-        END
-        IF (COUNT sources)
-            HASH_SET next "url" "https://iptv-org.github.io/api/channels.json"
-            HASH_SET next "id" 1
-            HASH_SET next "queryData" sources
         FI
-    FI
+    END
