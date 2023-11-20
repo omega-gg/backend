@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.3
+version: 1.0.4
 
 title: IPTV
 
@@ -35,6 +35,7 @@ CREATE_QUERY: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
+    SET queryData (LOWER (REPLACE queryData ' ' ''))
     SET list (SLICES_IN data "INF:" "#EXT")
     FOREACH list item
         SET title (SLICE_IN item 'tvg-id="' '"')
