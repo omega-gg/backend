@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.58
+version: 1.0.59
 
 title: Youtube
 
@@ -276,7 +276,8 @@ EXTRACT_SOURCE: |
                     FI
                     SET i (ADD i 1)
                 END
-            ELIF (EQUAL (LENGTH audio) 0)
+            FI
+            IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
                     IF (CONTAIN value "mp4a")
