@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.59
+version: 1.0.60
 
 title: Youtube
 
@@ -263,7 +263,7 @@ EXTRACT_SOURCE: |
             IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
-                    IF (CONTAIN value "opus")
+                    IF (CONTAIN value "mp4a")
                         IF (EQUAL (CONTAIN value "AUDIO_QUALITY_ULTRALOW") false)
                             #----------------------------------------------------------------------
                             # Extract url
@@ -280,7 +280,7 @@ EXTRACT_SOURCE: |
             IF (EQUAL (LENGTH audio) 0)
                 SET i 0
                 FOREACH list value
-                    IF (CONTAIN value "mp4a")
+                    IF (CONTAIN value "opus")
                         IF (EQUAL (CONTAIN value "AUDIO_QUALITY_ULTRALOW") false)
                             #----------------------------------------------------------------------
                             # Extract url
