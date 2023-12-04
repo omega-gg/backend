@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.4
+version: 1.0.5
 
 title: PeerTube
 
@@ -45,6 +45,15 @@ QUERY_SOURCE: |
     RETURN true
 
 QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET index (INDEX_OF url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET backend "peertube"
+    SET queryData (MID url 0 index)
+    SET url (APPEND "https://" queryData "/api/v1/videos/" \
+                    (MID url (INDEX_END url '/' (ADD index 1))))
     RETURN true
 
 EXTRACT_SOURCE: |
@@ -55,10 +64,21 @@ EXTRACT_SOURCE: |
         SET quality (CHOP (JSON_EXTRACT data "label") 1)
         HASH_SET medias quality (JSON_EXTRACT data "fileDownloadUrl")
     END
+    IF (NOT_EQUAL (COUNT medias) 1)
+        RETURN
+    FI
+    SET url (HASH_GET medias quality)
+    IF (EQUAL (URL_EXTENSION url) "vbml")
+        HASH_SET next "backend" "vbml"
+        HASH_SET next "url" url
+    FI
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET index (INDEX_END data "property=\"og:title\"")
-    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-    SET index (INDEX_END data "property=\"og:image\"")
-    SET cover (HTML_ATTRIBUTE data "content" index)
+    SET title (JSON_EXTRACT_UTF8 data "name")
+    SET cover (APPEND "https://" queryData (JSON_EXTRACT data "previewPath"))
+    SET url (JSON_EXTRACT data "fileDownloadUrl")
+    IF (EQUAL (URL_EXTENSION url) "vbml")
+        HASH_SET next "backend" "vbml"
+        HASH_SET next "url" url
+    FI

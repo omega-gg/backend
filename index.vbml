@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.175
+version: 1.0.176
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -53,7 +53,7 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    peertube      PeerTube      1.0.4  /watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}
+    peertube      PeerTube      1.0.5  /watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}
     twitch        Twitch        1.0.28 ^twitch.tv
     iptv          IPTV          1.0.8  ^iptv:
     tiktok        TikTok        1.0.7  ^tiktok.com
