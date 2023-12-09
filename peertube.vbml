@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 title: PeerTube
 
@@ -96,6 +96,7 @@ EXTRACT_TRACK: |
     SET url (JSON_EXTRACT data "fileDownloadUrl")
     IF (NOT_EQUAL (URL_EXTENSION url) "vbml")
         RETURN
+    FI
     HASH_SET next "backend" "vbml"
     HASH_SET next "url" url
 
