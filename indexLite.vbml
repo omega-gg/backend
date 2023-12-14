@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.182
+version: 1.0.183
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -53,8 +53,7 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    vox           vox           1.0.1  ^vox.omega.gg
-    peertube      PeerTube      1.0.11 /watch/(?!.*/)|/w/(?!.*/)
+    vox           vox           1.0.2  ^vox.omega.gg
     twitch        Twitch        1.0.28 ^twitch.tv
     iptv          IPTV          1.0.8  ^iptv:
     tiktok        TikTok        1.0.7  ^tiktok.com
@@ -62,6 +61,7 @@ backends: |
     tmdb          TMDB          1.0.30 ^themoviedb.org
     lastfm        Last.fm       1.0.6  ^last.fm
     opensubtitles OpenSubtitles 1.0.7  ^opensubtitles.org
+    peertube      PeerTube      1.0.12 /(watch|w|video-channels|c)/(?!.*/)
 
 covers: |
     duckduckgo  cover/duckduckgo.png

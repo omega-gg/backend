@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: vox
 
@@ -30,17 +30,32 @@ validate: ^vox.omega.gg
 TRACK_ID: |
     # NOTE: We keep the url extension to preserve the time for the VBML related queries.
     SET url (URL_REMOVE_PREFIX url)
-    IF (EQUAL (CONTAIN url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)")) false)
+    IF (EQUAL (CONTAIN url (REGEXP "/(watch|w)/(?!.*/)")) false)
         RETURN ""
     FI
     RETURN url
 
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET index (INDEX_OF url (REGEXP "/(video-channels|c)/(?!.*/)"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET type "feed"
+    SET id (APPEND queryData "/api/v1/video-channels/" \
+                   (MID url (INDEX_END url '/' (ADD index 1))) \
+                   /videos?start=0&count=100&sort=-publishedAt&skipCount=true&nsfw=false)
+    RETURN true
+
 URL_TRACK: |
+    RETURN (APPEND "https://" id)
+
+URL_PLAYLIST: |
     RETURN (APPEND "https://" id)
 
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    SET index (INDEX_OF url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)"))
+    SET index (INDEX_OF url (REGEXP "/(watch|w)/(?!.*/)"))
     IF (EQUAL index -1)
         RETURN false
     FI
@@ -50,7 +65,17 @@ QUERY_SOURCE: |
 
 QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    SET index (INDEX_OF url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)"))
+    SET index (INDEX_OF url (REGEXP "/(watch|w)/(?!.*/)"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET backend "peertube"
+    SET url (APPEND "https://" url)
+    RETURN true
+
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET index (INDEX_OF url (REGEXP "/(video-channels|c)/(?!.*/)"))
     IF (EQUAL index -1)
         RETURN false
     FI
