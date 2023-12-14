@@ -9,13 +9,14 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.178
+version: 1.0.179
 
 #--------------------------------------------------------------------------------------------------
 # Backends
 #--------------------------------------------------------------------------------------------------
 
 backend_hub: |
+    vox
     tmdb
     twitch
 
@@ -24,6 +25,7 @@ backend_search: |
 
 backend_track: |
     duckduckgo
+    vox
     tmdb
     bittorrent
     youtube
@@ -53,7 +55,8 @@ backends: |
     vimeo         Vimeo         1.0.2  ^vimeo.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
-    peertube      PeerTube      1.0.7  /watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}
+    vox           vox           1.0.0  ^vox.omega.gg
+    peertube      PeerTube      1.0.8  /watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}
     twitch        Twitch        1.0.28 ^twitch.tv
     iptv          IPTV          1.0.8  ^iptv:
     tiktok        TikTok        1.0.7  ^tiktok.com
@@ -79,5 +82,6 @@ covers: |
     lastfm      cover/lastfm.png
 
 hubs: |
+    vox    https://omega.gg/vox
     tmdb   https://omega.gg/vox/tmdb
     twitch https://omega.gg/vox/twitch

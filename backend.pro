@@ -8,6 +8,7 @@ OTHER_FILES += index.vbml \
                facebook.vbml \
                odysee.vbml \
                peertube.vbml \
+               vox.vbml \
                iptv.vbml \
                twitch.vbml \
                tiktok.vbml \

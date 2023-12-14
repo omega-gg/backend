@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.7
+version: 1.0.8
 
 title: PeerTube
 
@@ -59,17 +59,23 @@ QUERY_TRACK: |
 
 CREATE_QUERY: |
     IF (NOT_EQUAL label "tracks")
-    OR (NOT_EQUAL method "related")
         RETURN
     FI
-    SET index (INDEX_OF q (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
-    IF (EQUAL index -1)
-        RETURN false
+    IF (EQUAL method "search")
+        SET backend "peertube"
+        SET queryData (MID url 0 (INDEX_OF q '/'))
+        SET url (APPEND "https://" q)
+    ELIF (EQUAL method "related")
+        SET index (INDEX_OF q (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+        IF (EQUAL index -1)
+            RETURN false
+        FI
+        SET backend "peertube"
+        SET id 1
+        SET queryData q
+        SET url (APPEND "https://" (MID q 0 index) "/api/v1/videos/" \
+                        (MID q (INDEX_END q '/' (ADD index 1))))
     FI
-    SET backend "peertube"
-    SET queryData (URL_FRAGMENT q)
-    SET url (APPEND "https://" (MID q 0 index) "/api/v1/videos/" \
-                    (MID q (INDEX_END q '/' (ADD index 1))))
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -100,12 +106,36 @@ EXTRACT_TRACK: |
     HASH_SET next "backend" "vbml"
     HASH_SET next "url" url
 
-EXTRACT_PLAYLIST: | # Related
+EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    SET url (JSON_EXTRACT data "fileDownloadUrl")
-    IF (NOT_EQUAL (URL_EXTENSION url) "vbml")
-        RETURN
+    IF (EQUAL id 1) # Related
+        SET url (JSON_EXTRACT data "fileDownloadUrl")
+        IF (EQUAL (URL_EXTENSION url) "vbml")
+            SET time (SLICE_IN (URL_FRAGMENT queryData) "t=" '&')
+            IF (NOT_EQUAL time "")
+                HASH_SET next "backend" "related"
+                HASH_SET next "url" url
+                HASH_SET next "currentTime" time
+                RETURN
+            FI
+        FI
+        SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
+        SET list (JSON_SPLIT (JSON_EXTRACT_UTF8 data "tags"))
+        FOREACH list data
+            SET tags (APPEND tags "&tagsOneOf=" data)
+        END
+        HASH_SET next "backend" "peertube"
+        HASH_SET next "url" (APPEND "https://" queryData "/api/v1/search/videos?start=0&count=20" \
+                                    tags "&sort=-publishedAt&searchTarget=local")
+        HASH_SET next "queryData" queryData
+    ELSE # Search tracks
+        SET queryData (APPEND "https://" queryData)
+        SET data (JSON_EXTRACT data "data")
+        SET list (JSON_SPLIT data)
+        FOREACH list data
+            HASH_SET track "source" (APPEND queryData "/w/" (JSON_EXTRACT data "shortUUID"))
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name")
+            HASH_SET track "cover" (APPEND queryData (JSON_EXTRACT data "previewPath"))
+            LIST_APPEND tracks track
+        END
     FI
-    HASH_SET next "backend" "related"
-    HASH_SET next "url" url
-    HASH_SET next "currentTime" (SLICE_IN queryData "t=" '&')

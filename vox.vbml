@@ -1,0 +1,71 @@
+# VBML 1.0.3
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
+
+api: 1.0.3
+
+version: 1.0.0
+
+title: vox
+
+host: vox.omega.gg
+
+cover: cover/vox.png
+
+items:
+    playlist:
+        title: Tracks
+
+validate: ^vox.omega.gg
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    # NOTE: We keep the url extension to preserve the time for the VBML related queries.
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (CONTAIN url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}")) false)
+        RETURN ""
+    FI
+    RETURN url
+
+URL_TRACK: |
+    RETURN (APPEND "https://" id)
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET index (INDEX_OF url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET backend "peertube"
+    SET url (APPEND "https://" url)
+    RETURN true
+
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    SET index (INDEX_OF url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+    IF (EQUAL index -1)
+        RETURN false
+    FI
+    SET backend "peertube"
+    SET url (APPEND "https://" url)
+    RETURN true
+
+CREATE_QUERY: |
+    IF (NOT_EQUAL label "tracks")
+        RETURN
+    FI
+    IF (EQUAL method "search")
+        SET url "vox.omega.gg/api/v1/search/videos"
+        URL_ADD_QUERY url "search" (URL_ENCODE q)
+        SET url (APPEND "vbml:run?backend=peertube&method=search&label=tracks&q=" url)
+    ELIF (EQUAL method "related")
+        SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" q)
+    FI
