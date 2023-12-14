@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 title: PeerTube
 
@@ -63,7 +63,7 @@ CREATE_QUERY: |
     FI
     IF (EQUAL method "search")
         SET backend "peertube"
-        SET queryData (MID url 0 (INDEX_OF q '/'))
+        SET queryData (MID q 0 (INDEX_OF q '/'))
         SET url (APPEND "https://" q)
     ELIF (EQUAL method "related")
         SET index (INDEX_OF q (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
