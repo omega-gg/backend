@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.8
+version: 1.0.9
 
 title: PeerTube
 
@@ -118,8 +118,13 @@ EXTRACT_PLAYLIST: |
                 HASH_SET next "currentTime" time
                 RETURN
             FI
+            SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
+            HASH_SET next "id" 2
+            HASH_SET next "queryData" (LIST queryData url)
+        ELSE
+            SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
+            HASH_SET next "queryData" queryData
         FI
-        SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
         SET list (JSON_SPLIT (JSON_EXTRACT_UTF8 data "tags"))
         FOREACH list data
             SET tags (APPEND tags "&tagsOneOf=" data)
@@ -127,8 +132,12 @@ EXTRACT_PLAYLIST: |
         HASH_SET next "backend" "peertube"
         HASH_SET next "url" (APPEND "https://" queryData "/api/v1/search/videos?start=0&count=20" \
                                     tags "&sort=-publishedAt&searchTarget=local")
-        HASH_SET next "queryData" queryData
     ELSE # Search tracks
+        IF (EQUAL id 2) # Related VBML
+            HASH_SET next "backend" "related"
+            HASH_SET next "url" (LIST_GET queryData 1)
+            SET queryData (LIST_GET queryData 0)
+        FI
         SET queryData (APPEND "https://" queryData)
         SET data (JSON_EXTRACT data "data")
         SET list (JSON_SPLIT data)
