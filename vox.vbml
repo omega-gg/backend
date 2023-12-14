@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.0
+version: 1.0.1
 
 title: vox
 
@@ -30,7 +30,7 @@ validate: ^vox.omega.gg
 TRACK_ID: |
     # NOTE: We keep the url extension to preserve the time for the VBML related queries.
     SET url (URL_REMOVE_PREFIX url)
-    IF (EQUAL (CONTAIN url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}")) false)
+    IF (EQUAL (CONTAIN url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)")) false)
         RETURN ""
     FI
     RETURN url
@@ -40,7 +40,7 @@ URL_TRACK: |
 
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    SET index (INDEX_OF url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+    SET index (INDEX_OF url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)"))
     IF (EQUAL index -1)
         RETURN false
     FI
@@ -50,7 +50,7 @@ QUERY_SOURCE: |
 
 QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    SET index (INDEX_OF url (REGEXP "/watch/[a-zA-Z0-9]{8}|/w/[a-zA-Z0-9]{8}"))
+    SET index (INDEX_OF url (REGEXP "/watch/(?!.*/)|/w/(?!.*/)"))
     IF (EQUAL index -1)
         RETURN false
     FI
