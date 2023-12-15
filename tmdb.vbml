@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.30
+version: 1.0.31
 
 search: coverVideo
 
@@ -19,7 +19,7 @@ host: themoviedb.org
 
 cover: cover/tmdb.png
 
-hub: https://omega.gg/vox/tmdb
+hub: https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB
 
 items:
     playlist:
@@ -102,25 +102,25 @@ CREATE_QUERY: |
                 SET queryData \
                     (LIST (APPEND "Netflix: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/netflix/netflix.png" \
-                          "https://omega.gg/vox/netflix")
+                          "https://vox.omega.gg/w/azQbNtC41sMW7RYge9qBrV")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=337") # Disney+
                 SET queryData \
                     (LIST (APPEND "Disney+: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/disney/disney.png" \
-                          "https://omega.gg/vox/disney")
+                          "https://vox.omega.gg/w/u7LcNmoaU3AU82PBjFHG72")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=350") # Apple TV+
                 SET queryData \
                     (LIST (APPEND "Apple TV+: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/apple/apple.png" \
-                          "https://omega.gg/vox/apple")
+                          "https://vox.omega.gg/w/pAtEEiZ13ezKCcgEHnnXY1")
                 RETURN
             ELIF (CONTAIN q "with_watch_providers=1899") # HBO Max
                 SET queryData \
                     (LIST (APPEND "HBO Max: " label) type \
                           "https://omega.gg/vox/repository/hub/tmdb/hub/max/max.png" \
-                          "https://omega.gg/vox/max")
+                          "https://vox.omega.gg/w/aHy9qfys6ZHzWHVANxX7fp")
                 RETURN
             FI
         ELSE
@@ -136,7 +136,7 @@ CREATE_QUERY: |
         SET queryData \
             (LIST (APPEND "The Movie Database: " label) type \
             "https://raw.githubusercontent.com/omega-gg/backend/master/cover/tmdb.png" \
-            "https://omega.gg/vox/tmdb")
+            "https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB")
         RETURN
     FI
     #----------------------------------------------------------------------------------------------
@@ -556,7 +556,7 @@ EXTRACT_PLAYLIST: |
         IF (EQUAL (COUNT tracks) 0)
         OR (EQUAL id 1)
             HASH_SET hub "state" "default"
-            HASH_SET hub "source" "https://omega.gg/vox/tmdb"
+            HASH_SET hub "source" "https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB"
             LIST_APPEND tracks hub
             RETURN
         FI
