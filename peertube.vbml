@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.14
+version: 1.0.15
 
 title: PeerTube
 
@@ -171,8 +171,10 @@ EXTRACT_PLAYLIST: |
         SET channel (JSON_EXTRACT data "channel")
         SET title (JSON_EXTRACT_UTF8 channel "displayName")
         SET channel (JSON_EXTRACT channel "avatars")
-        SET cover (APPEND queryData (JSON_EXTRACT channel "path" \
-                                                  (LAST_INDEX_OF channel "\"path\"")))
+        IF (NOT_EQUAL channel "")
+            SET cover (APPEND queryData (JSON_EXTRACT channel "path" \
+                                                      (LAST_INDEX_OF channel "\"path\"")))
+        FI
         SET data (JSON_EXTRACT data "data")
         SET list (JSON_SPLIT data)
         FOREACH list data
