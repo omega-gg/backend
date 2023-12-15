@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.2
+version: 1.0.3
 
 title: vox
 
@@ -92,5 +92,6 @@ CREATE_QUERY: |
         URL_ADD_QUERY url "search" (URL_ENCODE q)
         SET url (APPEND "vbml:run?backend=peertube&method=search&label=tracks&q=" url)
     ELIF (EQUAL method "related")
-        SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" q)
+        # NOTE: We encode the url to handle the 't' extension.
+        SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" (URL_ENCODE q))
     FI

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.12
+version: 1.0.13
 
 title: PeerTube
 
@@ -144,8 +144,7 @@ EXTRACT_PLAYLIST: |
             SET time (SLICE_IN (URL_FRAGMENT queryData) "t=" '&')
             IF (NOT_EQUAL time "")
                 HASH_SET next "backend" "related"
-                HASH_SET next "url" url
-                HASH_SET next "currentTime" time
+                HASH_SET next "url" (APPEND url "#t=" time)
                 RETURN
             FI
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
