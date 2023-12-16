@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.15
+version: 1.0.16
 
 title: PeerTube
 
@@ -143,8 +143,10 @@ EXTRACT_PLAYLIST: |
         IF (EQUAL (URL_EXTENSION url) "vbml")
             SET time (SLICE_IN (URL_FRAGMENT queryData) "t=" '&')
             IF (NOT_EQUAL time "")
-                HASH_SET next "backend" "related"
-                HASH_SET next "url" (APPEND url "#t=" time)
+                # NOTE: We encode the url to handle the 't' extension.
+                HASH_SET next "url" (APPEND \
+                                     "vbml:run?backend=vbml&method=related&label=tracks&q=" \
+                                     (URL_ENCODE (APPEND url "#t=" time)))
                 RETURN
             FI
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
@@ -163,8 +165,8 @@ EXTRACT_PLAYLIST: |
                                     tags "&sort=-publishedAt&searchTarget=local")
     ELSE # Search tracks
         IF (EQUAL id 2) # Related VBML
-            HASH_SET next "backend" "related"
-            HASH_SET next "url" (LIST_GET queryData 1)
+            HASH_SET next "url" (APPEND "vbml:run?backend=vbml&method=related&label=tracks&q=" \
+                                        (LIST_GET queryData 1))
             SET queryData (LIST_GET queryData 0)
         FI
         SET queryData (APPEND "https://" queryData)
