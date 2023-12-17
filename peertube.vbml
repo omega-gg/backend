@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.16
+version: 1.0.17
 
 title: PeerTube
 
@@ -55,7 +55,6 @@ QUERY_SOURCE: |
     IF (EQUAL index -1)
         RETURN false
     FI
-    SET backend "peertube"
     SET url (APPEND "https://" (MID url 0 index) "/api/v1/videos/" \
                     (MID url (INDEX_END url '/' (ADD index 1))))
     RETURN true
@@ -66,7 +65,6 @@ QUERY_TRACK: |
     IF (EQUAL index -1)
         RETURN false
     FI
-    SET backend "peertube"
     SET queryData (MID url 0 index)
     SET url (APPEND "https://" queryData "/api/v1/videos/" \
                     (MID url (INDEX_END url '/' (ADD index 1))))
@@ -89,7 +87,7 @@ CREATE_QUERY: |
         RETURN
     FI
     IF (EQUAL method "search")
-        SET backend "peertube"
+        SET id 1
         SET queryData (MID q 0 (INDEX_OF q '/'))
         SET url (APPEND "https://" q)
     ELIF (EQUAL method "related")
@@ -97,8 +95,7 @@ CREATE_QUERY: |
         IF (EQUAL index -1)
             RETURN false
         FI
-        SET backend "peertube"
-        SET id 1
+        SET id 2
         SET queryData q
         SET url (APPEND "https://" (MID q 0 index) "/api/v1/videos/" \
                         (MID q (INDEX_END q '/' (ADD index 1))))
@@ -138,7 +135,7 @@ EXTRACT_TRACK: |
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 1) # Related
+    IF (EQUAL id 2) # Related
         SET url (JSON_EXTRACT data "fileDownloadUrl")
         IF (EQUAL (URL_EXTENSION url) "vbml")
             SET time (SLICE_IN (URL_FRAGMENT queryData) "t=" '&')
@@ -150,7 +147,7 @@ EXTRACT_PLAYLIST: |
                 RETURN
             FI
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
-            HASH_SET next "id" 2
+            HASH_SET next "id" 3
             HASH_SET next "queryData" (LIST queryData url)
         ELSE
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
@@ -160,22 +157,23 @@ EXTRACT_PLAYLIST: |
         FOREACH list data
             SET tags (APPEND tags "&tagsOneOf=" data)
         END
-        HASH_SET next "backend" "peertube"
         HASH_SET next "url" (APPEND "https://" queryData "/api/v1/search/videos?start=0&count=20" \
                                     tags "&sort=-publishedAt&searchTarget=local")
-    ELSE # Search tracks
-        IF (EQUAL id 2) # Related VBML
+    ELSE # Tracks
+        IF (EQUAL id 3) # Related VBML
             HASH_SET next "url" (APPEND "vbml:run?backend=vbml&method=related&label=tracks&q=" \
                                         (LIST_GET queryData 1))
             SET queryData (LIST_GET queryData 0)
         FI
         SET queryData (APPEND "https://" queryData)
-        SET channel (JSON_EXTRACT data "channel")
-        SET title (JSON_EXTRACT_UTF8 channel "displayName")
-        SET channel (JSON_EXTRACT channel "avatars")
-        IF (NOT_EQUAL channel "")
-            SET cover (APPEND queryData (JSON_EXTRACT channel "path" \
-                                                      (LAST_INDEX_OF channel "\"path\"")))
+        IF (EQUAL id 0) # Playlist
+            SET channel (JSON_EXTRACT data "channel")
+            SET title (JSON_EXTRACT_UTF8 channel "displayName")
+            SET channel (JSON_EXTRACT channel "avatars")
+            IF (NOT_EQUAL channel "")
+                SET cover (APPEND queryData (JSON_EXTRACT channel "path" \
+                                                          (LAST_INDEX_OF channel "\"path\"")))
+            FI
         FI
         SET data (JSON_EXTRACT data "data")
         SET list (JSON_SPLIT data)
