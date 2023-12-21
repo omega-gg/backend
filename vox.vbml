@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.3
+version: 1.0.4
 
 title: vox
 
@@ -84,14 +84,16 @@ QUERY_PLAYLIST: |
     RETURN true
 
 CREATE_QUERY: |
-    IF (NOT_EQUAL label "tracks")
-        RETURN
-    FI
-    IF (EQUAL method "search")
-        SET url "vox.omega.gg/api/v1/search/videos"
-        URL_ADD_QUERY url "search" (URL_ENCODE q)
-        SET url (APPEND "vbml:run?backend=peertube&method=search&label=tracks&q=" url)
-    ELIF (EQUAL method "related")
-        # NOTE: We encode the url to handle the 't' extension.
-        SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" (URL_ENCODE q))
+    IF (EQUAL label "tracks")
+        IF (EQUAL method "search")
+            SET url "vox.omega.gg"
+            URL_ADD_QUERY url "search" (URL_ENCODE q)
+            SET url (APPEND "vbml:run?backend=peertube&method=search&label=tracks&q=" url)
+        ELIF (EQUAL method "related")
+            # NOTE: We encode the url to handle the 't' extension.
+            SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" (URL_ENCODE q))
+        FI
+    ELIF (EQUAL method "view")
+    AND (CONTAIN q "/trending")
+        SET url (APPEND "vbml:run?backend=peertube&method=view&q=" q)
     FI
