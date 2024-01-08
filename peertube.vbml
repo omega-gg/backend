@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.19
+version: 1.0.20
 
 title: PeerTube
 
@@ -24,8 +24,7 @@ validate: /(watch|w|video-channels|c)/(?!.*/)
 #--------------------------------------------------------------------------------------------------
 
 TRACK_ID: |
-    # NOTE: We keep the url extension to preserve the time for the VBML related queries.
-    SET url (URL_REMOVE_PREFIX url)
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (CONTAIN url (REGEXP "/(watch|w)/(?!.*/)")) false)
         RETURN ""
     FI
@@ -96,7 +95,7 @@ CREATE_QUERY: |
                 RETURN false
             FI
             SET id 2
-            SET queryData q
+            SET queryData (LIST q t)
             SET url (APPEND "https://" (MID q 0 index) "/api/v1/videos/" \
                             (MID q (INDEX_END q '/' (ADD index 1))))
         FI
@@ -145,18 +144,19 @@ EXTRACT_PLAYLIST: |
     IF (EQUAL id 2) # Related
         SET url (JSON_EXTRACT data "fileDownloadUrl")
         IF (EQUAL (URL_EXTENSION url) "vbml")
-            SET time (SLICE_IN (URL_FRAGMENT queryData) "t=" '&')
-            IF (NOT_EQUAL time "")
-                # NOTE: We encode the url to handle the 't' extension.
+            SET t (LIST_GET queryData 1)
+            IF (LENGTH t)
                 HASH_SET next "url" (APPEND \
-                                     "vbml:run?backend=vbml&method=related&label=tracks&q=" \
-                                     (URL_ENCODE (APPEND url "#t=" time)))
+                                     "vbml:run?backend=vbml&method=related&label=tracks&q=" url \
+                                     "&t=" t)
                 RETURN
             FI
+            SET queryData (LIST_GET queryData 0)
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
             HASH_SET next "id" 3
             HASH_SET next "queryData" (LIST queryData url)
         ELSE
+            SET queryData (LIST_GET queryData 0)
             SET queryData (MID queryData 0 (INDEX_OF queryData '/'))
             HASH_SET next "queryData" queryData
         FI

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.4
+version: 1.0.5
 
 title: vox
 
@@ -28,8 +28,7 @@ validate: ^vox.omega.gg
 #--------------------------------------------------------------------------------------------------
 
 TRACK_ID: |
-    # NOTE: We keep the url extension to preserve the time for the VBML related queries.
-    SET url (URL_REMOVE_PREFIX url)
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (CONTAIN url (REGEXP "/(watch|w)/(?!.*/)")) false)
         RETURN ""
     FI
@@ -90,8 +89,11 @@ CREATE_QUERY: |
             URL_ADD_QUERY url "search" (URL_ENCODE q)
             SET url (APPEND "vbml:run?backend=peertube&method=search&label=tracks&q=" url)
         ELIF (EQUAL method "related")
-            # NOTE: We encode the url to handle the 't' extension.
-            SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" (URL_ENCODE q))
+            SET url (APPEND "vbml:run?backend=peertube&method=related&label=tracks&q=" \
+                            (URL_ENCODE q))
+            IF (LENGTH t)
+                SET url (APPEND url "&t=" t)
+            FI
         FI
     ELIF (EQUAL method "view")
     AND (CONTAIN q "/trending")
