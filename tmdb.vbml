@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.31
+version: 1.0.32
 
 search: coverVideo
 
@@ -344,7 +344,7 @@ EXTRACT_TRACK: |
         IF (EQUAL index -1)
             RETURN
         FI
-        SET cover (APPEND "https://www.themoviedb.org" (HTML_ATTRIBUTE data "href" index))
+        SET cover (HTML_ATTRIBUTE data "href" index)
         HASH_SET track "cover" cover
         #------------------------------------------------------------------------------------------
         # Global
