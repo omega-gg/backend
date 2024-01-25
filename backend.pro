@@ -5,6 +5,7 @@ OTHER_FILES += index.vbml \
                youtube.vbml \
                dailymotion.vbml \
                vimeo.vbml \
+               twitter.vbml \
                facebook.vbml \
                odysee.vbml \
                peertube.vbml \

@@ -1,0 +1,132 @@
+# VBML 1.0.3
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+source: https://raw.githubusercontent.com/omega-gg/backend/master/twitter.vbml
+
+api: 1.0.3
+
+version: 1.0.6
+
+title: Twitter
+
+host: twitter.com
+
+cover: cover/twitter.png
+
+validate: ^twitter.com|^x.com
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url (REGEXP "^twitter.com|^x.com")) false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 3)
+        RETURN ""
+    FI
+    RETURN (MID url (INDEX_END url '/'))
+
+URL_TRACK: |
+    RETURN (APPEND "https://twitter.com/" id)
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url (REGEXP "^twitter.com|^x.com")) false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 3)
+        RETURN false
+    FI
+    SET idTrack (MID url (LAST_INDEX_END url '/'))
+    IF (EQUAL global "") # Get token
+        SET url "https://api.twitter.com/1.1/guest/activate.json"
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"')
+        SET body "{}"
+        SET queryData idTrack
+    ELSE
+        SET id 1
+        SET url (APPEND "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId?variables=%7B%22tweetId%22%3A%22" \
+                        idTrack "%22%2C%22withCommunity%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Afalse%7D&features=%7B%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22tweetypie_unmention_optimization_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Afalse%2C%22tweet_awards_web_tipping_enabled%22%3Afalse%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Atrue%2C%22responsive_web_graphql_exclude_directive_enabled%22%3Atrue%2C%22verified_phone_label_enabled%22%3Afalse%2C%22responsive_web_media_download_video_enabled%22%3Afalse%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Afalse%7D")
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"' \
+                           '"X-Guest-Token" "' global '"')
+    FI
+    RETURN true
+
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url (REGEXP "^twitter.com|^x.com")) false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 3)
+        RETURN false
+    FI
+    SET idTrack (MID url (LAST_INDEX_END url '/'))
+    IF (EQUAL global "") # Get token
+        SET url "https://api.twitter.com/1.1/guest/activate.json"
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"')
+        SET body "{}"
+        SET queryData idTrack
+    ELSE
+        SET id 1
+        SET url (APPEND "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId?variables=%7B%22tweetId%22%3A%22" \
+                        idTrack "%22%2C%22withCommunity%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Afalse%7D&features=%7B%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22tweetypie_unmention_optimization_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Afalse%2C%22tweet_awards_web_tipping_enabled%22%3Afalse%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Atrue%2C%22responsive_web_graphql_exclude_directive_enabled%22%3Atrue%2C%22verified_phone_label_enabled%22%3Afalse%2C%22responsive_web_media_download_video_enabled%22%3Afalse%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Afalse%7D")
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"' \
+                           '"X-Guest-Token" "' global '"')
+    FI
+    RETURN true
+
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 0) # Get token
+        SET global (JSON_EXTRACT data "guest_token")
+        IF (EQUAL global "")
+            RETURN
+        FI
+        HASH_SET next "id" 1
+        HASH_SET next "url" (APPEND "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId?variables=%7B%22tweetId%22%3A%22" \
+                                    queryData "%22%2C%22withCommunity%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Afalse%7D&features=%7B%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22tweetypie_unmention_optimization_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Afalse%2C%22tweet_awards_web_tipping_enabled%22%3Afalse%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Atrue%2C%22responsive_web_graphql_exclude_directive_enabled%22%3Atrue%2C%22verified_phone_label_enabled%22%3Afalse%2C%22responsive_web_media_download_video_enabled%22%3Afalse%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Afalse%7D")
+        HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
+                                       '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"' \
+                                       '"X-Guest-Token" "' global '"')
+    ELIF (EQUAL id 1)
+        SET data (JSON_EXTRACT data "video_info")
+        SET data (JSON_EXTRACT data "url" (INDEX_OF data '"content_type":"application/x-mpegURL"'))
+        IF (EQUAL data "")
+            RETURN
+        FI
+        HASH_SET next "id" 2
+        HASH_SET next "url" data
+    ELSE # Extract m3u8
+        SET list (SLICES data "RESOLUTION=" ".m3u8")
+        FOREACH list source
+            SET quality (SLICE_IN source 'x' ',')
+            SET source (SLICE source '/' "fmp4")
+            HASH_SET medias quality (APPEND "https://video.twimg.com" source)
+        END
+    FI
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 0) # Get token
+        SET global (JSON_EXTRACT data "guest_token")
+        IF (EQUAL global "")
+            RETURN
+        FI
+        HASH_SET next "id" 1
+        HASH_SET next "url" (APPEND "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId?variables=%7B%22tweetId%22%3A%22" \
+                                    queryData "%22%2C%22withCommunity%22%3Afalse%2C%22includePromotedContent%22%3Afalse%2C%22withVoice%22%3Afalse%7D&features=%7B%22creator_subscriptions_tweet_preview_api_enabled%22%3Atrue%2C%22tweetypie_unmention_optimization_enabled%22%3Atrue%2C%22responsive_web_edit_tweet_api_enabled%22%3Atrue%2C%22graphql_is_translatable_rweb_tweet_is_translatable_enabled%22%3Atrue%2C%22view_counts_everywhere_api_enabled%22%3Atrue%2C%22longform_notetweets_consumption_enabled%22%3Atrue%2C%22responsive_web_twitter_article_tweet_consumption_enabled%22%3Afalse%2C%22tweet_awards_web_tipping_enabled%22%3Afalse%2C%22freedom_of_speech_not_reach_fetch_enabled%22%3Atrue%2C%22standardized_nudges_misinfo%22%3Atrue%2C%22tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled%22%3Atrue%2C%22longform_notetweets_rich_text_read_enabled%22%3Atrue%2C%22longform_notetweets_inline_media_enabled%22%3Atrue%2C%22responsive_web_graphql_exclude_directive_enabled%22%3Atrue%2C%22verified_phone_label_enabled%22%3Afalse%2C%22responsive_web_media_download_video_enabled%22%3Afalse%2C%22responsive_web_graphql_skip_user_profile_image_extensions_enabled%22%3Afalse%2C%22responsive_web_graphql_timeline_navigation_enabled%22%3Atrue%2C%22responsive_web_enhance_cards_enabled%22%3Afalse%7D&fieldToggles=%7B%22withArticleRichContentState%22%3Afalse%7D")
+        HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
+                                       '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"' \
+                                       '"X-Guest-Token" "' global '"')
+    ELSE
+        SET title (JSON_EXTRACT_UTF8 data "full_text")
+        SET cover (JSON_EXTRACT data "media_url_https")
+    FI
+
+QUERY_FAILED: |
+    SET global ""

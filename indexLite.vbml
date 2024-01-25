@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.193
+version: 1.0.194
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -51,6 +51,7 @@ backends: |
     youtube       Youtube       1.0.61 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.4  ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.2  ^vimeo.com
+    twitter       Twitter       1.0.7  ^twitter.com|^x.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
     vox           vox           1.0.5  ^vox.omega.gg
@@ -68,6 +69,7 @@ covers: |
     youtube     cover/youtube.png
     dailymotion cover/dailymotion.png
     vimeo       cover/vimeo.png
+    twitter     cover/twitter.png
     facebook    cover/facebook.png
     odysee      cover/odysee.png
     peertube    cover/peertube.png
