@@ -53,7 +53,7 @@ backends: |
     youtube       Youtube       1.0.61 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.4  ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.2  ^vimeo.com
-    twitter       Twitter       1.0.7  ^twitter.com|^x.com
+    twitter       Twitter       1.0.1  ^twitter.com|^x.com
     facebook      Facebook      1.0.7  ^facebook.com
     odysee        Odysee        1.0.6  ^odysee.com
     vox           vox           1.0.5  ^vox.omega.gg
