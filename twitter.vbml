@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitter.vbml
 
 api: 1.0.3
 
-version: 1.0.1
+version: 1.0.2
 
 title: Twitter
 
@@ -93,20 +93,16 @@ EXTRACT_SOURCE: |
         HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                        '"Authorization" "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"' \
                                        '"X-Guest-Token" "' global '"')
-    ELIF (EQUAL id 1)
-        SET data (JSON_EXTRACT data "video_info")
-        SET data (JSON_EXTRACT data "url" (INDEX_OF data '"content_type":"application/x-mpegURL"'))
-        IF (EQUAL data "")
-            RETURN
-        FI
-        HASH_SET next "id" 2
-        HASH_SET next "url" data
-    ELSE # Extract m3u8
-        SET list (SLICES data "RESOLUTION=" ".m3u8")
-        FOREACH list source
-            SET quality (SLICE_IN source 'x' ',')
-            SET source (SLICE source '/' "fmp4")
-            HASH_SET medias quality (APPEND "https://video.twimg.com" source)
+    ELSE # (EQUAL id 1)
+        SET data (JSON_EXTRACT data "variants" (INDEX_END data "\"video_info\""))
+        FOREACH (JSON_SPLIT data) data
+            IF (NOT_EQUAL (JSON_EXTRACT data "content_type") "video/mp4")
+                CONTINUE
+            FI
+            SET data (JSON_EXTRACT data "url")
+            SET quality (MID data (INDEX_END data '/vid/'))
+            SET quality (SLICE_IN quality 'x' '/')
+            HASH_SET medias quality data
         END
     FI
 
