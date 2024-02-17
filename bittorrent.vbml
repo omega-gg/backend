@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.21
+version: 1.0.22
 
 title: BitTorrent
 
@@ -106,7 +106,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "kp" "-1"
             SET id 3
             SET header true
         ELIF (EQUAL label "all")
@@ -118,7 +118,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "kp" "-1"
             SET id 1
             SET header true
         ELIF (EQUAL label "torrents")
@@ -130,7 +130,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "kp" "-1"
             SET id 1
             SET queryData 1
             SET header true
@@ -143,7 +143,7 @@ CREATE_QUERY: |
             FI
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            URL_ADD_QUERY url "kp" "-1"
             SET id 1
             SET queryData 2
             SET header true
@@ -231,9 +231,12 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_OF data "]}};var")
         SET url (APPEND "https://snowfl.com/" (SLICE_IN data '"' '"' index) '/')
         HASH_SET next "backend" "bittorrent"
+        SET query (LIST_TAKE_AT queryData 0)
+        SET query (REPLACE query (REGEXP "[',.:\\-_(){}\\[\\]]") ' ')
+        SET query (REPLACE query 'é' 'e')
+        SET query (REPLACE query 'è' 'e')
         # NOTE: Maybe we should generate a random string instead of 'abcdefgh'.
-        HASH_SET next "url" (APPEND url (URL_ENCODE (LIST_TAKE_AT queryData 0)) \
-                                    "/abcdefgh/0/NONE/NONE/1")
+        HASH_SET next "url" (APPEND url (URL_ENCODE query) "/abcdefgh/0/NONE/NONE/1")
         HASH_SET next "id" 6
         HASH_SET next "queryData" (LIST_TAKE_AT queryData 0)
         HASH_SET next "skipError" true
@@ -241,6 +244,10 @@ EXTRACT_PLAYLIST: |
     ELIF (EQUAL id 6) # Extract Torrents
         SET list (JSON_SPLIT data)
         FOREACH list data
+            IF (CONTAIN data "\"nsfw\":true")
+            OR (CONTAIN data "\"type\":\"NA\"")
+                CONTINUE
+            FI
             IF (LESSER (ADD (JSON_EXTRACT data "seeder") (JSON_EXTRACT data "leecher")) 4)
                 CONTINUE
             FI

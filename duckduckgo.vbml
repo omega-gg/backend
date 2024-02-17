@@ -44,12 +44,12 @@ CREATE_QUERY: |
             SET url "https://html.duckduckgo.com/html"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-1"
         ELIF (EQUAL label "tracks")
             SET url "https://duckduckgo.com/"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-1"
             SET url (APPEND url "&iar=videos&iax=videos&ia=videos")
             SET id 2
             SET queryData q
@@ -57,7 +57,7 @@ CREATE_QUERY: |
             SET url "https://html.duckduckgo.com/html"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "kl" "us-en"
-            #URL_ADD_QUERY url "kp" "-2"
+            #URL_ADD_QUERY url "kp" "-1"
             SET id 1
         FI
     FI
