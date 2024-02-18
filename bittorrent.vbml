@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/bittorrent.vbm
 
 api: 1.0.3
 
-version: 1.0.22
+version: 1.0.23
 
 title: BitTorrent
 
@@ -232,7 +232,7 @@ EXTRACT_PLAYLIST: |
         SET url (APPEND "https://snowfl.com/" (SLICE_IN data '"' '"' index) '/')
         HASH_SET next "backend" "bittorrent"
         SET query (LIST_TAKE_AT queryData 0)
-        SET query (REPLACE query (REGEXP "[',.:\\-_(){}\\[\\]]") ' ')
+        SET query (SIMPLIFY (REPLACE query (REGEXP "[',.:\\-_(){}\\[\\]]") ' '))
         SET query (REPLACE query 'é' 'e')
         SET query (REPLACE query 'è' 'e')
         # NOTE: Maybe we should generate a random string instead of 'abcdefgh'.
