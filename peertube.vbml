@@ -145,6 +145,7 @@ EXTRACT_PLAYLIST: |
         SET url (JSON_EXTRACT data "fileDownloadUrl")
         IF (EQUAL (URL_EXTENSION url) "vbml")
             SET t (LIST_GET queryData 1)
+            # NOTE: When a time is set we let the client handle the related tracks.
             IF (LENGTH t)
                 HASH_SET next "url" (APPEND \
                                      "vbml:run?backend=vbml&method=related&label=tracks&q=" url \
