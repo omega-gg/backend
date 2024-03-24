@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.20
+version: 1.0.21
 
 title: PeerTube
 
@@ -128,16 +128,17 @@ EXTRACT_SOURCE: |
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     SET title (JSON_EXTRACT_UTF8 data "name")
-    SET cover (APPEND "https://" queryData (JSON_EXTRACT data "previewPath"))
     SET index (INDEX_OF data "\"channel\"")
     SET feed (JSON_EXTRACT data "url" index)
     SET author (JSON_EXTRACT_UTF8 data "name" index)
     SET url (JSON_EXTRACT data "fileDownloadUrl")
-    IF (NOT_EQUAL (URL_EXTENSION url) "vbml")
+    IF (EQUAL (URL_EXTENSION url) "vbml")
+        HASH_SET next "backend" "vbml"
+        HASH_SET next "url" url
         RETURN
     FI
-    HASH_SET next "backend" "vbml"
-    HASH_SET next "url" url
+    # NOTE: We only load the cover on a native track to optimize bandwidth.
+    SET cover (APPEND "https://" queryData (JSON_EXTRACT data "previewPath"))
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
