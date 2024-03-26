@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.21
+version: 1.0.22
 
 title: PeerTube
 
@@ -26,6 +26,7 @@ validate: /(watch|w|video-channels|c)/(?!.*/)
 TRACK_ID: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     IF (EQUAL (CONTAIN url (REGEXP "/(watch|w)/(?!.*/)")) false)
+    OR (GREATER (COUNT_STRING url '/') 2)
         RETURN ""
     FI
     RETURN url
@@ -34,11 +35,17 @@ PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     SET index (INDEX_OF url (REGEXP "/(video-channels|c)/(?!.*/)"))
     IF (EQUAL index -1)
-        RETURN false
+        SET index (INDEX_OF url (REGEXP "/(video-playlists|p)/(?!.*/)"))
+        IF (EQUAL index -1)
+            RETURN false
+        FI
+        SET type "playlist"
+        SET path "/api/v1/video-playlists/"
+    ELSE
+        SET type "feed"
+        SET path "/api/v1/video-channels/"
     FI
-    SET type "feed"
-    SET id (APPEND queryData "/api/v1/video-channels/" \
-                   (MID url (INDEX_END url '/' (ADD index 1))) \
+    SET id (APPEND queryData path (MID url (INDEX_END url '/' (ADD index 1))) \
                    /videos?start=0&count=100&sort=-publishedAt&skipCount=true&nsfw=false)
     RETURN true
 
@@ -62,6 +69,7 @@ QUERY_TRACK: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     SET index (INDEX_OF url (REGEXP "/(watch|w)/(?!.*/)"))
     IF (EQUAL index -1)
+    OR (GREATER (COUNT_STRING url '/') 2)
         RETURN false
     FI
     SET queryData (MID url 0 index)
@@ -73,11 +81,16 @@ QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
     SET index (INDEX_OF url (REGEXP "/(video-channels|c)/(?!.*/)"))
     IF (EQUAL index -1)
-        RETURN false
+        SET index (INDEX_OF url (REGEXP "/(video-playlists|p)/(?!.*/)"))
+        IF (EQUAL index -1)
+            RETURN false
+        FI
+        SET path "/api/v1/video-playlists/"
+    ELSE
+        SET path "/api/v1/video-channels/"
     FI
-    SET queryData (MID url 0 index)
-    SET url (APPEND "https://" queryData "/api/v1/video-channels/" \
-                    (MID url (INDEX_END url '/' (ADD index 1))) \
+    SET queryData (MID url 0 (INDEX_OF url '/'))
+    SET url (APPEND "https://" queryData path (MID url (INDEX_END url '/' (ADD index 1))) \
                     /videos?start=0&count=100&sort=-publishedAt&skipCount=true&nsfw=false)
     RETURN true
 
