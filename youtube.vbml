@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.66
+version: 1.0.67
 
 title: Youtube
 
@@ -101,14 +101,14 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET url \
-        "https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false"
+        "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w&prettyPrint=false"
     SET header '"Content-Type" "application/json"'
-    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID_EMBEDDED_PLAYER", '      \
+    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID", '                      \
                      '"clientVersion": "19.12.36", "androidSdkVersion": 30, "userAgent": '       \
                      '"com.google.android.youtube/19.12.36 (Linux; U; Android 11) gzip", "hl": ' \
                      '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}, "thirdParty": { '         \
                      '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' id                \
-                     '", "params": "CgIQBg==", "playbackContext": { "contentPlaybackContext": '  \
+                     '", "params": "CgIIAQ==", "playbackContext": { "contentPlaybackContext": '  \
                      '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
                      '"racyCheckOk": true }')
     RETURN true
