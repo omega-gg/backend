@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.67
+version: 1.0.68
 
 title: Youtube
 
@@ -194,10 +194,6 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    IF (CONTAIN data "\"title\":\"Video Not Available\"")
-        SET reload true
-        RETURN
-    FI
     IF (EQUAL id 1) # Live
         SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
         FOREACH list value
