@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/lastfm.vbml
 
 api: 1.0.1
 
-version: 1.0.6
+version: 1.0.7
 
 search: coverAudio
 
@@ -17,7 +17,7 @@ title: Last.fm
 
 host: last.fm
 
-cover: cover/lastfm.png
+cover: /cover/lastfm.png
 
 items:
     playlist:

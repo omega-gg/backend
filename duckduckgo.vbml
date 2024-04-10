@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/duckduckgo.vbm
 
 api: 1.0.3
 
-version: 1.0.14
+version: 1.0.15
 
 search: tracks
 
@@ -17,7 +17,7 @@ title: DuckDuckGo
 
 host: duckduckgo.com
 
-cover: cover/duckduckgo.png
+cover: /cover/duckduckgo.png
 
 items:
     playlist:

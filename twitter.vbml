@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitter.vbml
 
 api: 1.0.3
 
-version: 1.0.2
+version: 1.0.3
 
 title: Twitter
 
 host: twitter.com
 
-cover: cover/twitter.png
+cover: /cover/twitter.png
 
 validate: ^twitter.com|^x.com
 

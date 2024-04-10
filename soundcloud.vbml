@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.9
+version: 1.0.10
 
 title: SoundCloud
 
 host: soundcloud.com
 
-cover: cover/soundcloud.png
+cover: /cover/soundcloud.png
 
 items:
     playlist:

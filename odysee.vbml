@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 title: Odysee
 
 host: odysee.com
 
-cover: cover/odysee.png
+cover: /cover/odysee.png
 
 validate: ^odysee.com
 

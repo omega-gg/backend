@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vox.vbml
 
 api: 1.0.3
 
-version: 1.0.6
+version: 1.0.7
 
 title: vox
 
 host: vox.omega.gg
 
-cover: cover/vox.png
+cover: /cover/vox.png
 
 items:
     playlist:

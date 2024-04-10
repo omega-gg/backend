@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.68
+version: 1.0.69
 
 title: Youtube
 
 host: youtube.com
 
-cover: cover/youtube.png
+cover: /cover/youtube.png
 
 items:
     playlist:

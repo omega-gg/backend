@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.7
+version: 1.0.8
 
 title: TikTok
 
 host: tiktok.com
 
-cover: cover/tiktok.png
+cover: /cover/tiktok.png
 
 items:
     playlist:

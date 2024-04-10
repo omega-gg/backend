@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.29
+version: 1.0.30
 
 title: Twitch
 
 host: twitch.tv
 
-cover: cover/twitch.png
+cover: /cover/twitch.png
 
 hub: https://vox.omega.gg/w/1bygNVLjD7P5Ande3BKktN
 

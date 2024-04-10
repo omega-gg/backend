@@ -9,11 +9,11 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.8
+version: 1.0.9
 
 title: IPTV
 
-cover: cover/iptv.png
+cover: /cover/iptv.png
 
 items:
     playlist:

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.32
+version: 1.0.33
 
 search: coverVideo
 
@@ -17,7 +17,7 @@ title: TMDB
 
 host: themoviedb.org
 
-cover: cover/tmdb.png
+cover: /cover/tmdb.png
 
 hub: https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB
 

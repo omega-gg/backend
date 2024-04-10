@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.22
+version: 1.0.23
 
 title: PeerTube
 
 host: peertube.fr
 
-cover: cover/peertube.png
+cover: /cover/peertube.png
 
 validate: /(watch|w|video-channels|c)/(?!.*/)
 

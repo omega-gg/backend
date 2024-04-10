@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vb
 
 api: 1.0.1
 
-version: 1.0.4
+version: 1.0.5
 
 title: Dailymotion
 
 host: dailymotion.com
 
-cover: cover/dailymotion.png
+cover: /cover/dailymotion.png
 
 items:
     playlist:

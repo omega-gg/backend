@@ -9,13 +9,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 title: Vimeo
 
 host: vimeo.com
 
-cover: cover/vimeo.png
+cover: /cover/vimeo.png
 
 items:
     playlist:
