@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.3
 
-version: 1.0.7
+version: 1.0.8
 
 title: Odysee
 
@@ -51,7 +51,6 @@ QUERY_SOURCE: |
     SET header '"Content-Type" "application/json"'
     SET body (APPEND '{ "method": "resolve", ' \
                      '"params": { "urls": [ "lbry://' (REPLACE id ':' '#') '" ] }}')
-    SET queryData id
     RETURN true
 
 QUERY_TRACK: |
@@ -75,7 +74,7 @@ EXTRACT_SOURCE: |
         SET source (APPEND "https://player.odycdn.com/api/v3/streams/free/" name '/' id '/' \
                            (MID hash 0 6))
         SET quality (JSON_EXTRACT data "height" (LAST_INDEX_END data "video"))
-        SET url (APPEND "https://player.odycdn.com/api/v4/streams/tc/" queryData '/' id '/' hash)
+        SET url (APPEND "https://player.odycdn.com/v6/streams/" id '/' hash)
         HASH_SET next "backend" "odysee"
         HASH_SET next "url" (APPEND url "/master.m3u8")
         HASH_SET next "id" 1
