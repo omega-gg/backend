@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.3
+version: 1.0.4
 
 title: Vimeo
 
@@ -154,22 +154,8 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    SET data (JSON_EXTRACT_HTML data "progressive")
-    SET list (JSON_SPLIT data)
-    FOREACH list data
-        SET quality (JSON_EXTRACT data "quality")
-        IF (EQUAL quality "270p")
-            HASH_SET medias "240" (JSON_EXTRACT data "url")
-        ELIF (EQUAL quality "360p")
-            HASH_SET medias "360" (JSON_EXTRACT data "url")
-        ELIF (EQUAL quality "480p")
-            HASH_SET medias "480" (JSON_EXTRACT data "url")
-        ELIF (EQUAL quality "720p")
-            HASH_SET medias "720" (JSON_EXTRACT data "url")
-        ELIF (EQUAL quality "1080p")
-            HASH_SET medias "1080" (JSON_EXTRACT data "url")
-        FI
-    END
+    SET data (JSON_EXTRACT_HTML data "hls")
+    HASH_SET medias "default" (JSON_EXTRACT data "url")
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
