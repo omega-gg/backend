@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.69
+version: 1.0.70
 
 title: Youtube
 
@@ -90,13 +90,13 @@ URL_PLAYLIST: |
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX url)
     IF (START_WITH url "youtu.be")
-        SET id (URL_ELEMENT url 9)
+        SET videoId (URL_ELEMENT url 9)
     ELIF (START_WITH url "youtube.com")
         SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
         IF (EQUAL index -1)
             RETURN false
         FI
-        SET id (URL_ELEMENT url index)
+        SET videoId (URL_ELEMENT url index)
     ELSE
         RETURN false
     FI
@@ -107,10 +107,11 @@ QUERY_SOURCE: |
                      '"clientVersion": "19.12.36", "androidSdkVersion": 30, "userAgent": '       \
                      '"com.google.android.youtube/19.12.36 (Linux; U; Android 11) gzip", "hl": ' \
                      '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}, "thirdParty": { '         \
-                     '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' id                \
+                     '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' videoId           \
                      '", "params": "CgIIAQ==", "playbackContext": { "contentPlaybackContext": '  \
                      '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
                      '"racyCheckOk": true }')
+    SET queryData videoId
     RETURN true
 
 QUERY_TRACK: |
@@ -194,7 +195,23 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 1) # Live
+    IF (EQUAL id 0)
+    AND (CONTAIN data "\"title\":\"Video Not Available\"")
+        HASH_SET next "id" 1
+        HASH_SET next "url" \
+            "https://www.youtube.com/youtubei/v1/player?key=AIzaSyCjc_pVEDi4qsv5MtC2dMXzpIaDoRFLsxw&prettyPrint=false"
+        HASH_SET next "header" '"Content-Type" "application/json"'
+        HASH_SET next "body" \
+            (APPEND '{ "context": { "client": { "clientName": "ANDROID_EMBEDDED_PLAYER", '      \
+                    '"clientVersion": "19.12.36", "androidSdkVersion": 30, "userAgent": '       \
+                    '"com.google.android.youtube/19.12.36 (Linux; U; Android 11) gzip", "hl": ' \
+                    '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}, "thirdParty": { '         \
+                    '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' queryData         \
+                    '", "params": "CgIIAQ==", "playbackContext": { "contentPlaybackContext": '  \
+                    '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
+                    '"racyCheckOk": true }')
+        RETURN
+    ELIF (EQUAL id 2) # Live
         SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
         FOREACH list value
             SET quality (SLICE_IN value 'x' ',')
@@ -237,7 +254,7 @@ EXTRACT_SOURCE: |
         IF (LENGTH source)
             HASH_SET next "backend" "youtube"
             HASH_SET next "url" source
-            HASH_SET next "id" 1
+            HASH_SET next "id" 2
             RETURN
         FI
         #------------------------------------------------------------------------------------------
