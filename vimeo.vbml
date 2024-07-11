@@ -2,7 +2,7 @@
 #--------------------------------------------------------------------------------------------------
 # Properties
 #--------------------------------------------------------------------------------------------------
-# NOTE Vimeo: We're calling intermediaries urls with http because Vimeo uses a TLS handshakes check
+# NOTE Vimeo: We're calling intermediaries urls with http because Vimeo uses a TLS handshake check
 #             to ensure that we're on a 'well known' web browser.
 
 type: backend
