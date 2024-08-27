@@ -12,7 +12,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.6
+version: 1.0.7
 
 title: Vimeo
 
@@ -85,7 +85,7 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET backend "vimeo"
-    SET url (APPEND "https://vimeo.com/" id)
+    SET url (APPEND "https://player.vimeo.com/video/" id)
     SET header '"accept" "text/html'
     RETURN true
 
@@ -161,14 +161,8 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 1)
-        SET data (JSON_EXTRACT_HTML data "hls")
-        HASH_SET medias "default" (JSON_EXTRACT_UTF8 data "url")
-        RETURN
-    FI
-    HASH_SET next "url" (JSON_EXTRACT_HTML data "embedUrl")
-    HASH_SET next "id" 1
-    HASH_SET next "header" '"accept" "text/html'
+    SET data (JSON_EXTRACT_HTML data "hls")
+    HASH_SET medias "default" (JSON_EXTRACT_UTF8 data "url")
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
