@@ -4,6 +4,7 @@
 #--------------------------------------------------------------------------------------------------
 # NOTE Vimeo: We're calling intermediaries urls with http because Vimeo uses a TLS handshake check
 #             to ensure that we're on a 'well known' web browser.
+# UPDATE: Adding 'accept text/html' to header seems to fix it.
 
 type: backend
 
@@ -11,7 +12,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 title: Vimeo
 
@@ -84,7 +85,8 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET backend "vimeo"
-    SET url (APPEND "http://vimeo.com/" id)
+    SET url (APPEND "https://vimeo.com/" id)
+    SET header '"accept" "text/html'
     RETURN true
 
 QUERY_TRACK: |
@@ -98,7 +100,8 @@ QUERY_TRACK: |
     OR (CONTAIN url (APPEND "/groups/" id))
         RETURN false
     FI
-    SET url (APPEND "http://vimeo.com/" id)
+    SET url (APPEND "https://vimeo.com/" id)
+    SET header '"accept" "text/html'
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -119,40 +122,42 @@ QUERY_PLAYLIST: |
         RETURN false
     FI
     IF (START_WITH id "tag:")
-        SET url (APPEND "http://vimeo.com/" id "/page:1/sort:date/format:thumbnail")
+        SET url (APPEND "https://vimeo.com/" id "/page:1/sort:date/format:thumbnail")
     ELSE
-        SET url (APPEND "http://vimeo.com/" id "/videos/page:1/sort:date/format:thumbnail")
+        SET url (APPEND "https://vimeo.com/" id "/videos/page:1/sort:date/format:thumbnail")
     FI
+    SET header '"accept" "text/html'
     RETURN true
 
 CREATE_QUERY: |
     IF (EQUAL method "search")
         IF (EQUAL label "tracks")
-            SET url "http://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
+            SET url "https://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             URL_ADD_QUERY url "type" "video"
             SET id 1
             SET header true
         ELIF (EQUAL label "people")
-            SET url "http://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
+            SET url "https://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET id 1
             SET header true
         ELIF (EQUAL label "channels")
-            SET url "http://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
+            SET url "https://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET header true
         ELIF (EQUAL label "groups")
-            SET url "http://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
+            SET url "https://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
             URL_ADD_QUERY url "q" (URL_ENCODE q)
             SET header true
         FI
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
-        SET url (APPEND "http://vimeo.com/" q \
+        SET url (APPEND "https://vimeo.com/" q \
                         "/collections/channels/sort:relevant/format:thumbnail")
         SET id 2
     FI
+    SET header '"accept" "text/html'
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -161,12 +166,13 @@ EXTRACT_SOURCE: |
         HASH_SET medias "default" (JSON_EXTRACT_UTF8 data "url")
         RETURN
     FI
-    HASH_SET next "url" (JSON_EXTRACT_HTML data "config_url")
+    HASH_SET next "url" (JSON_EXTRACT_HTML data "embedUrl")
     HASH_SET next "id" 1
+    HASH_SET next "header" '"accept" "text/html'
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET data (SLICE data "<script type=\"application" "</script>")
+    SET data (SLICE data "<script id=\"microdata" "</script>")
     SET title (JSON_EXTRACT_UTF8 data "name")
     SET cover (JSON_EXTRACT data "thumbnailUrl")
     SET index (INDEX_OF cover "?src")
@@ -210,7 +216,7 @@ EXTRACT_PLAYLIST: |
         FI
         SET list (SLICES data "<li " "</li>")
         FOREACH list data 3
-            SET url (APPEND "http://vimeo.com" (HTML_ATTRIBUTE data "href") \
+            SET url (APPEND "https://vimeo.com" (HTML_ATTRIBUTE data "href") \
                             "/videos/page:1/sort:relevant/format:thumbnail")
             LIST_APPEND urls url
         END
