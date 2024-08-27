@@ -4,7 +4,7 @@
 #--------------------------------------------------------------------------------------------------
 # NOTE Vimeo: We're calling intermediaries urls with http because Vimeo uses a TLS handshake check
 #             to ensure that we're on a 'well known' web browser.
-# UPDATE: Adding 'accept text/html' to header seems to fix it.
+# UPDATE: Adding 'accept text/html' to the header seems to fix it.
 
 type: backend
 
