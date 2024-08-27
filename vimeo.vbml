@@ -12,7 +12,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.7
+version: 1.0.8
 
 title: Vimeo
 
@@ -166,7 +166,7 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET data (SLICE data "<script id=\"microdata" "</script>")
+    SET data (SLICE data "\"thumbnailUrl\"" "</script>")
     SET title (JSON_EXTRACT_UTF8 data "name")
     SET cover (JSON_EXTRACT data "thumbnailUrl")
     SET index (INDEX_OF cover "?src")
