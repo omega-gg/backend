@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.75
+version: 1.0.76
 
 title: Youtube
 
@@ -260,18 +260,18 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Chapters
         #------------------------------------------------------------------------------------------
-        #SET description (SLICE_IN data '"shortDescription":"' '",')
-        #SET index (INDEX_OF description (REGEXP "[0-5]?[0-9]:[0-5][0-9]"))
-        #IF (NOT_EQUAL index -1)
-        #    SET list (SLICES description (REGEXP "[0-5]?[0-9]:[0-5][0-9]") (REGEXP "\\\/n"))
-        #    FOREACH list value
-        #        SET index (INDEX_OF value (REGEXP "[^0-9:]"))
-        #        HASH_SET chapter "time" (MID value 0 index)
-        #        HASH_SET chapter "title" \
-        #                         (HTML_TO_UTF8 (SIMPLIFY (CHOP (MID value (ADD index 1)) 2)))
-        #        LIST_APPEND chapters chapter
-        #    END
-        #FI
+        SET description (SLICE_IN data '"shortDescription":"' '",')
+        SET index (INDEX_OF description (REGEXP "[0-5]?[0-9]:[0-5][0-9]"))
+        IF (NOT_EQUAL index -1)
+            SET list (SLICES description (REGEXP "[0-5]?[0-9]:[0-5][0-9]") (REGEXP "\\\/n"))
+            FOREACH list value
+                SET index (INDEX_OF value (REGEXP "[^0-9:]"))
+                HASH_SET chapter "time" (MID value 0 index)
+                HASH_SET chapter "title" \
+                                 (HTML_TO_UTF8 (SIMPLIFY (CHOP (MID value (ADD index 1)) 2)))
+                LIST_APPEND chapters chapter
+            END
+        FI
         #------------------------------------------------------------------------------------------
         # Load "adaptiveFormats"
         #------------------------------------------------------------------------------------------
