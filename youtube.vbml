@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.76
+version: 1.0.77
 
 title: Youtube
 
@@ -100,17 +100,16 @@ QUERY_SOURCE: |
     ELSE
         RETURN false
     FI
-    SET url \
-        "https://www.youtube.com/youtubei/v1/player?key=AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w&prettyPrint=false"
-    SET header '"Content-Type" "application/json"'
-    SET body (APPEND '{ "context": { "client": { "clientName": "ANDROID_TESTSUITE", '           \
-                     '"clientVersion": "1.9", "androidSdkVersion": 30, "userAgent": '           \
-                     '"com.google.android.youtube/1.9 (Linux; U; Android 12; US) gzip", "hl": ' \
-                     '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}, "thirdParty": { '        \
-                     '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' videoId          \
-                     '", "params": "2AMB", "playbackContext": { "contentPlaybackContext": '     \
-                     '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '     \
-                     '"racyCheckOk": true }')
+    SET url "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
+    SET header (APPEND '"Content-Type" "application/json"' \
+                       '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"')
+    SET body (APPEND '{"context": {"client": {"clientName": "ANDROID", \
+                       "clientVersion": "19.29.37", "androidSdkVersion": 30, \
+                       "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
+                       "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
+                       "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
+                       "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
+                       "contentCheckOk": true, "racyCheckOk": true}')
     SET queryData videoId
     RETURN true
 
@@ -195,23 +194,7 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 0)
-    AND (CONTAIN data "\"title\":\"Video Not Available\"")
-        HASH_SET next "id" 1
-        HASH_SET next "url" \
-            "https://www.youtube.com/youtubei/v1/player?key=AIzaSyCjc_pVEDi4qsv5MtC2dMXzpIaDoRFLsxw&prettyPrint=false"
-        HASH_SET next "header" '"Content-Type" "application/json"'
-        HASH_SET next "body" \
-            (APPEND '{ "context": { "client": { "clientName": "ANDROID_EMBEDDED_PLAYER", '      \
-                    '"clientVersion": "19.12.36", "androidSdkVersion": 30, "userAgent": '       \
-                    '"com.google.android.youtube/19.12.36 (Linux; U; Android 11) gzip", "hl": ' \
-                    '"en", "timeZone": "UTC", "utcOffsetMinutes": 0}, "thirdParty": { '         \
-                    '"embedUrl": "https://www.youtube.com/" }}, "videoId": "' queryData         \
-                    '", "params": "CgIIAQ==", "playbackContext": { "contentPlaybackContext": '  \
-                    '{ "html5Preference": "HTML5_PREF_WANTS" }}, "contentCheckOk": true, '      \
-                    '"racyCheckOk": true }')
-        RETURN
-    ELIF (EQUAL id 2) # Live
+    IF (EQUAL id 2) # Live
         SET list (SLICES data "EXT-X-STREAM-INF" "m3u8")
         FOREACH list value
             SET quality (SLICE_IN value 'x' ',')
@@ -385,10 +368,10 @@ EXTRACT_SOURCE: |
             FI
         FI
         # FIXME: Sometimes the request randomly fails.
-        IF (EQUAL (COUNT medias) 0)
-        AND (CONTAIN data "\"status\":\"ERROR\"")
-            SET reload true
-        FI
+        #IF (EQUAL (COUNT medias) 0)
+        #AND (CONTAIN data "\"status\":\"ERROR\"")
+        #    SET reload true
+        #FI
     FI
     SET expiry (ADD (DATE) 60) # Two hours
 
