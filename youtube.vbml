@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.81
+version: 1.0.82
 
 title: Youtube
 
@@ -245,6 +245,7 @@ EXTRACT_SOURCE: |
         IF (CONTAIN data '"isLiveContent":true')
             SET source (SLICE_IN data '"hlsManifestUrl":"' '"')
             HASH_SET medias "default" source
+            RETURN
             #IF (LENGTH source)
             #    HASH_SET next "backend" "youtube"
             #    HASH_SET next "url" source
