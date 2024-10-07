@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.80
+version: 1.0.81
 
 title: Youtube
 
@@ -101,22 +101,24 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET url "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
-    SET header (APPEND '"Content-Type" "application/json"' \
-                       '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"')
-    SET body (APPEND '{"context": {"client": {"clientName": "ANDROID", \
-                       "clientVersion": "19.29.37", "androidSdkVersion": 30, \
-                       "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
-                       "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
-                       "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
-                       "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                       "contentCheckOk": true, "racyCheckOk": true}')
-    #SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.29.1", \
-    #                   "deviceMake": "Apple", "deviceModel": "iPhone16,2", \
-    #                   "userAgent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)", \
-    #                   "osName": "iPhone", "osVersion": "17.5.1.21F90", "hl": "en", \
-    #                   "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
+    #SET header (APPEND '"Content-Type" "application/json"' \
+    #                   '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"')
+    #SET body (APPEND '{"context": {"client": {"clientName": "ANDROID", \
+    #                   "clientVersion": "19.29.37", "androidSdkVersion": 30, \
+    #                   "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
+    #                   "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
+    #                   "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
     #                   "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
     #                   "contentCheckOk": true, "racyCheckOk": true}')
+    SET header (APPEND '"Content-Type" "application/json"' \
+                       '"User-Agent" "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)"')
+    SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.29.1", \
+                       "deviceMake": "Apple", "deviceModel": "iPhone16,2", \
+                       "userAgent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)", \
+                       "osName": "iPhone", "osVersion": "17.5.1.21F90", "hl": "en", \
+                       "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
+                       "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
+                       "contentCheckOk": true, "racyCheckOk": true}')
     SET queryData videoId
     RETURN true
 
@@ -242,12 +244,13 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         IF (CONTAIN data '"isLiveContent":true')
             SET source (SLICE_IN data '"hlsManifestUrl":"' '"')
-            IF (LENGTH source)
-                HASH_SET next "backend" "youtube"
-                HASH_SET next "url" source
-                HASH_SET next "id" 2
-                RETURN
-            FI
+            HASH_SET medias "default" source
+            #IF (LENGTH source)
+            #    HASH_SET next "backend" "youtube"
+            #    HASH_SET next "url" source
+            #    HASH_SET next "id" 2
+            #    RETURN
+            #FI
         FI
         #------------------------------------------------------------------------------------------
         # Chapters
