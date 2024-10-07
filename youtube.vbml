@@ -5,11 +5,11 @@
 
 type: backend
 
-source: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
+origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.82
+version: 1.0.83
 
 title: Youtube
 
