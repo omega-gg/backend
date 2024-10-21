@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.87
+version: 1.0.88
 
 title: Youtube
 
@@ -226,6 +226,13 @@ EXTRACT_SOURCE: |
         # Load "hlsManifestUrl" for a live stream
         #------------------------------------------------------------------------------------------
         IF (CONTAIN data '"isLiveContent":true')
+            IF (EQUAL mode "safe")
+                SET source (SLICE_IN data '"hlsManifestUrl":"' '"')
+                HASH_SET next "backend" "youtube"
+                HASH_SET next "url" source
+                HASH_SET next "id" 3
+                RETURN
+            FI
             HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
             #--------------------------------------------------------------------------------------
             # NOTE: The Android live sources seem to work better than iOS.
