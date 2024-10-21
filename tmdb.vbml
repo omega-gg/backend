@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.34
+version: 1.0.35
 
 search: coverVideo
 
@@ -340,7 +340,7 @@ EXTRACT_TRACK: |
                           (MID cover (LAST_INDEX_END cover '/')))
     ELIF (EQUAL id 2)
     OR   (EQUAL id 4)
-        SET index (INDEX_OF data "<a class=\"image\"")
+        SET index (INDEX_OF data "<a class=\"block")
         IF (EQUAL index -1)
             RETURN
         FI
