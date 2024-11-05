@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.7
+version: 1.0.8
 
 title: OpenSubtitles
 
@@ -266,12 +266,9 @@ EXTRACT_ITEM: |
         END
     ELSE
         SET data (READ data "utf-8")
-        SET index (INDEX_OF data "<a download")
+        SET index (INDEX_OF data "title=\"Download\"")
         SET source (HTML_ATTRIBUTE data "href" index)
-        SET index (INDEX_OF data "function dowSub" index)
-        SET string (SLICE_IN data "vrf-" "'" index)
-        SET source (REPLACE source "subtitleserve" (APPEND "download/vrf-" string))
-        HASH_SET next "url" (APPEND "https://www.opensubtitles.org" source)
+        HASH_SET next "url" source
         HASH_SET next "id" 1
         HASH_SET next "cookies" true
         #------------------------------------------------------------------------------------------

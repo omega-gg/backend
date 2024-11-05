@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.233
+version: 1.0.234
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -63,7 +63,7 @@ backends: |
     soundcloud    SoundCloud    1.0.10 ^soundcloud.com
     tmdb          TMDB          1.0.35 ^themoviedb.org
     lastfm        Last.fm       1.0.7  ^last.fm
-    opensubtitles OpenSubtitles 1.0.7  ^opensubtitles.org
+    opensubtitles OpenSubtitles 1.0.8  ^opensubtitles.org
     peertube      PeerTube      1.0.23 /(watch|w|video-channels|c)/(?!.*/)
 
 covers: |
