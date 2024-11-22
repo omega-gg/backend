@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.88
+version: 1.0.89
 
 title: Youtube
 
@@ -290,6 +290,18 @@ EXTRACT_SOURCE: |
                 HASH_SET chapter "title" \
                                  (HTML_TO_UTF8 (SIMPLIFY (CHOP (MID value (ADD index 1)) 2)))
                 LIST_APPEND chapters chapter
+            END
+        FI
+        #------------------------------------------------------------------------------------------
+        # Subtitles
+        #------------------------------------------------------------------------------------------
+        SET captions (SLICE_IN data '"captionTracks"' '],')
+        IF (LENGTH captions)
+            SET list (SPLIT captions '"},')
+            FOREACH list value
+                HASH_SET subtitle "source" (SLICE_IN value '"baseUrl":"' '"')
+                HASH_SET subtitle "title"  (SLICE_IN value '"text":"'    '"')
+                LIST_APPEND subtitles subtitle
             END
         FI
         #------------------------------------------------------------------------------------------
