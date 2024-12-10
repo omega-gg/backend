@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/dailymotion.vb
 
 api: 1.0.1
 
-version: 1.0.5
+version: 1.0.6
 
 title: Dailymotion
 
@@ -191,7 +191,7 @@ EXTRACT_SOURCE: |
             IF (EQUAL index -1)
                 CONTINUE
             FI
-            SET source (SLICE_IN data "PROGRESSIVE-URI=\"" '"' index)
+            SET source (SLICE data "https://" ".m3u8" index)
             HASH_SET medias value source
         END
     ELSE
