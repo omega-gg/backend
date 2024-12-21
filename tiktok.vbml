@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.8
+version: 1.0.9
 
 title: TikTok
 
@@ -37,18 +37,18 @@ TRACK_ID: |
 URL_TRACK: |
     RETURN (APPEND "https://www.tiktok.com/" id)
 
-URL_PLAYLIST: |
-    RETURN (APPEND "https://www.tiktok.com/" id)
+#URL_PLAYLIST: |
+#    RETURN (APPEND "https://www.tiktok.com/" id)
 
-PLAYLIST_INFO: |
-    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    IF (EQUAL (CONTAIN url "/@") false)
-    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
-        RETURN false
-    FI
-    SET type "feed"
-    SET id (MID url (INDEX_END url '/'))
-    RETURN true
+#PLAYLIST_INFO: |
+#    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+#    IF (EQUAL (CONTAIN url "/@") false)
+#    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+#        RETURN false
+#    FI
+#    SET type "feed"
+#    SET id (MID url (INDEX_END url '/'))
+#    RETURN true
 
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
@@ -56,9 +56,13 @@ QUERY_SOURCE: |
         RETURN false
     FI
     SET id (MID url (LAST_INDEX_END url '/'))
-    # NOTE: The query seems to be faster with these additional parameters.
+    # NOTE: The query seems to be faster with the additional region parameters.
     SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
+                    "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
+                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
+                    "&device_type=ASUS_Z01QD&version=9" \
                     "&carrier_region=US&sys_region=US&region=US&language=en")
+    SET queryMethod "OPTIONS"
     RETURN true
 
 QUERY_TRACK: |
@@ -67,20 +71,24 @@ QUERY_TRACK: |
         RETURN false
     FI
     SET id (MID url (LAST_INDEX_END url '/'))
-    # NOTE: The query seems to be faster with these additional parameters.
+    # NOTE: The query seems to be faster with the additional region parameters.
     SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
+                    "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
+                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
+                    "&device_type=ASUS_Z01QD&version=9" \
                     "&carrier_region=US&sys_region=US&region=US&language=en")
+    SET queryMethod "OPTIONS"
     RETURN true
 
-QUERY_PLAYLIST: |
-    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-    IF (EQUAL (CONTAIN url "/@") false)
-    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
-        RETURN false
-    FI
-    SET id (MID url (INDEX_END url '/'))
-    SET url (APPEND "https://www.tiktok.com/" id)
-    RETURN true
+#QUERY_PLAYLIST: |
+#    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+#    IF (EQUAL (CONTAIN url "/@") false)
+#    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+#        RETURN false
+#    FI
+#    SET id (MID url (INDEX_END url '/'))
+#    SET url (APPEND "https://www.tiktok.com/" id)
+#    RETURN true
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -94,23 +102,23 @@ EXTRACT_TRACK: |
     SET title (JSON_EXTRACT_UTF8 data "desc")
     SET cover (HTML_TO_UTF8 (SLICE_IN data "url_list\":[\"" '"' (INDEX_END data "\"cover\"")))
     SET author (JSON_EXTRACT_UTF8 data "nickname")
-    SET feed (APPEND '@' (JSON_EXTRACT data "unique_id"))
+    #SET feed (APPEND '@' (JSON_EXTRACT data "unique_id"))
     SET duration (JSON_EXTRACT data "duration" (INDEX_END data "\"video\""))
     SET date (DATE (JSON_EXTRACT data "create_time") "yyyy-MM-dd")
 
-EXTRACT_PLAYLIST: |
-    SET data (READ data "utf-8")
-    SET index (INDEX_END data "property=\"og:title\"")
-    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-    SET title (CHOP title 9)
-    SET index (INDEX_END data "property=\"og:image\"")
-    # NOTE: Utf8 is required for the url extension.
-    SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
-    SET url (APPEND url "/video/")
-    SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
-    SET list (SPLIT list '","')
-    FOREACH list data
-        HASH_SET track "state" "default"
-        HASH_SET track "source" (APPEND url data)
-        LIST_APPEND tracks track
-    END
+#EXTRACT_PLAYLIST: |
+#    SET data (READ data "utf-8")
+#    SET index (INDEX_END data "property=\"og:title\"")
+#    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+#    SET title (CHOP title 9)
+#    SET index (INDEX_END data "property=\"og:image\"")
+#    # NOTE: Utf8 is required for the url extension.
+#    SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
+#    SET url (APPEND url "/video/")
+#    SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
+#    SET list (SPLIT list '","')
+#    FOREACH list data
+#        HASH_SET track "state" "default"
+#        HASH_SET track "source" (APPEND url data)
+#        LIST_APPEND tracks track
+#    END
