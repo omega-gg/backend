@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.8
+version: 1.0.9
 
 title: Facebook
 
@@ -112,7 +112,7 @@ QUERY_TRACK: |
     FI
     SET url (APPEND "https://www.facebook.com/watch/?v=" url)
     # NOTE: This seems required to get proper json results.
-    SET header '"accept" "text/html'
+    SET header '"accept" "text/html"'
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -128,7 +128,7 @@ QUERY_PLAYLIST: |
     SET url (APPEND "https://www.facebook.com/" url "/videos")
     # NOTE: This seems required to get proper json results.
     SET header (APPEND '"Sec-Fetch-Mode" "navigate"' \
-                       '"accept" "text/html')
+                       '"accept" "text/html"')
     RETURN true
 
 CREATE_QUERY: |
@@ -138,7 +138,7 @@ CREATE_QUERY: |
     SET url (APPEND "https://www.facebook.com/watch/?v=" q)
     SET id 1
     # NOTE: This seems required to get proper json results.
-    SET header '"accept" "text/html'
+    SET header '"accept" "text/html"'
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
