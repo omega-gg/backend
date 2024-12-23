@@ -12,23 +12,13 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/vimeo.vbml
 
 api: 1.0.1
 
-version: 1.0.9
+version: 1.0.10
 
 title: Vimeo
 
 host: vimeo.com
 
 cover: /cover/vimeo.png
-
-items:
-    playlist:
-        title: Tracks
-    folder:
-        title: People
-    folder:
-        title: Channels
-    folder:
-        title: Groups
 
 validate: ^vimeo.com
 
@@ -43,8 +33,7 @@ TRACK_ID: |
     FI
     SET id (URL_ELEMENT url id)
     IF (EQUAL id 0)
-    OR (CONTAIN url (APPEND "/channels/" id))
-    OR (CONTAIN url (APPEND "/groups/" id))
+    OR (EQUAL (NUMBER id) 0)
         RETURN ""
     FI
     RETURN id
@@ -52,19 +41,15 @@ TRACK_ID: |
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "vimeo.com") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
-    IF (START_WITH url "vimeo.com/channels/")
-    OR (START_WITH url "vimeo.com/groups/")
-        SET type "feed"
-        SET id (URL_ELEMENT url 2 10)
-    ELIF (START_WITH url "vimeo.com/")
-        SET id (URL_ELEMENT url 10)
-        IF (NUMBER id)
-            RETURN false
-        FI
-        SET type "feed"
+    SET id (URL_ELEMENT url 10)
+    IF (EQUAL id "")
+    OR (NUMBER id)
+        RETURN false
     FI
+    SET type "feed"
     RETURN true
 
 URL_TRACK: |
@@ -80,8 +65,7 @@ QUERY_SOURCE: |
     FI
     SET id (URL_ELEMENT url id)
     IF (EQUAL id "")
-    OR (CONTAIN url (APPEND "/channels/" id))
-    OR (CONTAIN url (APPEND "/groups/" id))
+    OR (EQUAL (NUMBER id) 0)
         RETURN false
     FI
     IF (EQUAL global "")
@@ -102,8 +86,7 @@ QUERY_TRACK: |
     FI
     SET id (URL_ELEMENT url id)
     IF (EQUAL id "")
-    OR (CONTAIN url (APPEND "/channels/" id))
-    OR (CONTAIN url (APPEND "/groups/" id))
+    OR (EQUAL (NUMBER id) 0)
         RETURN false
     FI
     IF (EQUAL global "")
@@ -112,8 +95,8 @@ QUERY_TRACK: |
         SET queryData id
     ELSE
         SET url (APPEND "https://api.vimeo.com/videos/" id \
-                        "?fields=name%2Cuploader.name%2Cuploader.link%2Cduration%2C" \
-                        "modified_time%2Cpictures")
+                        "?fields=name%2Cpictures%2Cuploader.name%2Cuploader.link%2C" \
+                        "duration%2Cmodified_time")
         SET id 1
         SET header (APPEND '"Authorization" "' global '"')
     FI
@@ -122,53 +105,25 @@ QUERY_TRACK: |
 QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
     IF (EQUAL (START_WITH url "vimeo.com") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
     FI
-    IF (START_WITH url "vimeo.com/channels/")
-    OR (START_WITH url "vimeo.com/groups/")
-        SET id (URL_ELEMENT url 2 10)
-    ELIF (START_WITH url "vimeo.com/")
-        SET id (URL_ELEMENT url 10)
-        IF (NUMBER id)
-            RETURN false
-        FI
-    FI
+    SET id (URL_ELEMENT url 10)
     IF (EQUAL id "")
+    OR (NUMBER id)
         RETURN false
     FI
-    IF (START_WITH id "tag:")
-        SET url (APPEND "https://vimeo.com/" id "/page:1/sort:date/format:thumbnail")
+    IF (EQUAL global "")
+        SET url "https://vimeo.com/_next/viewer"
+        SET header '"accept" "text/html"'
+        SET queryData id
     ELSE
-        SET url (APPEND "https://vimeo.com/" id "/videos/page:1/sort:date/format:thumbnail")
+        SET url (APPEND "https://api.vimeo.com/users/" id "?fields=link%2Cname%2Cpictures")
+        SET header (APPEND '"Authorization" "' global '"')
+        SET queryData id
+        SET id 1
     FI
-    SET header '"accept" "text/html"'
     RETURN true
-
-CREATE_QUERY: |
-    IF (EQUAL method "search")
-        IF (EQUAL label "tracks")
-            SET url "https://vimeo.com/search/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" (URL_ENCODE q)
-            URL_ADD_QUERY url "type" "video"
-            SET id 1
-        ELIF (EQUAL label "people")
-            SET url "https://vimeo.com/search/people/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" (URL_ENCODE q)
-            SET id 1
-        ELIF (EQUAL label "channels")
-            SET url "https://vimeo.com/search/channels/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" (URL_ENCODE q)
-        ELIF (EQUAL label "groups")
-            SET url "https://vimeo.com/search/groups/page:1/sort:relevant/format:thumbnail"
-            URL_ADD_QUERY url "q" (URL_ENCODE q)
-        FI
-    ELIF (EQUAL method "related")
-    AND (EQUAL label "tracks")
-        SET url (APPEND "https://vimeo.com/" q \
-                        "/collections/channels/sort:relevant/format:thumbnail")
-        SET id 2
-    FI
-    SET header '"accept" "text/html"'
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -203,189 +158,38 @@ EXTRACT_TRACK: |
     FI
     SET global (APPEND "jwt " (JSON_EXTRACT data "jwt"))
     HASH_SET next "url" (APPEND "https://api.vimeo.com/videos/" queryData \
-                                "?fields=name%2Cuploader.name%2Cuploader.link%2Cduration%2C" \
-                                "modified_time%2Cpictures")
+                                "?fields=name%2Cpictures%2Cuploader.name%2Cuploader.link%2C" \
+                                "duration%2Cmodified_time")
     HASH_SET next "id" 1
     HASH_SET next "header" (APPEND '"Authorization" "' global '"')
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
-    IF (EQUAL id 2)
-        SET index (INDEX_OF data "<ol class=\"js-browse_list")
-        IF (EQUAL index -1)
-            SET data (SLICE data "<ul class=\"small-block-grid" "</ul>")
-        ELSE
-            SET data (SLICE data "<ol class=\"js-browse_list" "</ol>")
-        FI
-        SET list (SLICES data "<li " "</li>")
-        FOREACH list data 3
-            SET url (APPEND "https://vimeo.com" (HTML_ATTRIBUTE data "href") \
-                            "/videos/page:1/sort:relevant/format:thumbnail")
-            LIST_APPEND urls url
-        END
-        IF (COUNT urls)
-            HASH_SET next "url" (LIST_TAKE_AT urls 0)
-            IF (COUNT urls)
-                HASH_SET next "id" 3
-                HASH_SET next "queryData" urls
-            ELSE
-                HASH_SET next "id" 4
-            FI
-            HASH_SET next "header" true
-        FI
+    IF (EQUAL id 1) // Feed
+        SET title (JSON_EXTRACT_UTF8 data "name")
+        SET cover (JSON_EXTRACT data "base_link")
+        HASH_SET next "url" (APPEND "https://api.vimeo.com/users/" queryData "/videos")
+        HASH_SET next "id" 2
+        HASH_SET next "header" (APPEND '"Authorization" "' global '"')
         RETURN
-    ELIF (EQUAL id 3)
-        HASH_SET next "url" (LIST_TAKE_AT queryData 0)
-        IF (COUNT queryData)
-            HASH_SET next "id" 3
-            HASH_SET next "queryData" queryData
-        ELSE
-            HASH_SET next "id" 4
-        FI
-        HASH_SET next "header" true
-        SET clearDuplicate true
-    ELIF (NOT_EQUAL id 4)
-        SET queryId (ADD queryData 1)
-        IF (LESSER queryId 3)
-            IF (EQUAL id 0)
-            AND (EQUAL queryId 1)
-                SET json (JSON_EXTRACT_HTML data "itemListElement")
-                SET index (LAST_INDEX_OF json "\"name\"")
-                SET title (JSON_EXTRACT_UTF8 json "name" index)
-            FI
-            SET paging (JSON_EXTRACT data "paging")
-            IF (EQUAL paging "")
-                IF (NOT_EQUAL (INDEX_OF data "<li class=\"pagination_next") -1)
-                    SET hasNext true
-                FI
-            ELIF (NOT_EQUAL (JSON_EXTRACT url "next") "null")
-                SET hasNext true
-            FI
-            IF (hasNext)
-                SET url (REPLACE url (APPEND "/page:" queryId) \
-                                     (APPEND "/page:" (ADD queryId 1)))
-                HASH_SET next "url" url
-                HASH_SET next "id" id
-                HASH_SET next "queryData" queryId
-                HASH_SET next "header" true
-            FI
-        FI
-        IF (EQUAL id 1)
-            SET data (JSON_EXTRACT_HTML data "data")
-            SET list (JSON_SPLIT data)
-            FOREACH list data
-                SET string (JSON_EXTRACT data "privacy")
-                IF (EQUAL string "\"view\":\"ptv\"")
-                    CONTINUE
-                FI
-                SET source (JSON_EXTRACT data "uri")
-                SET source (MID source 8)
-                HASH_SET track "state" "default"
-                HASH_SET track "source" (APPEND "https://vimeo.com/" source)
-                HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name")
-                SET cover (JSON_EXTRACT data "pictures")
-                SET index (INDEX_OF cover "?src")
-                IF (EQUAL index -1)
-                    SET index (LAST_INDEX_END cover '_')
-                    IF (NOT_EQUAL index -1)
-                        SET cover (MID cover 0 index)
-                        HASH_SET track "cover" (APPEND cover "1280.jpg")
-                    FI
-                ELSE
-                    SET index (ADD index 6)
-                    SET indexB (INDEX_END cover '_' index)
-                    IF (NOT_EQUAL indexB -1)
-                        SET cover (MID cover index (SUB indexB index))
-                        SET cover (URL_DECODE cover)
-                        HASH_SET track "cover" (APPEND cover "1280.jpg")
-                    FI
-                FI
-                LIST_APPEND tracks track
-            END
-            RETURN
-        FI
-    ELSE
-        SET clearDuplicate true
+    ELIF (EQUAL id 2) // Tracks
+        SET data (JSON_EXTRACT_HTML data "data")
+        SET list (JSON_SPLIT data)
+        FOREACH list data
+            HASH_SET track "source" (JSON_EXTRACT data "link")
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name")
+            SET cover (JSON_EXTRACT data "base_link")
+            HASH_SET track "cover" (APPEND cover "_1920.jpg")
+            LIST_APPEND tracks track
+        END
+        RETURN
     FI
-    SET data (SLICE data "<ol class=\"js-browse_list" "</ol>")
-    SET list (SLICES data "<li " "</li>")
-    FOREACH list data
-        HASH_SET track "state" "default"
-        SET url (HTML_ATTRIBUTE data "href")
-        SET index (LAST_INDEX_END url '/')
-        IF (NOT_EQUAL index -1)
-            SET id (URL_ELEMENT url index)
-            IF (NUMBER id)
-            AND (EQUAL (CONTAIN url (APPEND "/channels/" id)) false)
-            AND (EQUAL (CONTAIN url (APPEND "/groups/" id)) false)
-                HASH_SET track "source" (APPEND "https://vimeo.com/" id)
-            FI
-        FI
-        HASH_SET track "title" (HTML_ATTRIBUTE_UTF8 data "title")
-        SET cover (HTML_ATTRIBUTE data "srcset")
-        SET index (INDEX_OF cover "?src")
-        IF (EQUAL index -1)
-            SET index (LAST_INDEX_END cover '_')
-            IF (NOT_EQUAL index -1)
-                SET cover (MID cover 0 index)
-                HASH_SET track "cover" (APPEND cover "1280.jpg")
-            FI
-        ELSE
-            SET index (ADD index 6)
-            SET indexB (INDEX_END cover '_' index)
-            IF (NOT_EQUAL indexB -1)
-                SET cover (MID cover index (SUB indexB index))
-                SET cover (URL_DECODE cover)
-                HASH_SET track "cover" (APPEND cover "1280.jpg")
-            FI
-        FI
-        LIST_APPEND tracks track
-    END
-
-EXTRACT_FOLDER: |
-    SET data (READ data "utf-8")
-    SET list (JSON_SPLIT (JSON_EXTRACT_HTML data "data"))
-    FOREACH list data
-        HASH_SET item "type" "feed"
-        HASH_SET item "state" "default"
-        HASH_SET item "source" (JSON_EXTRACT data "link")
-        HASH_SET item "title" (JSON_EXTRACT_UTF8 data "name")
-        SET cover (JSON_EXTRACT data "pictures")
-        SET cover (JSON_EXTRACT cover "link")
-        SET index (INDEX_OF cover "?src")
-        IF (EQUAL index -1)
-            SET index (LAST_INDEX_END cover '_')
-            IF (NOT_EQUAL index -1)
-                SET cover (MID cover 0 index)
-                HASH_SET item "cover" (APPEND cover "1280.jpg")
-            FI
-        ELSE
-            SET index (ADD index 6)
-            SET indexB (INDEX_END cover '_' index)
-            IF (NOT_EQUAL indexB -1)
-                SET cover (MID cover index (SUB indexB index))
-                SET cover (URL_DECODE cover)
-                HASH_SET item "cover" (APPEND cover "1280.jpg")
-            FI
-        FI
-        LIST_APPEND items item
-    END
-    SET queryId (ADD queryData 1)
-    IF (LESSER queryId 3)
-        SET paging (JSON_EXTRACT data "paging")
-        IF (EQUAL paging "")
-            IF (EQUAL (INDEX_OF data "<li class=\"pagination_next") -1)
-                RETURN
-            FI
-        ELIF (EQUAL (JSON_EXTRACT url "next") "null")
-            RETURN
-        FI
-        SET url (REPLACE url (APPEND "/page:" queryId) (APPEND "/page:" (ADD queryId 1)))
-        HASH_SET next "url" url
-        HASH_SET next "id" id
-        HASH_SET next "queryData" queryId
-        HASH_SET next "header" true
-    FI
+    SET global (APPEND "jwt " (JSON_EXTRACT data "jwt"))
+    HASH_SET next "url" (APPEND "https://api.vimeo.com/users/" queryData \
+                                "?fields=link%2Cname%2Cpictures")
+    HASH_SET next "id" 1
+    HASH_SET next "header" (APPEND '"Authorization" "' global '"')
+    HASH_SET next "queryData" queryData
 
 QUERY_FAILED: |
     SET global ""
