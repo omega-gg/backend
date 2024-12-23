@@ -2,6 +2,7 @@
 #--------------------------------------------------------------------------------------------------
 # Properties
 #--------------------------------------------------------------------------------------------------
+# NOTE Vimeo: Due to EU regulations, the search API is not accessible at the moment.
 # NOTE Vimeo: We're calling intermediaries urls with http because Vimeo uses a TLS handshake check
 #             to ensure that we're on a 'well known' web browser.
 # UPDATE: Adding 'accept text/html' to the header seems to fix it.
