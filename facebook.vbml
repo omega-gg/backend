@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.9
+version: 1.0.10
 
 title: Facebook
 
@@ -192,11 +192,10 @@ EXTRACT_PLAYLIST: |
     SET data (JSON_EXTRACT_HTML data "edges" (INDEX_END data "\"all_videos\""))
     SET list (JSON_SPLIT data)
     FOREACH list data
-        SET index (INDEX_END data "\"VideoPageVideoThumbnailVideoChannel\"")
-        HASH_SET track "source" (JSON_EXTRACT_UTF8 data "url" index)
-        SET index (INDEX_END data "\"savable_title\"")
+        HASH_SET track "source" (JSON_EXTRACT_UTF8 data "canonical_uri_with_fallback")
+        SET index (INDEX_END data "\"video\"")
         HASH_SET track "title" (JSON_EXTRACT_UTF8 data "text" index)
-        SET index (INDEX_END data "\"VideoThumbnailImage\"")
+        SET index (INDEX_END data "\"image\"")
         HASH_SET track "cover" (JSON_EXTRACT data "uri" index)
         SET index (INDEX_END data "\"owner\"")
         HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" INDEX)

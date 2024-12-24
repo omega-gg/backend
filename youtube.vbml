@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.89
+version: 1.0.90
 
 title: Youtube
 
@@ -554,15 +554,15 @@ EXTRACT_FOLDER: |
             LIST_APPEND items item
         END
     ELSE # Search playlists
-        SET list (SLICES data "\"playlistRenderer\"" "}}}")
+        SET list (SLICES data "\"lockupViewModel\"" "}}}}}}")
         FOREACH list value
             SET id (JSON_EXTRACT value "playlistId")
-            SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"thumbnails\""))
+            SET cover (JSON_EXTRACT_UTF8 value "url" (INDEX_OF value "\"primaryThumbnail\""))
             SET cover (MID cover 0 (INDEX_OF cover '?'))
             HASH_SET item "type" "playlist"
             HASH_SET item "state" "default"
             HASH_SET item "source" (APPEND "https://www.youtube.com/playlist?list=" id)
-            HASH_SET item "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET item "title" (JSON_EXTRACT_UTF8 value "content" (INDEX_OF value "\"title\""))
             HASH_SET item "cover" cover
             LIST_APPEND items item
         END
