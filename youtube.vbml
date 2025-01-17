@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.92
+version: 1.0.93
 
 title: Youtube
 
@@ -115,11 +115,11 @@ QUERY_SOURCE: |
         #------------------------------------------------------------------------------------------
         # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
         SET header (APPEND '"Content-Type" "application/json"' \
-                           '"User-Agent" "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)"')
-        SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.29.1", \
+                           '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"')
+        SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4", \
                            "deviceMake": "Apple", "deviceModel": "iPhone16,2", \
-                           "userAgent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)", \
-                           "osName": "iPhone", "osVersion": "17.5.1.21F90", "hl": "en", \
+                           "userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)", \
+                           "osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en", \
                            "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
                            "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
                            "contentCheckOk": true, "racyCheckOk": true}')
