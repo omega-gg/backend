@@ -247,7 +247,7 @@ EXTRACT_SOURCE: |
         ELSE
             #------------------------------------------------------------------------------------------
             # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
-            " NOTE: If we start using encoded streams we'll need the signatureTimestamp (STS value).
+            # NOTE: If we start using encoded streams we'll need the signatureTimestamp (STS value).
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
                                            '"X-Goog-Visitor-Id" "' global '"')
