@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.95
+version: 1.0.96
 
 title: Youtube
 
@@ -112,8 +112,8 @@ QUERY_SOURCE: |
                              '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                              '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
-                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": "' \
-                             (LIST_GET global 1) '"}}, "contentCheckOk": true, "racyCheckOk": true}')
+                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                             (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
             #------------------------------------------------------------------------------------------
             # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
@@ -126,8 +126,8 @@ QUERY_SOURCE: |
                              '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
                              '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
-                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": "' \
-                             (LIST_GET global 1) '"}}, "contentCheckOk": true, "racyCheckOk": true}')
+                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                             (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
             #------------------------------------------------------------------------------------------
         FI
         SET queryData videoId
@@ -300,7 +300,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # NOTE: When the source mode is 'SourceAudio' we skip the video sources.
         IF (NOT_EQUAL mode "audio")
-            SET sources (SLICE_IN data '"formats"' '"}]')
+            SET sources (SLICE_IN data '"formats"' '}]')
             SET list (SPLIT sources '"},{')
             FOREACH list value
                 #----------------------------------------------------------------------------------
@@ -355,7 +355,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # NOTE: When the source mode is 'SourceSafe' we skip the adaptative sources.
         IF (NOT_EQUAL mode "safe")
-            SET sources (SLICE_IN data '"adaptiveFormats"' '"}]')
+            SET sources (SLICE_IN data '"adaptiveFormats"' '}]')
             SET list (SPLIT sources '"},{')
             FOREACH list value
                 IF (CONTAIN value "ec-3")
