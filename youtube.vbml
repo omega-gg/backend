@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.94
+version: 1.0.95
 
 title: Youtube
 
@@ -100,39 +100,41 @@ QUERY_SOURCE: |
     ELSE
         RETURN false
     FI
-    IF (EQUAL global "")
-        SET url (APPEND "https://www.youtube.com/watch?v=" string "&ucbcb=1")
-        SET id 4
+    IF (COUNT global)
+        SET url "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
+        IF (EQUAL mode "safe")
+            SET header (APPEND '"Content-Type" "application/json"' \
+                               '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
+                               '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            SET body (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
+                             '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
+                             '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                             '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
+                             '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
+                             '"playbackContext": {"contentPlaybackContext":' \
+                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": "' \
+                             (LIST_GET global 1) '"}}, "contentCheckOk": true, "racyCheckOk": true}')
+        ELSE
+            #------------------------------------------------------------------------------------------
+            # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
+            SET header (APPEND '"Content-Type" "application/json"' \
+                               '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
+                               '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
+                             '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
+                             '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
+                             '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
+                             '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
+                             '"playbackContext": {"contentPlaybackContext":' \
+                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": "' \
+                             (LIST_GET global 1) '"}}, "contentCheckOk": true, "racyCheckOk": true}')
+            #------------------------------------------------------------------------------------------
+        FI
         SET queryData videoId
         RETURN true
     FI
-    SET url "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
-    IF (EQUAL mode "safe")
-        SET header (APPEND '"Content-Type" "application/json"' \
-                           '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
-                           '"X-Goog-Visitor-Id" "' global '"')
-        SET body (APPEND '{"context": {"client": {"clientName": "ANDROID", \
-                           "clientVersion": "19.29.37", "androidSdkVersion": 30, \
-                           "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
-                           "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
-                           "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
-                           "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                           "contentCheckOk": true, "racyCheckOk": true}')
-    ELSE
-        #------------------------------------------------------------------------------------------
-        # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
-        SET header (APPEND '"Content-Type" "application/json"' \
-                           '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
-                           '"X-Goog-Visitor-Id" "' global '"')
-        SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4", \
-                           "deviceMake": "Apple", "deviceModel": "iPhone16,2", \
-                           "userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)", \
-                           "osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en", \
-                           "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '", \
-                           "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                           "contentCheckOk": true, "racyCheckOk": true}')
-        #------------------------------------------------------------------------------------------
-    FI
+    SET url (APPEND "https://www.youtube.com/watch?v=" string "&ucbcb=1")
+    SET id 4
     SET queryData videoId
     RETURN true
 
@@ -231,33 +233,35 @@ EXTRACT_SOURCE: |
         END
     ELIF (EQUAL id 4) # Visitor
         SET index (INDEX_OF data '"visitor_data"')
-        SET global (SLICE_IN data '"value":"' '"' index)
+        LIST_APPEND global (SLICE_IN data '"value":"' '"' index)
+        LIST_APPEND global (SLICE_IN data '"STS":' ',')
         HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
         IF (EQUAL mode "safe")
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
-                                           '"X-Goog-Visitor-Id" "' global '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID", \
-                                         "clientVersion": "19.29.37", "androidSdkVersion": 30, \
-                                         "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
-                                         "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
-                                         "utcOffsetMinutes": 0}}, "videoId": "' queryData '", \
-                                         "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                                         "contentCheckOk": true, "racyCheckOk": true}')
+                                           '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
+                                         '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
+                                         '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                                         '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
+                                         '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+                                         '"playbackContext": {"contentPlaybackContext":' \
+                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
             #------------------------------------------------------------------------------------------
             # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
-            # NOTE: If we start using encoded streams we'll need the signatureTimestamp (STS value).
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
-                                           '"X-Goog-Visitor-Id" "' global '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4", \
-                                         "deviceMake": "Apple", "deviceModel": "iPhone16,2", \
-                                         "userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)", \
-                                         "osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en", \
-                                         "timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '", \
-                                         "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                                         "contentCheckOk": true, "racyCheckOk": true}')
+                                           '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
+                                         '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
+                                         '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
+                                         '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
+                                         '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+                                         '"playbackContext": {"contentPlaybackContext":' \
+                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
             #------------------------------------------------------------------------------------------
         FI
         HASH_SET next "queryData" queryData
@@ -278,14 +282,15 @@ EXTRACT_SOURCE: |
             # NOTE: The Android live sources seem to work better than iOS.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
-                                           '"X-Goog-Visitor-Id" "' global '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID", \
-                                           "clientVersion": "19.29.37", "androidSdkVersion": 30, \
-                                           "userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip", \
-                                           "osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC", \
-                                           "utcOffsetMinutes": 0}}, "videoId": "' queryData '", \
-                                           "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS"}}, \
-                                           "contentCheckOk": true, "racyCheckOk": true}')
+                                           '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
+                                         '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
+                                         '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                                         '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
+                                         '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+                                         '"playbackContext": {"contentPlaybackContext":' \
+                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
             #--------------------------------------------------------------------------------------
             HASH_SET next "id" 2
             RETURN
