@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.249
+version: 1.0.250
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -47,23 +47,23 @@ backend_subtitle: |
 #--------------------------------------------------------------------------------------------------
 
 backends: |
-    duckduckgo    DuckDuckGo    1.0.15 ^html.duckduckgo.com
-    bittorrent    BitTorrent    1.0.24 .torrent$|^magnet:?
-    youtube       Youtube       1.0.99 ^youtube.com|^youtu.be
-    dailymotion   Dailymotion   1.0.6  ^dailymotion.com|^games.dailymotion.com
-    vimeo         Vimeo         1.0.10 ^vimeo.com
-    twitter       Twitter       1.0.3  ^twitter.com|^x.com
-    facebook      Facebook      1.0.10 ^facebook.com
-    odysee        Odysee        1.0.8  ^odysee.com
-    vox           vox           1.0.7  ^vox.omega.gg
-    twitch        Twitch        1.0.30 ^twitch.tv
-    iptv          IPTV          1.0.9  ^iptv:
-    tiktok        TikTok        1.0.9  ^tiktok.com
-    soundcloud    SoundCloud    1.0.10 ^soundcloud.com
-    tmdb          TMDB          1.0.35 ^themoviedb.org
-    lastfm        Last.fm       1.0.7  ^last.fm
-    opensubtitles OpenSubtitles 1.0.8  ^opensubtitles.org
-    peertube      PeerTube      1.0.23 /(watch|w|video-channels|c)/(?!.*/)
+    duckduckgo    DuckDuckGo    1.0.15  ^html.duckduckgo.com
+    bittorrent    BitTorrent    1.0.24  .torrent$|^magnet:?
+    youtube       Youtube       1.0.100 ^youtube.com|^youtu.be
+    dailymotion   Dailymotion   1.0.6   ^dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo         1.0.10  ^vimeo.com
+    twitter       Twitter       1.0.3   ^twitter.com|^x.com
+    facebook      Facebook      1.0.10  ^facebook.com
+    odysee        Odysee        1.0.8   ^odysee.com
+    vox           vox           1.0.7   ^vox.omega.gg
+    twitch        Twitch        1.0.30  ^twitch.tv
+    iptv          IPTV          1.0.9   ^iptv:
+    tiktok        TikTok        1.0.9   ^tiktok.com
+    soundcloud    SoundCloud    1.0.10  ^soundcloud.com
+    tmdb          TMDB          1.0.35  ^themoviedb.org
+    lastfm        Last.fm       1.0.7   ^last.fm
+    opensubtitles OpenSubtitles 1.0.8   ^opensubtitles.org
+    peertube      PeerTube      1.0.23  /(watch|w|video-channels|c)/(?!.*/)
 
 covers: |
     duckduckgo  cover/duckduckgo.png
