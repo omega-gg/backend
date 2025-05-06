@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.100
+version: 1.0.101
 
 title: Youtube
 
@@ -133,7 +133,7 @@ QUERY_SOURCE: |
         SET queryData videoId
         RETURN true
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" videoId "&ucbcb=1")
+    SET url "https://www.youtube.com"
     SET id 4
     SET queryData videoId
     RETURN true
