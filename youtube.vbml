@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.102
+version: 1.0.103
 
 title: Youtube
 
@@ -133,7 +133,7 @@ QUERY_SOURCE: |
         SET queryData videoId
         RETURN true
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" videoId "&ucbcb=1")
+    SET url "https://www.youtube.com"
     SET id 4
     SET queryData videoId
     RETURN true
@@ -233,6 +233,9 @@ EXTRACT_SOURCE: |
         END
     ELIF (EQUAL id 4) # Visitor
         SET index (INDEX_OF data '"visitor_data"')
+        IF (EQUAL index -1)
+            RETURN
+        FI
         LIST_APPEND global (SLICE_IN data '"value":"' '"' index)
         LIST_APPEND global (SLICE_IN data '"STS":' ',')
         HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
