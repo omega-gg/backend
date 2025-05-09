@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.103
+version: 1.0.104
 
 title: Youtube
 
@@ -118,12 +118,12 @@ QUERY_SOURCE: |
             #------------------------------------------------------------------------------------------
             # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
             SET header (APPEND '"Content-Type" "application/json"' \
-                               '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
+                               '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
                                '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
+            SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
                              '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                             '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
-                             '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
+                             '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
+                             '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
                              '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
                              '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
@@ -133,7 +133,7 @@ QUERY_SOURCE: |
         SET queryData videoId
         RETURN true
     FI
-    SET url "https://www.youtube.com"
+    SET url (APPEND "https://www.youtube.com/watch?v=" videoId "&ucbcb=1")
     SET id 4
     SET queryData videoId
     RETURN true
@@ -255,12 +255,12 @@ EXTRACT_SOURCE: |
             #------------------------------------------------------------------------------------------
             # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
+                                           '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
                                          '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                                         '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
-                                         '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
+                                         '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
+                                         '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
                                          '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
