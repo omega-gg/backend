@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.104
+version: 1.0.105
 
 title: Youtube
 
@@ -104,11 +104,11 @@ QUERY_SOURCE: |
         SET url "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
         IF (EQUAL mode "safe")
             SET header (APPEND '"Content-Type" "application/json"' \
-                               '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
+                               '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
                                '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
             SET body (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
-                             '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
-                             '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                             '"clientVersion": "20.10.38", "androidSdkVersion": 30,' \
+                             '"userAgent": "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",' \
                              '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                              '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
@@ -241,11 +241,11 @@ EXTRACT_SOURCE: |
         HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
         IF (EQUAL mode "safe")
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
+                                           '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
             HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
-                                         '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
-                                         '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                                         '"clientVersion": "20.10.38", "androidSdkVersion": 30,' \
+                                         '"userAgent": "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",' \
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
@@ -284,11 +284,11 @@ EXTRACT_SOURCE: |
             #--------------------------------------------------------------------------------------
             # NOTE: The Android live sources seem to work better than iOS.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.android.youtube/19.29.37 (Linux; U; Android 11)"' \
+                                           '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
             HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
-                                         '"clientVersion": "19.29.37", "androidSdkVersion": 30,' \
-                                         '"userAgent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",' \
+                                         '"clientVersion": "20.10.38", "androidSdkVersion": 30,' \
+                                         '"userAgent": "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",' \
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
