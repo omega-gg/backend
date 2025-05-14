@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.105
+version: 1.0.106
 
 title: Youtube
 
@@ -134,6 +134,11 @@ QUERY_SOURCE: |
         RETURN true
     FI
     SET url (APPEND "https://www.youtube.com/watch?v=" videoId "&ucbcb=1")
+    IF (EQUAL mode "safe")
+        SET header '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"'
+    ELSE
+        SET header '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"'
+    FI
     SET id 4
     SET queryData videoId
     RETURN true
