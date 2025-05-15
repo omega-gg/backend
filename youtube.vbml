@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.108
+version: 1.0.109
 
 title: Youtube
 
@@ -115,20 +115,20 @@ QUERY_SOURCE: |
                              '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                              (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
-            #------------------------------------------------------------------------------------------
-            # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
+            #--------------------------------------------------------------------------------------
+            # NOTE: ANDROID_VR seems to be more reliable than ANDROID and IOS.
             SET header (APPEND '"Content-Type" "application/json"' \
-                               '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
+                               '"User-Agent" "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"' \
                                '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            SET body (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
-                             '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                             '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
-                             '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
-                             '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
+            SET body (APPEND '{"context": {"client": {"clientName": "ANDROID_VR",' \
+                             '"clientVersion": "1.62.27", "androidSdkVersion": 32,' \
+                             '"userAgent": "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",' \
+                             '"osName": "Android", "osVersion": "12L", "hl": "en", "timeZone": "UTC",' \
+                             '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
                              '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                              (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
-            #------------------------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------------
         FI
         SET queryData videoId
         RETURN true
@@ -252,20 +252,20 @@ EXTRACT_SOURCE: |
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                                          (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
-            #------------------------------------------------------------------------------------------
-            # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
+            #--------------------------------------------------------------------------------------
+            # NOTE: ANDROID_VR seems to be more reliable than ANDROID and IOS.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
+                                           '"User-Agent" "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
-                                         '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                                         '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
-                                         '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
-                                         '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID_VR",' \
+                                         '"clientVersion": "1.62.27", "androidSdkVersion": 32,' \
+                                         '"userAgent": "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",' \
+                                         '"osName": "Android", "osVersion": "12L", "hl": "en", "timeZone": "UTC",' \
+                                         '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                                          (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
-            #------------------------------------------------------------------------------------------
+            #--------------------------------------------------------------------------------------
         FI
         HASH_SET next "queryData" queryData
     ELSE
@@ -465,11 +465,28 @@ EXTRACT_SOURCE: |
                 END
             FI
         FI
-        # FIXME: Sometimes the request randomly fails.
-        #IF (EQUAL (COUNT medias) 0)
-        #AND (CONTAIN data "\"status\":\"ERROR\"")
-        #    SET reload true
-        #FI
+        # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR.
+        IF (EQUAL (COUNT medias) 0)
+        AND (CONTAIN data "\"status\":\"UNPLAYABLE\"")
+        AND (EQUAL id 0)
+        AND (NOT_EQUAL mode "safe")
+            HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
+            #--------------------------------------------------------------------------------------
+            # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
+            HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
+                                           '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
+                                           '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
+                                         '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
+                                         '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
+                                         '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
+                                         '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+                                         '"playbackContext": {"contentPlaybackContext":' \
+                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
+                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+            #--------------------------------------------------------------------------------------
+            HASH_SET next "id" 5
+        FI
     FI
     SET expiry (ADD (DATE) 60) # Two hours
 
