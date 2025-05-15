@@ -282,7 +282,7 @@ EXTRACT_SOURCE: |
             FI
             HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
             #--------------------------------------------------------------------------------------
-            # NOTE: The Android live sources seem to work better than iOS.
+            # NOTE: ANDROID live sources seem to work better than IOS.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
@@ -465,14 +465,14 @@ EXTRACT_SOURCE: |
                 END
             FI
         FI
-        # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR.
+        # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR so we fallback to IOS.
         IF (EQUAL (COUNT medias) 0)
         AND (CONTAIN data "\"status\":\"UNPLAYABLE\"")
         AND (EQUAL id 0)
         AND (NOT_EQUAL mode "safe")
             HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
             #--------------------------------------------------------------------------------------
-            # NOTE: iOS sources seem to avoid occasional 403 erros while seeking on Android.
+            # NOTE: IOS sources usually work better than ANDROID.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
