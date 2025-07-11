@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.109
+version: 1.0.110
 
 title: Youtube
 
@@ -558,26 +558,29 @@ EXTRACT_PLAYLIST: |
             HASH_SET next "queryData" 1
         FI
     ELIF (EQUAL id 3) # Related tracks
-        IF (EQUAL queryData "")
-            SET index (INDEX_OF data "\\\"continuation\\\"")
-            SET json (SLICE_IN data "\\\"continuation\\\":\\\"" "\\\"" (ADD index 1))
-            IF (NOT_EQUAL json "")
-                HASH_SET next "url" (APPEND \
-                                     "https://www.youtube.com/related_ajax?continuation=" \
-                                     (URL_DECODE json))
-                HASH_SET next "id" 3
-                HASH_SET next "queryData" 1
-            FI
-        ELSE
-            SET index (INDEX_OF data "\"body\"")
-            SET data (HTML_TO_UTF8 (JSON_EXTRACT_HTML data "watch-more-related" index))
+        SET index (INDEX_OF data ',{"continuationItemRenderer"')
+        SET token (SLICE_IN data '"token":"' '"' index)
+        IF (EQUAL token "")
+            RETURN
         FI
-        SET list (SLICES data "\"compactVideoRenderer\"" "}}}")
-        FOREACH list value
-            SET id (JSON_EXTRACT value "videoId")
+        HASH_SET next "url" "https://www.youtube.com/youtubei/v1/next"
+        HASH_SET next "id" 4
+        HASH_SET next "header" '"Content-Type" "application/json"'
+        HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "WEB", ' \
+                                     '"clientVersion": "2.20250312.04.00" }}, ' \
+                                     '"continuation": "' token '"}')
+    ELIF (EQUAL id 4) # Related tracks
+        SET data (JSON_EXTRACT data "continuationItems")
+        SET list (JSON_SPLIT data)
+        FOREACH list data
+            SET index (INDEX_OF data '"lockupMetadataViewModel"')
+            SET id (JSON_EXTRACT data "videoId" index)
+            IF (EQUAL id "")
+                CONTINUE
+            FI
             HASH_SET track "state" "default"
             HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
-            HASH_SET track "title" (JSON_EXTRACT_UTF8 value "simpleText")
+            HASH_SET track "title" (JSON_EXTRACT_UTF8 data "content" index)
             HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
