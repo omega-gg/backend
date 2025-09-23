@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.110
+version: 1.0.111
 
 title: Youtube
 
@@ -474,12 +474,12 @@ EXTRACT_SOURCE: |
             #--------------------------------------------------------------------------------------
             # NOTE: IOS sources usually work better than ANDROID.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)"' \
+                                           '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "20.10.4",' \
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
                                          '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                                         '"userAgent": "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",' \
-                                         '"osName": "iPhone", "osVersion": "18.3.2.22D82", "hl": "en",' \
+                                         '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
+                                         '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
                                          '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
