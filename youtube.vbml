@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.111
+version: 1.0.112
 
 title: Youtube
 
@@ -286,8 +286,7 @@ EXTRACT_SOURCE: |
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID",' \
-                                         '"clientVersion": "20.10.38", "androidSdkVersion": 30,' \
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID", "clientVersion": "20.10.38",' \
                                          '"userAgent": "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",' \
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
@@ -465,26 +464,22 @@ EXTRACT_SOURCE: |
                 END
             FI
         FI
-        # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR so we fallback to IOS.
+        # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR so we fallback to ANDROID.
         IF (EQUAL (COUNT medias) 0)
         AND (CONTAIN data "\"status\":\"UNPLAYABLE\"")
         AND (EQUAL id 0)
         AND (NOT_EQUAL mode "safe")
             HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
-            #--------------------------------------------------------------------------------------
-            # NOTE: IOS sources usually work better than ANDROID.
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
-                                           '"User-Agent" "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"' \
+                                           '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip"' \
                                            '"X-Goog-Visitor-Id" "' (LIST_GET global 0) '"')
-            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "IOS", "clientVersion": "19.45.4",' \
-                                         '"deviceMake": "Apple", "deviceModel": "iPhone16,2",' \
-                                         '"userAgent": "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",' \
-                                         '"osName": "iPhone", "osVersion": "18.1.0.22B83", "hl": "en",' \
-                                         '"timeZone": "UTC", "utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "ANDROID", "clientVersion": "20.10.38",' \
+                                         '"userAgent": "com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip",' \
+                                         '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
+                                         '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                                          (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
-            #--------------------------------------------------------------------------------------
             HASH_SET next "id" 5
         FI
     FI
