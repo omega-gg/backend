@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.112
+version: 1.0.113
 
 title: Youtube
 
@@ -272,7 +272,7 @@ EXTRACT_SOURCE: |
         #------------------------------------------------------------------------------------------
         # Load "hlsManifestUrl" for a live stream
         #------------------------------------------------------------------------------------------
-        IF (CONTAIN data '"isLiveContent":true')
+        IF (CONTAIN data '"isLive":true')
             IF (EQUAL mode "safe")
                 SET source (SLICE_IN data '"hlsManifestUrl":"' '"')
                 HASH_SET next "backend" "youtube"
