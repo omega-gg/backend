@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.113
+version: 1.0.114
 
 title: Youtube
 
@@ -447,7 +447,8 @@ EXTRACT_SOURCE: |
                     FI
                     SET quality (SLICE_IN value '"qualityLabel":"' 'p')
                     IF (EQUAL (INDEX_OF quality (REGEXP "144|240|360|480|720|1080|1440|2160")) -1)
-                    AND (NOT_EQUAL (HASH_GET medias quality) "")
+                    # NOTE: We prioritize mp4 over webm for VLC playback reliability.
+                    OR (NOT_EQUAL (HASH_GET medias quality) "")
                         CONTINUE
                     FI
                     #------------------------------------------------------------------------------
