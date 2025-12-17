@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.114
+version: 1.0.115
 
 title: Youtube
 
@@ -463,6 +463,9 @@ EXTRACT_SOURCE: |
                     HASH_SET audios quality audio
                     #------------------------------------------------------------------------------
                 END
+                # FIXME VLC 3.0.18: The FFmpeg demuxer seems to fix the missing bytes at the end of
+                #                   the video.
+                SET options "demux=avformat"
             FI
         FI
         # NOTE: Some videos are UNPLAYABLE when fetching ANDROID_VR so we fallback to ANDROID.
@@ -482,6 +485,7 @@ EXTRACT_SOURCE: |
                                          '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
                                          (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
             HASH_SET next "id" 5
+            RETURN
         FI
     FI
     SET expiry (ADD (DATE) 60) # Two hours

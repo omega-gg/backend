@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.264
+version: 1.0.265
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -47,12 +47,12 @@ backend_subtitle: |
 
 backends: |
     duckduckgo    DuckDuckGo    1.0.15  ^html.duckduckgo.com
-    youtube       Youtube       1.0.114 ^youtube.com|^youtu.be
+    youtube       Youtube       1.0.115 ^youtube.com|^youtu.be
     dailymotion   Dailymotion   1.0.6   ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.10  ^vimeo.com
     twitter       Twitter       1.0.3   ^twitter.com|^x.com
     facebook      Facebook      1.0.10  ^facebook.com
-    odysee        Odysee        1.0.8   ^odysee.com
+    odysee        Odysee        1.0.9   ^odysee.com
     vox           vox           1.0.7   ^vox.omega.gg
     twitch        Twitch        1.0.30  ^twitch.tv
     iptv          IPTV          1.0.9   ^iptv:

@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.3
 
-version: 1.0.8
+version: 1.0.9
 
 title: Odysee
 
@@ -66,6 +66,8 @@ EXTRACT_SOURCE: |
             HASH_SET medias quality (APPEND url '/' name)
         END
         HASH_SET medias (LIST_GET queryData 1) (LIST_GET queryData 2)
+        # NOTE VLC 4.0.0: The FFmpeg demuxer seems to behave better when seeking the video.
+        SET options "demux=avformat"
     ELSE
         SET data (READ data "utf-8")
         SET id (JSON_EXTRACT data "claim_id")
