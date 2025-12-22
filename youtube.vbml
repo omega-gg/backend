@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.116
+version: 1.0.117
 
 title: Youtube
 
@@ -231,8 +231,6 @@ EXTRACT_SOURCE: |
             SET source (MID value (INDEX_OF value 'https'))
             HASH_SET medias quality source
         END
-        # FIXME VLC 4.0.0: The FFmpeg demuxer seems to fix hls playback.
-        SET options "demux=avformat"
     ELIF (EQUAL id 4) # Visitor
         SET index (INDEX_OF data '"visitor_data"')
         IF (EQUAL index -1)
