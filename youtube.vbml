@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.118
+version: 1.0.119
 
 title: Youtube
 
@@ -497,7 +497,7 @@ EXTRACT_TRACK: |
     SET index (INDEX_OF data "=\"og:image")
     SET cover (HTML_ATTRIBUTE data "content" index)
     #SET cover (REPLACE cover "https://" "http://")
-    SET json (SLICE data '"videoDetails"' '},')
+    SET json (SLICE data '"videoDetails"' ',"isLiveContent"')
     SET title (JSON_EXTRACT_UTF8 json "title")
     SET author (JSON_EXTRACT_UTF8 json "author")
     SET feed (JSON_EXTRACT json "channelId")
