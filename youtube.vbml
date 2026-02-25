@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.119
+version: 1.0.120
 
 title: Youtube
 
@@ -266,6 +266,14 @@ EXTRACT_SOURCE: |
         FI
         HASH_SET next "queryData" queryData
     ELSE
+        # NOTE: This happens when the X-Goog-Visitor-Id has expired.
+        IF (CONTAIN data '"status":"LOGIN_REQUIRED"')
+            SET global ""
+            HASH_SET next "url" (APPEND "https://www.youtube.com/watch?v=" queryData "&ucbcb=1")
+            HASH_SET next "id" 4
+            HASH_SET next "queryData" queryData
+            RETURN
+        FI
         #------------------------------------------------------------------------------------------
         # Load "hlsManifestUrl" for a live stream
         #------------------------------------------------------------------------------------------
