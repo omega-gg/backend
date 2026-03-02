@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.120
+version: 1.0.121
 
 title: Youtube
 
@@ -38,7 +38,7 @@ TRACK_ID: |
     ELIF (EQUAL (START_WITH url "youtube.com") false)
         RETURN
     FI
-    SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+    SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/|/shorts/"))
     IF (NOT_EQUAL index -1)
         RETURN (URL_ELEMENT url index)
     FI
@@ -92,7 +92,7 @@ QUERY_SOURCE: |
     IF (START_WITH url "youtu.be")
         SET videoId (URL_ELEMENT url 9)
     ELIF (START_WITH url "youtube.com")
-        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/|/shorts/"))
         IF (EQUAL index -1)
             RETURN false
         FI
@@ -143,7 +143,7 @@ QUERY_TRACK: |
     IF (START_WITH url "youtu.be")
         SET string (URL_ELEMENT url 9)
     ELIF (START_WITH url "youtube.com")
-        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/"))
+        SET index (INDEX_END url (REGEXP "\\?v=|&v=|/v/|/embed/|/shorts/"))
         IF (EQUAL index -1)
             RETURN false
         FI
