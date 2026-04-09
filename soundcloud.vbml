@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.10
+version: 1.0.11
 
 title: SoundCloud
 
@@ -205,9 +205,11 @@ EXTRACT_SOURCE: |
         HASH_SET next "id" 1
         HASH_SET next "queryData" queryData
     ELIF (EQUAL id 1)
-        SET url (REPLACE (JSON_EXTRACT data "url") "hls" "progressive")
+        SET url (JSON_EXTRACT data "url")
+        SET url (APPEND url "?client_id=" queryData)
+        SET url (APPEND url "&track_authorization=" (JSON_EXTRACT_UTF8 data "track_authorization"))
         HASH_SET next "backend" "soundcloud"
-        HASH_SET next "url" (APPEND url "?client_id=" queryData)
+        HASH_SET next "url" url
         HASH_SET next "id" 2
     ELSE
         HASH_SET medias "480" (JSON_EXTRACT data "url")
