@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.271
+version: 1.0.272
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -25,17 +25,16 @@ backend_search: |
 
 backend_track: |
     duckduckgo
-    vox
-    tmdb
-    bittorrent
     youtube
-    dailymotion
+    bittorrent
     twitch
-    iptv
-    tiktok
-    facebook
+    tmdb
     lastfm
     soundcloud
+    tiktok
+    facebook
+    dailymotion
+    iptv
 
 backend_cover: |
     tmdb
