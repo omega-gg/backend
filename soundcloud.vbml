@@ -207,7 +207,7 @@ EXTRACT_SOURCE: |
     ELIF (EQUAL id 1)
         SET url (JSON_EXTRACT data "url")
         SET url (APPEND url "?client_id=" queryData)
-        SET url (APPEND url "&track_authorization=" (JSON_EXTRACT_UTF8 data "track_authorization"))
+        SET url (APPEND url "&track_authorization=" (JSON_EXTRACT data "track_authorization"))
         HASH_SET next "backend" "soundcloud"
         HASH_SET next "url" url
         HASH_SET next "id" 2
