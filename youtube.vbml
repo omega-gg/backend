@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.121
+version: 1.0.122
 
 title: Youtube
 
@@ -133,7 +133,7 @@ QUERY_SOURCE: |
         SET queryData videoId
         RETURN true
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" videoId "&ucbcb=1")
+    SET url (APPEND "https://www.youtube.com/watch?v=" videoId)
     SET id 4
     SET queryData videoId
     RETURN true
@@ -151,7 +151,7 @@ QUERY_TRACK: |
     ELSE
         RETURN false
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" string "&ucbcb=1")
+    SET url (APPEND "https://www.youtube.com/watch?v=" string)
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -182,7 +182,7 @@ QUERY_PLAYLIST: |
             FI
         ELSE
             SET string (URL_ELEMENT url index)
-            SET url (APPEND "https://www.youtube.com/playlist?list=" string "&ucbcb=1")
+            SET url (APPEND "https://www.youtube.com/playlist?list=" string)
         FI
     ELSE
         SET string (URL_ELEMENT url 2 (ADD index 1))
@@ -213,7 +213,7 @@ CREATE_QUERY: |
         FI
     ELIF (EQUAL method "related")
     AND (EQUAL label "tracks")
-        SET url (APPEND "https://www.youtube.com/watch?v=" q "&ucbcb=1")
+        SET url (APPEND "https://www.youtube.com/watch?v=" q)
         SET id 3
     FI
 
@@ -269,7 +269,7 @@ EXTRACT_SOURCE: |
         # NOTE: This happens when the X-Goog-Visitor-Id has expired.
         IF (CONTAIN data '"status":"LOGIN_REQUIRED"')
             SET global ""
-            HASH_SET next "url" (APPEND "https://www.youtube.com/watch?v=" queryData "&ucbcb=1")
+            HASH_SET next "url" (APPEND "https://www.youtube.com/watch?v=" queryData)
             HASH_SET next "id" 4
             HASH_SET next "queryData" queryData
             RETURN
