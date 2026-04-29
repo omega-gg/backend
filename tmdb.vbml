@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tmdb.vbml
 
 api: 1.0.1
 
-version: 1.0.35
+version: 1.0.36
 
 search: coverVideo
 
@@ -362,7 +362,7 @@ EXTRACT_TRACK: |
     ELIF (EQUAL id 3) # Show
         # NOTE: Skip the movie results.
         SET index (INDEX_OF data "<div class=\"search_results tv")
-        SET list (SLICES data "<div class=\"poster\">" "</a>" index)
+        SET list (SLICES data "<div class=\"flex " "</a>" index)
         IF (EQUAL (COUNT list) 0)
             RETURN
         FI
@@ -427,7 +427,7 @@ EXTRACT_TRACK: |
         SET global (LIST list hash)
         #------------------------------------------------------------------------------------------
     ELIF (EQUAL id 1) # Movie
-        SET data (SLICE_IN data "<div class=\"poster\">" "</a>")
+        SET data (SLICE_IN data "<div class=\"flex " "</a>")
         IF (EQUAL (LENGTH data) 0)
             RETURN
         FI
@@ -441,7 +441,7 @@ EXTRACT_TRACK: |
         HASH_SET next "header" true
         #------------------------------------------------------------------------------------------
     ELSE # Movie
-        SET listA (SLICES data "<div class=\"poster\">" "</a>")
+        SET listA (SLICES data "<div class=\"flex " "</a>")
         IF (EQUAL (COUNT listA) 1)
             #--------------------------------------------------------------------------------------
             # Apply source
