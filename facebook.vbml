@@ -198,8 +198,8 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_END data "\"image\"")
         HASH_SET track "cover" (JSON_EXTRACT data "uri" index)
         SET index (INDEX_END data "\"owner\"")
-        HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" INDEX)
-        HASH_SET track "feed" (JSON_EXTRACT data "uri_token" INDEX)
+        HASH_SET track "author" (JSON_EXTRACT_UTF8 data "name" index)
+        HASH_SET track "feed" (JSON_EXTRACT data "uri_token" index)
         HASH_SET track "duration" (JSON_EXTRACT data "playable_duration_in_ms")
         HASH_SET track "date" (JSON_EXTRACT data "publish_time")
         LIST_APPEND tracks track

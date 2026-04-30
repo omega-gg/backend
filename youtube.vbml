@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.122
+version: 1.0.123
 
 title: Youtube
 
@@ -542,6 +542,17 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
+        IF (EQUAL (COUNT tracks) 0)
+            SET list (SLICES data 'richItemRenderer":' '"contentType"')
+            FOREACH list value
+                SET id (JSON_EXTRACT value "videoId")
+                HASH_SET track "state" "default"
+                HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
+                HASH_SET track "title" (JSON_EXTRACT_UTF8 value "title")
+                HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
+                LIST_APPEND tracks track
+            END
+        FI
     ELIF (EQUAL id 2) # Search tracks
         SET list (SLICES data "\"videoRenderer\"" "}}}")
         FOREACH list value
