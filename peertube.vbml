@@ -17,6 +17,10 @@ host: peertube.fr
 
 cover: /cover/peertube.png
 
+items:
+    playlist:
+        title: Tracks
+
 validate: /(watch|w|video-channels|c)/(?!.*/)
 
 #--------------------------------------------------------------------------------------------------
@@ -98,10 +102,17 @@ CREATE_QUERY: |
     IF (EQUAL label "tracks")
         IF (EQUAL method "search")
             SET id 1
-            SET queryData (MID q 0 (INDEX_OF q '?'))
-            SET q (MID q (INDEX_OF q "?search="))
-            SET url (APPEND "https://" queryData "/api/v1/videos" q \
-                            "&count=100&skipCount=true&nsfw=false")
+            IF (START_WITH q "site:")
+                SET queryData (SLICE_IN q "site:" ' ')
+                SET index (INDEX_OF q ' ')
+                SET q (MID q (ADD index 1))
+                SET url (APPEND "https://" queryData "/api/v1/videos?search=" \
+                                (URL_ENCODE q) "&count=100&skipCount=true&nsfw=false")
+            ELSE
+                SET queryData "sepiasearch.org"
+                SET url (APPEND "https://" queryData "/api/v1/search/videos?search=" \
+                                (URL_ENCODE q) "&count=100&skipCount=true&nsfw=false")
+            FI
         ELIF (EQUAL method "related")
             SET index (INDEX_OF q (REGEXP "/(watch|w)/(?!.*/)"))
             IF (EQUAL index -1)
@@ -212,9 +223,10 @@ EXTRACT_PLAYLIST: |
         SET data (JSON_EXTRACT data "data")
         SET list (JSON_SPLIT data)
         FOREACH list data
-            HASH_SET track "source" (APPEND queryData "/w/" (JSON_EXTRACT data "shortUUID"))
+            SET host (JSON_EXTRACT data "host")
+            HASH_SET track "source" (APPEND host "/w/" (JSON_EXTRACT data "shortUUID"))
             HASH_SET track "title" (JSON_EXTRACT_UTF8 data "name")
-            HASH_SET track "cover" (APPEND queryData (JSON_EXTRACT data "previewPath"))
+            HASH_SET track "cover" (APPEND host (JSON_EXTRACT data "previewPath"))
             LIST_APPEND tracks track
         END
     FI
