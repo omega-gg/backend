@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.24
+version: 1.0.26
 
 title: PeerTube
 
@@ -21,7 +21,7 @@ items:
     playlist:
         title: Tracks
 
-validate: /(watch|w|video-channels|c)/(?!.*/)
+validate: /(watch|w/p|w|video-channels|c)/(?!.*/)
 
 #--------------------------------------------------------------------------------------------------
 # Routines

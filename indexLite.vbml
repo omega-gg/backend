@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.279
+version: 1.0.280
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -59,7 +59,7 @@ backends: |
     tmdb          TMDB          1.0.36  ^themoviedb.org
     lastfm        Last.fm       1.0.7   ^last.fm
     opensubtitles OpenSubtitles 1.0.8   ^opensubtitles.org
-    peertube      PeerTube      1.0.25  /(watch|w|video-channels|c)/(?!.*/)
+    peertube      PeerTube      1.0.26  /(watch|w/p|w|video-channels|c)/(?!.*/)
 
 covers: |
     duckduckgo  cover/duckduckgo.png
