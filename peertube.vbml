@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/peertube.vbml
 
 api: 1.0.3
 
-version: 1.0.27
+version: 1.0.28
 
 title: PeerTube
 
@@ -133,16 +133,17 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    # NOTE: We prioritize hls streams.
+    # NOTE: We prioritize the hls stream.
     SET content (JSON_EXTRACT data "streamingPlaylists")
     IF (LENGTH content)
-        SET content (JSON_EXTRACT content "files")
-        SET list (JSON_SPLIT content)
-        FOREACH list data
-            SET quality (CHOP (JSON_EXTRACT data "label") 1)
-            HASH_SET medias quality (JSON_EXTRACT data "playlistUrl")
-        END
-    # NOTE: When hls streams are empty we fallback to raw files.
+        HASH_SET medias "default" (JSON_EXTRACT content "playlistUrl")
+        #SET content (JSON_EXTRACT content "files")
+        #SET list (JSON_SPLIT content)
+        #FOREACH list data
+        #    SET quality (CHOP (JSON_EXTRACT data "label") 1)
+        #    HASH_SET medias quality (JSON_EXTRACT data "playlistUrl")
+        #END
+    # NOTE: When the hls stream is empty we fallback to raw files.
     ELSE
         SET content (JSON_EXTRACT data "files")
         SET list (JSON_SPLIT content)
