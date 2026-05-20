@@ -9,20 +9,20 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.9
+version: 1.0.10
 
 title: OpenSubtitles
 
 host: opensubtitles.org
 
-validate: ^opensubtitles.org
+validate: ^dl.opensubtitles.org
 
 #--------------------------------------------------------------------------------------------------
 # Routines
 #--------------------------------------------------------------------------------------------------
 
 QUERY_ITEM: |
-    IF (EQUAL (START_WITH (URL_REMOVE_PREFIX url) "opensubtitles.org") false)
+    IF (EQUAL (START_WITH (URL_REMOVE_PREFIX url) "dl.opensubtitles.org") false)
     OR (EQUAL (CONTAIN url "/subtitles/") false)
         RETURN false
     FI
