@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/opensubtitles.
 
 api: 1.0.1
 
-version: 1.0.10
+version: 1.0.11
 
 title: OpenSubtitles
 
