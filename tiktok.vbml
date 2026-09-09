@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 title: TikTok
 
@@ -59,7 +59,7 @@ QUERY_SOURCE: |
     # NOTE: The query seems to be faster with the additional region parameters.
     SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
                     "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
-                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
+                    "&app_name=tiktok&version_code=320105&device_platform=android" \
                     "&device_type=ASUS_Z01QD&version=9" \
                     "&carrier_region=US&sys_region=US&region=US&language=en")
     SET queryMethod "OPTIONS"
@@ -74,7 +74,7 @@ QUERY_TRACK: |
     # NOTE: The query seems to be faster with the additional region parameters.
     SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
                     "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
-                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
+                    "&app_name=tiktok&version_code=320105&device_platform=android" \
                     "&device_type=ASUS_Z01QD&version=9" \
                     "&carrier_region=US&sys_region=US&region=US&language=en")
     SET queryMethod "OPTIONS"
