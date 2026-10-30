@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.126
+version: 1.0.128
 
 title: Youtube
 
@@ -152,6 +152,8 @@ QUERY_TRACK: |
         RETURN false
     FI
     SET url (APPEND "https://www.youtube.com/watch?v=" string)
+    # NOTE: We space the track queries to avoid the 429 'Too Many Requests'.
+    SET delay 1000
     RETURN true
 
 QUERY_PLAYLIST: |
