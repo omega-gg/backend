@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.298
+version: 1.0.299
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -25,9 +25,9 @@ backend_search: |
 backend_track: |
     duckduckgo
     youtube
+    youtubemusic
     twitch
     tmdb
-    lastfm
     soundcloud
     tiktok
     facebook
@@ -37,7 +37,7 @@ backend_track: |
 
 backend_cover: |
     tmdb
-    lastfm
+    youtubemusic
 
 backend_subtitle: |
     opensubtitles
@@ -47,6 +47,7 @@ backend_subtitle: |
 backends: |
     duckduckgo    DuckDuckGo    1.0.15  ^html.duckduckgo.com
     youtube       Youtube       1.0.132 ^youtube.com|^youtu.be
+    youtubemusic  YoutubeMusic  1.0.0   ^music.youtube.com
     dailymotion   Dailymotion   1.0.6   ^dailymotion.com|^games.dailymotion.com
     vimeo         Vimeo         1.0.10  ^vimeo.com
     twitter       Twitter       1.0.3   ^twitter.com|^x.com
@@ -57,13 +58,13 @@ backends: |
     tiktok        TikTok        1.0.9   ^tiktok.com
     soundcloud    SoundCloud    1.0.12  ^soundcloud.com
     tmdb          TMDB          1.0.36  ^themoviedb.org
-    lastfm        Last.fm       1.0.7   ^last.fm
     opensubtitles OpenSubtitles 1.0.11  ^dl.opensubtitles.org
     peertube      PeerTube      1.0.28  /(watch|w/p|w|video-channels|c)/(?!.*/)
 
 covers: |
     duckduckgo  cover/duckduckgo.png
     youtube     cover/youtube.png
+    youtubemusic cover/youtubemusic.png
     dailymotion cover/dailymotion.png
     vimeo       cover/vimeo.png
     twitter     cover/twitter.png
@@ -75,7 +76,6 @@ covers: |
     tiktok      cover/tiktok.png
     soundcloud  cover/soundcloud.png
     tmdb        cover/tmdb.png
-    lastfm      cover/lastfm.png
 
 hubs: |
     tmdb   https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB

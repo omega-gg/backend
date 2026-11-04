@@ -3,6 +3,7 @@ OTHER_FILES += index.vbml \
                duckduckgo.vbml \
                bittorrent.vbml \
                youtube.vbml \
+               youtubemusic.vbml \
                dailymotion.vbml \
                vimeo.vbml \
                twitter.vbml \
@@ -15,6 +16,5 @@ OTHER_FILES += index.vbml \
                tiktok.vbml \
                soundcloud.vbml \
                tmdb.vbml \
-               lastfm.vbml \
                opensubtitles.vbml \
                dist/generateLite.sh \

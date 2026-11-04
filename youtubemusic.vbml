@@ -1,0 +1,166 @@
+# VBML 1.0.6
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtubemusic.vbml
+
+api: 1.0.1
+
+version: 1.0.0
+
+search: coverAudio
+
+title: Youtube Music
+
+host: music.youtube.com
+
+cover: /cover/youtubemusic.png
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: Albums
+    folder:
+        title: Artists
+
+validate: ^music.youtube.com
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "music.youtube.com/channel/")
+        SET type "feed"
+    ELIF (START_WITH url "music.youtube.com/browse/")
+        SET type "playlist"
+    ELSE
+        RETURN false
+    FI
+    SET id (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    RETURN true
+
+URL_PLAYLIST: |
+    IF (EQUAL type "feed")
+        RETURN (APPEND "https://music.youtube.com/channel/" id)
+    ELSE
+        RETURN (APPEND "https://music.youtube.com/browse/" id)
+    FI
+
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "music.youtube.com/channel/")
+        SET id 1
+    ELIF (EQUAL (START_WITH url "music.youtube.com/browse/") false)
+        RETURN false
+    FI
+    SET string (URL_ELEMENT url (LAST_INDEX_END url '/'))
+    SET url "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false"
+    SET header '"Content-Type" "application/json"'
+    SET body (APPEND '{"context": {"client": {"clientName": "WEB_REMIX",' \
+                     '"clientVersion": "1.20260707.12.00", "hl": "en"}},' \
+                     '"browseId": "' string '"}')
+    RETURN true
+
+CREATE_QUERY: |
+    IF (EQUAL method "search")
+        IF (EQUAL label "tracks")
+            SET string "EgWKAQIIAWoMEA4QChADEAQQCRAF"
+            SET id 2
+        ELIF (EQUAL label "albums")
+            SET string "EgWKAQIYAWoMEA4QChADEAQQCRAF"
+        ELIF (EQUAL label "artists")
+            SET string "EgWKAQIgAWoMEA4QChADEAQQCRAF"
+            SET id 1
+        ELSE
+            RETURN
+        FI
+    ELIF (EQUAL method "cover")
+        SET string "EgWKAQIIAWoMEA4QChADEAQQCRAF"
+        SET queryData (LOWER label)
+        SET q (APPEND label ' ' (URL_REMOVE_EXTENSION q))
+    ELSE
+        RETURN
+    FI
+    SET url "https://music.youtube.com/youtubei/v1/search?prettyPrint=false"
+    SET header '"Content-Type" "application/json"'
+    SET body (APPEND '{"context": {"client": {"clientName": "WEB_REMIX",' \
+                     '"clientVersion": "1.20260707.12.00", "hl": "en"}},' \
+                     '"query": "' (REPLACE q '"' ' ') '", "params": "' string '"}')
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    SET list (SLICES data "\"musicResponsiveListItemRenderer\"" "\"menu\"")
+    FOREACH list value
+        SET index (INDEX_END value "\"runs\":[{")
+        SET author (JSON_EXTRACT_UTF8 value "text" (INDEX_END value "\"runs\":[{" index))
+        IF (CONTAIN queryData (LOWER author))
+            SET cover (REPLACE (JSON_EXTRACT value "url") "w60-h60" "w544-h544")
+            RETURN
+        FI
+    END
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 0) # Album
+        SET index (LAST_INDEX_OF data "\"title\"" (INDEX_OF data "\"straplineTextOne\""))
+        SET title (JSON_EXTRACT_UTF8 data "text" index)
+        SET cover (JSON_EXTRACT data "url" (INDEX_OF data "\"musicResponsiveHeaderRenderer\""))
+        SET cover (REPLACE cover "w60-h60" "w544-h544")
+    ELIF (EQUAL id 1) # Artist
+        SET index (INDEX_OF data "\"musicImmersiveHeaderRenderer\"")
+        SET title (JSON_EXTRACT_UTF8 data "text" index)
+        SET cover (JSON_EXTRACT data "url" (INDEX_OF data "\"thumbnail\"" index))
+        # NOTE: The page only lists the top songs, the complete list is a playlist.
+        SET string (SLICE_IN data "\"browseId\":\"VL" '"')
+        IF (NOT_EQUAL string "")
+            HASH_SET next "url" "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false"
+            HASH_SET next "header" '"Content-Type" "application/json"'
+            HASH_SET next "body" (APPEND '{"context": {"client": {"clientName": "WEB_REMIX",' \
+                                         '"clientVersion": "1.20260707.12.00", "hl": "en"}},' \
+                                         '"browseId": "VL' string '"}')
+            HASH_SET next "id" 2
+            RETURN
+        FI
+    FI
+    SET list (SLICES data "\"musicResponsiveListItemRenderer\"" "\"menu\"")
+    FOREACH list value
+        SET source (JSON_EXTRACT value "videoId")
+        SET index (INDEX_END value "\"runs\":[{")
+        SET name (JSON_EXTRACT_UTF8 value "text" index)
+        SET author (JSON_EXTRACT_UTF8 value "text" (INDEX_END value "\"runs\":[{" index))
+        SET url (REPLACE (JSON_EXTRACT value "url") "w60-h60" "w544-h544")
+        # NOTE: The tracks of an album have no thumbnail of their own.
+        IF (EQUAL url "")
+            SET url cover
+        FI
+        HASH_SET track "state" "default"
+        HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" source)
+        HASH_SET track "title" (APPEND author " - " name)
+        HASH_SET track "cover" url
+        HASH_SET track "author" author
+        LIST_APPEND tracks track
+    END
+
+EXTRACT_FOLDER: |
+    SET data (READ data "utf-8")
+    SET list (SLICES data "\"musicResponsiveListItemRenderer\"" "\"itemHeight\"")
+    FOREACH list value
+        SET string (JSON_EXTRACT value "browseId" (LAST_INDEX_OF value "\"browseId\""))
+        IF (EQUAL id 1) # Search artists
+            HASH_SET item "type" "feed"
+            HASH_SET item "source" (APPEND "https://music.youtube.com/channel/" string)
+        ELSE # Search albums
+            HASH_SET item "type" "playlist"
+            HASH_SET item "source" (APPEND "https://music.youtube.com/browse/" string)
+        FI
+        HASH_SET item "state" "default"
+        HASH_SET item "title" (JSON_EXTRACT_UTF8 value "text" (INDEX_END value "\"runs\":[{"))
+        HASH_SET item "cover" (REPLACE (JSON_EXTRACT value "url") "w60-h60" "w544-h544")
+        LIST_APPEND items item
+    END
