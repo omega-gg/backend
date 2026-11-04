@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.30
+version: 1.0.31
 
 title: Twitch
 
@@ -111,10 +111,15 @@ QUERY_TRACK: |
     IF (EQUAL (START_WITH url "twitch.tv/") false)
         RETURN false
     ELIF (CONTAIN url "/videos/")
-        SET url (APPEND "https://www.twitch.tv/videos/" (URL_ELEMENT url 17))
+        SET video (URL_ELEMENT url 17)
+        SET backend "twitch"
+        SET url "https://gql.twitch.tv/gql"
         SET id 1
-        # NOTE: We need to wait 1 second before reloading the page.
-        #SET delay 1000
+        SET header (APPEND '"Content-Type" "application/json"' \
+                           '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+        SET body (APPEND '{ "query": "{ video(id: \\"' video '\\") { title lengthSeconds ' \
+                         'createdAt previewThumbnailURL(width: 1920, height: 1080) ' \
+                         'owner { login displayName } } }" }')
         RETURN true
     ELIF (NOT_EQUAL (COUNT_STRING url '/') 1)
         RETURN false
@@ -366,34 +371,15 @@ EXTRACT_TRACK: |
     #    RETURN
     #FI
     IF (EQUAL id 1)
-        #------------------------------------------------------------------------------------------
-        # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
-        SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
-        SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-        SET title (MID title 0 (LAST_INDEX_OF title " -"))
-        # NOTE: Sometimes Twitch returns an empty page so we reload it one second later
-        #       (delay in QUERY_TRACK).
-        IF (EQUAL title "")
-            SET reload true
-            RETURN
-        FI
-        SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
-        SET cover (HTML_ATTRIBUTE data "content" index)
-        #------------------------------------------------------------------------------------------
-        # NOTE: We make sure we have a valid cover before fixing it.
-        IF (START_WITH url "https://static-cdn")
-            SET index (LAST_INDEX_OF cover '-')
-            SET cover (MID cover 0 (ADD index 1))
-            SET cover (APPEND cover "1920x1080.jpg")
-        ELIF (CONTAIN cover "/_404/")
+        SET title (JSON_EXTRACT_UTF8 data "title")
+        SET cover (JSON_EXTRACT data "previewThumbnailURL")
+        IF (CONTAIN cover "/_404/")
             SET cover ""
         FI
-        SET index (INDEX_END data "name=\"title\"")
-        SET feed (HTML_TO_UTF8 (SLICE_IN data "content=\"" " on Twitch" index))
-        SET feed (MID feed (LAST_INDEX_END feed "- "))
-        SET duration (SLICE_IN (JSON_EXTRACT data "duration") "PT" 'S')
-        SET duration (MULTIPLY duration 1000)
-        SET date (DATE (JSON_EXTRACT data "uploadDate") "yyyy-MM-ddThh:mm:ssZ")
+        SET author (JSON_EXTRACT_UTF8 data "displayName")
+        SET feed (JSON_EXTRACT data "login")
+        SET duration (MULTIPLY (JSON_EXTRACT data "lengthSeconds") 1000)
+        SET date (DATE (JSON_EXTRACT data "createdAt") "yyyy-MM-ddThh:mm:ssZ")
     ELSE
         SET feed (SLICE_IN data "?channel=" '&')
         SET index (INDEX_OF data "\"VideoObject\"")
