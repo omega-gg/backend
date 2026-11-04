@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.130
+version: 1.0.131
 
 title: Youtube
 
@@ -510,6 +510,11 @@ EXTRACT_TRACK: |
     SET cover (HTML_ATTRIBUTE data "content" index)
     #SET cover (REPLACE cover "https://" "http://")
     SET json (SLICE data '"videoDetails"' ',"isLiveContent"')
+    # NOTE: YouTube can serve a page without the video details, like a bot check. Searching it
+    #       would match unrelated fields, like the author of a comment.
+    IF (EQUAL (CONTAIN json '"channelId"') false)
+        RETURN
+    FI
     SET title (JSON_EXTRACT_UTF8 json "title")
     SET author (JSON_EXTRACT_UTF8 json "author")
     SET feed (JSON_EXTRACT json "channelId")
