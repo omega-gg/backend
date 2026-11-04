@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/soundcloud.vbm
 
 api: 1.0.1
 
-version: 1.0.11
+version: 1.0.12
 
 title: SoundCloud
 
@@ -271,6 +271,7 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_END data "hydratable\":\"user\"")
         SET string (JSON_EXTRACT data "data" index)
         SET source (REPLACE (JSON_EXTRACT_UTF8 string "uri") "api." "api-v2.")
+        SET source (REPLACE source "soundcloud%3Ausers%3A" "")
         SET title (JSON_EXTRACT_UTF8 string "username")
         SET cover (JSON_EXTRACT_UTF8 string "avatar_url")
         SET cover (REPLACE cover "-large." "-t500x500.")
