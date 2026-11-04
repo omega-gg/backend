@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.10
+version: 1.0.11
 
 title: IPTV
 
@@ -37,12 +37,13 @@ EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
     IF (EQUAL id 1)
         FOREACH queryData item
-            SET title (LIST_GET item 1)
-            SET index (INDEX_OF data (APPEND '"id":"' title '"'))
+            SET channel (LIST_GET item 1)
+            SET index (INDEX_OF data (APPEND '"id":"' channel '"'))
             # NOTE: When we can't find the id we add the source anyway, it should not be nsfw.
             IF (NOT_EQUAL index -1)
-            AND (EQUAL (SLICE_IN data '"is_nsfw":' ',' index) "true")
-                CONTINUE
+                IF (EQUAL (SLICE_IN data '"is_nsfw":' ',' index) "true")
+                    CONTINUE
+                FI
             FI
             LIST_APPEND sources item
         END
@@ -53,26 +54,27 @@ EXTRACT_PLAYLIST: |
         FI
     ELIF (EQUAL id 2)
         FOREACH queryData item
-            SET title (LIST_GET item 1)
-            SET index (INDEX_OF data (APPEND '"channel":"' title '"'))
+            SET channel (LIST_GET item 1)
+            SET index (INDEX_OF data (APPEND '"channel":"' channel '"'))
+            # NOTE: We have to clear it, otherwise this track gets the cover of the previous one.
             IF (EQUAL index -1)
                 HASH_SET track "cover" ""
             ELSE
                 HASH_SET track "cover" (SLICE_IN data '"url":"' '"' index)
             FI
             HASH_SET track "source" (LIST_GET item 0)
-            HASH_SET track "title" title
+            HASH_SET track "title" (LIST_GET item 2)
             LIST_APPEND tracks track
         END
     ELSE
         SET queryData (LOWER (REPLACE queryData ' ' ''))
         SET list (SLICES_IN data '"channel":"' '}')
         FOREACH list item
-            SET title (MID item 0 (INDEX_OF item '"'))
-            IF (CONTAIN (LOWER (REPLACE title '.' '')) queryData)
+            SET channel (MID item 0 (INDEX_OF item '"'))
+            IF (CONTAIN (LOWER (REPLACE channel '.' '')) queryData)
                 SET source (SLICE_IN item '"url":"' '"')
                 IF (LENGTH source)
-                    LIST_APPEND sources (LIST source title)
+                    LIST_APPEND sources (LIST source channel (JSON_EXTRACT_UTF8 item "title"))
                 FI
             FI
         END
