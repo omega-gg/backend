@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/odysee.vbml
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 title: Odysee
 
@@ -65,17 +65,18 @@ EXTRACT_SOURCE: |
             SET name (SLICE source 'v' ".m3u8" (INDEX_OF source "NONE"))
             HASH_SET medias quality (APPEND url '/' name)
         END
-        HASH_SET medias (LIST_GET queryData 1) (LIST_GET queryData 2)
+        # NOTE: The file can be refused when the HLS works, so it only comes as a fallback.
+        IF (EQUAL (COUNT list) 0)
+            HASH_SET medias (LIST_GET queryData 1) (LIST_GET queryData 2)
+        FI
         # NOTE VLC 4.0.0: The FFmpeg demuxer seems to behave better when seeking the video.
         SET options "demux=avformat"
     ELSE
         SET data (READ data "utf-8")
         SET id (JSON_EXTRACT data "claim_id")
-        SET name (JSON_EXTRACT_UTF8 data "normalized_name")
         SET hash (JSON_EXTRACT data "sd_hash")
-        SET source (APPEND "https://player.odycdn.com/api/v3/streams/free/" name '/' id '/' \
-                           (MID hash 0 6))
         SET quality (JSON_EXTRACT data "height" (LAST_INDEX_END data "video"))
+        SET source (APPEND "https://player.odycdn.com/v6/streams/" id '/' (MID hash 0 6) ".mp4")
         SET url (APPEND "https://player.odycdn.com/v6/streams/" id '/' hash)
         HASH_SET next "backend" "odysee"
         HASH_SET next "url" (APPEND url "/master.m3u8")
