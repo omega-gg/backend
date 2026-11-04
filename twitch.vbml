@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.31
+version: 1.0.32
 
 title: Twitch
 
@@ -96,11 +96,12 @@ QUERY_SOURCE: |
     SET url "https://gql.twitch.tv/gql"
     SET header (APPEND '"Content-Type" "application/json"' \
                        '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+    # NOTE: The 'site' player type gets stitched ads, and the 'embed' one does not.
     SET body (APPEND '{ "query": "{ streamPlaybackAccessToken(' \
                      'channelName: \\"' stream '\\", '          \
                      'params: { platform: \\"web\\", '          \
                      'playerBackend: \\"mediaplayer\\", '       \
-                     'playerType: \\"site\\"}) '                \
+                     'playerType: \\"embed\\"}) '               \
                      '{ value signature }}" }')
     # NOTE: This needs to be lowercase for the POST to succeed.
     SET queryData (LOWER stream)
