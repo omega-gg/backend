@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/iptv.vbml
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 title: IPTV
 
@@ -41,10 +41,24 @@ EXTRACT_PLAYLIST: |
             SET index (INDEX_OF data (APPEND '"id":"' title '"'))
             # NOTE: When we can't find the id we add the source anyway, it should not be nsfw.
             IF (NOT_EQUAL index -1)
-                IF (EQUAL (SLICE_IN data '"is_nsfw":' ',' index) "true")
-                    CONTINUE
-                FI
-                HASH_SET track "cover" (SLICE_IN data '"logo":"' '"' index)
+            AND (EQUAL (SLICE_IN data '"is_nsfw":' ',' index) "true")
+                CONTINUE
+            FI
+            LIST_APPEND sources item
+        END
+        IF (COUNT sources)
+            HASH_SET next "url" "https://iptv-org.github.io/api/logos.json"
+            HASH_SET next "id" 2
+            HASH_SET next "queryData" sources
+        FI
+    ELIF (EQUAL id 2)
+        FOREACH queryData item
+            SET title (LIST_GET item 1)
+            SET index (INDEX_OF data (APPEND '"channel":"' title '"'))
+            IF (EQUAL index -1)
+                HASH_SET track "cover" ""
+            ELSE
+                HASH_SET track "cover" (SLICE_IN data '"url":"' '"' index)
             FI
             HASH_SET track "source" (LIST_GET item 0)
             HASH_SET track "title" title

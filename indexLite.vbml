@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/indexLite.vbml
 
 api: 1.0.0
 
-version: 1.0.296
+version: 1.0.297
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -53,7 +53,7 @@ backends: |
     facebook      Facebook      1.0.10  ^facebook.com
     odysee        Odysee        1.0.9   ^odysee.com
     twitch        Twitch        1.0.32  ^twitch.tv
-    iptv          IPTV          1.0.9   ^iptv:
+    iptv          IPTV          1.0.10  ^iptv:
     tiktok        TikTok        1.0.9   ^tiktok.com
     soundcloud    SoundCloud    1.0.12  ^soundcloud.com
     tmdb          TMDB          1.0.36  ^themoviedb.org
