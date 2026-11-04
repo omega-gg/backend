@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/facebook.vbml
 
 api: 1.0.4
 
-version: 1.0.10
+version: 1.0.11
 
 title: Facebook
 
@@ -85,10 +85,7 @@ QUERY_SOURCE: |
     ELSE
         SET url (URL_ELEMENT url index)
     FI
-    SET url (APPEND "https://www.facebook.com/video/playback/dash_mpd_debug.mpd?v=" url \
-                    "&dummy=.mpd")
-    # NOTE: This seems required to get proper results.
-    SET header '"Sec-Fetch-Mode" "navigate"'
+    SET url (APPEND "https://www.facebook.com/video/embed?video_id=" url)
     RETURN true
 
 QUERY_TRACK: |
@@ -142,6 +139,7 @@ CREATE_QUERY: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
+    SET data (REPLACE (JSON_EXTRACT_UTF8 data "dash_manifest") '\\' '')
     SET audio (SLICE_IN data "mimeType=\"audio" "</BaseURL>")
     SET audio (HTML_TO_UTF8 (MID audio (INDEX_END audio <BaseURL>)))
     SET list (SLICES_IN data "mimeType=\"video" "</BaseURL>")
