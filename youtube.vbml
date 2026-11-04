@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.131
+version: 1.0.132
 
 title: Youtube
 
@@ -150,7 +150,14 @@ QUERY_TRACK: |
     ELSE
         RETURN false
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" string)
+    SET url (APPEND "https://www.youtube.com/youtubei/v1/player?prettyPrint=false&$fields=" \
+                    "microformat.playerMicroformatRenderer.uploadDate," \
+                    "videoDetails(title,author,channelId,lengthSeconds,isLive,thumbnail)")
+    SET header (APPEND '"Content-Type" "application/json"' \
+                       '"User-Agent" "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"')
+    SET body (APPEND '{"context": {"client": {"clientName": "WEB",' \
+                     '"clientVersion": "2.20261019.01.00", "hl": "en"}}, "videoId": "' string '",' \
+                     '"contentCheckOk": true, "racyCheckOk": true}')
     # NOTE: We space the track queries to avoid the 429 'Too Many Requests'.
     SET delay 1000
     RETURN true
@@ -501,28 +508,22 @@ EXTRACT_SOURCE: |
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    IF (CONTAIN data "\"hlsManifestUrl\":\"")
+    IF (CONTAIN data '"isLive":true')
         SET type "live"
     ELSE
         SET type "track"
     FI
-    SET index (INDEX_OF data "=\"og:image")
-    SET cover (HTML_ATTRIBUTE data "content" index)
-    #SET cover (REPLACE cover "https://" "http://")
-    SET json (SLICE data '"videoDetails"' ',"isLiveContent"')
-    # NOTE: YouTube can serve a page without the video details, like a bot check. Searching it
-    #       would match unrelated fields, like the author of a comment.
-    IF (EQUAL (CONTAIN json '"channelId"') false)
-        RETURN
-    FI
-    SET title (JSON_EXTRACT_UTF8 json "title")
-    SET author (JSON_EXTRACT_UTF8 json "author")
-    SET feed (JSON_EXTRACT json "channelId")
+    # NOTE: The largest thumbnail comes last.
+    SET cover (JSON_EXTRACT data "url" (LAST_INDEX_OF data '"url"'))
+    # NOTE: This parameter can give a smaller image.
+    SET cover (MID cover 0 (INDEX_OF cover "?sqp="))
+    SET title (JSON_EXTRACT_UTF8 data "title")
+    SET author (JSON_EXTRACT_UTF8 data "author")
+    SET feed (JSON_EXTRACT data "channelId")
     SET feed (APPEND "https://www.youtube.com/channel/" (URL_PATH feed))
-    SET duration (JSON_EXTRACT json "lengthSeconds")
+    SET duration (JSON_EXTRACT data "lengthSeconds")
     SET duration (MULTIPLY duration 1000)
-    SET index (INDEX_OF data "\"uploadDate\":" index)
-    SET date (MID (JSON_EXTRACT data "uploadDate" index) 0 19)
+    SET date (MID (JSON_EXTRACT data "uploadDate") 0 19)
     SET date (DATE date "yyyy-MM-ddThh:mm:ss")
 
 EXTRACT_PLAYLIST: |
