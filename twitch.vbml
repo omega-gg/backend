@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/twitch.vbml
 
 api: 1.0.3
 
-version: 1.0.32
+version: 1.0.33
 
 title: Twitch
 
@@ -126,8 +126,12 @@ QUERY_TRACK: |
         RETURN false
     FI
     SET stream (URL_ELEMENT url 10)
-    SET url (APPEND "https://www.twitch.tv/" stream)
-    SET queryData stream
+    SET url "https://gql.twitch.tv/gql"
+    SET header (APPEND '"Content-Type" "application/json"' \
+                       '"Client-Id" "kimne78kx3ncx6brgo4mv6wki5h1ko"')
+    SET body (APPEND '{ "query": "{ user(login: \\"' stream '\\") { login displayName ' \
+                     'profileImageURL(width: 300) stream { title ' \
+                     'previewImageURL(width: 1920, height: 1080) } } }" }')
     RETURN true
 
 QUERY_PLAYLIST: |
@@ -382,29 +386,18 @@ EXTRACT_TRACK: |
         SET duration (MULTIPLY (JSON_EXTRACT data "lengthSeconds") 1000)
         SET date (DATE (JSON_EXTRACT data "createdAt") "yyyy-MM-ddThh:mm:ssZ")
     ELSE
-        SET feed (SLICE_IN data "?channel=" '&')
-        SET index (INDEX_OF data "\"VideoObject\"")
+        SET author (JSON_EXTRACT_UTF8 data "displayName")
+        SET feed (JSON_EXTRACT data "login")
         # NOTE: This means the stream is not live.
-        IF (EQUAL index -1)
+        IF (EQUAL (CONTAIN data "\"stream\":{") false)
             SET type "track"
-            #--------------------------------------------------------------------------------------
-            # NOTE: 'og:title' or 'og:image' tend to be after 'content'.
-            SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:title\""))
-            SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-            SET title (MID title 0 (LAST_INDEX_OF title " -"))
-            SET index (LAST_INDEX_OF data '<' (INDEX_END data "property=\"og:image\""))
-            SET cover (HTML_ATTRIBUTE data "content" index)
-            SET author title
-            #--------------------------------------------------------------------------------------
+            SET title author
+            SET cover (JSON_EXTRACT data "profileImageURL")
             RETURN
         FI
         SET type "live"
-        SET name (HTML_TO_UTF8 (SLICE_IN data "\"name\":\"" " -"))
-        SET description (HTML_TO_UTF8 (SLICE_IN data "\"description\":\"" '"' index))
-        SET title (APPEND name " - " description)
-        SET cover (APPEND "https://static-cdn.jtvnw.net/previews-ttv/live_user_" queryData \
-                          "-1920x1080.jpg")
-        SET author name
+        SET title (APPEND author " - " (JSON_EXTRACT_UTF8 data "title"))
+        SET cover (JSON_EXTRACT data "previewImageURL")
     FI
 
 EXTRACT_PLAYLIST: |
