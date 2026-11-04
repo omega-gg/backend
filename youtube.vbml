@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.129
+version: 1.0.130
 
 title: Youtube
 
@@ -112,8 +112,7 @@ QUERY_SOURCE: |
                              '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                              '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
-                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                             (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                             '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
             #--------------------------------------------------------------------------------------
             # NOTE: VISIONOS seems to be more reliable than ANDROID and IOS.
@@ -126,14 +125,14 @@ QUERY_SOURCE: |
                              '"osName": "visionOS", "osVersion": "26.5.23O471", "hl": "en", "timeZone": "UTC",' \
                              '"utcOffsetMinutes": 0}}, "videoId": "' videoId '",' \
                              '"playbackContext": {"contentPlaybackContext":' \
-                             '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                             (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                             '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
             #--------------------------------------------------------------------------------------
         FI
         SET queryData videoId
         RETURN true
     FI
-    SET url (APPEND "https://www.youtube.com/watch?v=" videoId)
+    # NOTE: We only need the visitor data, and this is far lighter than the watch page.
+    SET url "https://www.youtube.com/sw.js_data"
     SET id 4
     SET queryData videoId
     RETURN true
@@ -234,11 +233,14 @@ EXTRACT_SOURCE: |
             HASH_SET medias quality source
         END
     ELIF (EQUAL id 4) # Visitor
-        SET index (INDEX_OF data '"STS"')
-        LIST_APPEND global (SLICE_IN data '"VISITOR_DATA":"' '"' index)
-        LIST_APPEND global (SLICE_IN data '"STS":' ',')
+        # NOTE: The watch page is our fallback, so it's the only one that can't try again.
+        IF (CONTAIN data '"VISITOR_DATA":"')
+            LIST_APPEND global (SLICE_IN data '"VISITOR_DATA":"' '"')
+            HASH_SET next "id" -1
+        ELSE
+            LIST_APPEND global (APPEND "Cg" (SLICE_IN data ',"Cg' '"'))
+        FI
         HASH_SET next "url" "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
-        HASH_SET next "id" -1
         IF (EQUAL mode "safe")
             HASH_SET next "header" (APPEND '"Content-Type" "application/json"' \
                                            '"User-Agent" "com.google.android.youtube/20.10.38 (Linux; U; Android 11)"' \
@@ -249,8 +251,7 @@ EXTRACT_SOURCE: |
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
-                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                                         '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
         ELSE
             #--------------------------------------------------------------------------------------
             # NOTE: VISIONOS seems to be more reliable than ANDROID and IOS.
@@ -263,8 +264,7 @@ EXTRACT_SOURCE: |
                                          '"osName": "visionOS", "osVersion": "26.5.23O471", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
-                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                                         '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
             #--------------------------------------------------------------------------------------
         FI
         HASH_SET next "queryData" queryData
@@ -302,8 +302,7 @@ EXTRACT_SOURCE: |
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
-                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                                         '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
             #--------------------------------------------------------------------------------------
             HASH_SET next "id" 2
             RETURN
@@ -493,8 +492,7 @@ EXTRACT_SOURCE: |
                                          '"osName": "Android", "osVersion": "11", "hl": "en", "timeZone": "UTC",' \
                                          '"utcOffsetMinutes": 0}}, "videoId": "' queryData '",' \
                                          '"playbackContext": {"contentPlaybackContext":' \
-                                         '{"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": ' \
-                                         (LIST_GET global 1) '}}, "contentCheckOk": true, "racyCheckOk": true}')
+                                         '{"html5Preference": "HTML5_PREF_WANTS"}}, "contentCheckOk": true, "racyCheckOk": true}')
             HASH_SET next "id" 5
             RETURN
         FI
