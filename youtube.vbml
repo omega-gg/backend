@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.128
+version: 1.0.129
 
 title: Youtube
 
@@ -499,7 +499,7 @@ EXTRACT_SOURCE: |
             RETURN
         FI
     FI
-    SET expiry (ADD (DATE) 60) # Two hours
+    SET expiry (ADD (DATE) 7200) # Two hours
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
