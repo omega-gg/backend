@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.306
+version: 1.0.307
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -57,7 +57,7 @@ backends: |
     facebook      Facebook        1.0.12  ^facebook.com
     odysee        Odysee          1.0.10  ^odysee.com
     twitch        Twitch          1.0.33  ^twitch.tv
-    archive       InternetArchive 1.0.2   ^archive.org
+    archive       InternetArchive 1.0.3   ^archive.org
     iptv          IPTV            1.0.11  ^iptv:
     tiktok        TikTok          1.0.9   ^tiktok.com
     soundcloud    SoundCloud      1.0.12  ^soundcloud.com

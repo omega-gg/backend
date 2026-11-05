@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/archive.vbml
 
 api: 1.0.1
 
-version: 1.0.2
+version: 1.0.3
 
 title: Internet Archive
 
@@ -39,7 +39,11 @@ TRACK_ID: |
 
 PLAYLIST_INFO: |
     SET url (URL_REMOVE_PREFIX url)
-    IF (EQUAL (START_WITH url "archive.org/download/") false)
+    IF (START_WITH url "archive.org/search?query=creator")
+        SET type "feed"
+        SET id (URL_DECODE (MID url 25))
+        RETURN true
+    ELIF (EQUAL (START_WITH url "archive.org/download/") false)
     OR (NOT_EQUAL (COUNT_STRING url '/') 2)
         RETURN false
     FI
@@ -51,7 +55,11 @@ URL_TRACK: |
     RETURN (APPEND "https://archive.org/details/" id)
 
 URL_PLAYLIST: |
-    RETURN (APPEND "https://archive.org/download/" id)
+    IF (EQUAL type "feed")
+        RETURN (APPEND "https://archive.org/search?query=" (URL_ENCODE id))
+    ELSE
+        RETURN (APPEND "https://archive.org/download/" id)
+    FI
 
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX url)
@@ -75,7 +83,17 @@ QUERY_TRACK: |
 
 QUERY_PLAYLIST: |
     SET url (URL_REMOVE_PREFIX url)
-    IF (EQUAL (START_WITH url "archive.org/download/") false)
+    IF (START_WITH url "archive.org/search?query=creator")
+        SET string (URL_DECODE (MID url 25))
+        SET queryData (SLICE_IN string '"' '"')
+        SET url (APPEND "https://archive.org/advancedsearch.php?q=" (URL_ENCODE string) \
+                        "+AND+mediatype%3A%28movies+OR+audio%29" \
+                        "+AND+format%3A%28MPEG4+OR+h.264+OR+MP3%29" \
+                        "&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator" \
+                        "&sort%5B%5D=downloads+desc&rows=50&output=json")
+        SET id 2
+        RETURN true
+    ELIF (EQUAL (START_WITH url "archive.org/download/") false)
     OR (NOT_EQUAL (COUNT_STRING url '/') 2)
         RETURN false
     FI
@@ -138,6 +156,10 @@ EXTRACT_TRACK: |
     # NOTE: The creator can be a list.
     SET author (REPLACE (JSON_EXTRACT_UTF8 data "creator") '"' '')
     SET cover (APPEND "https://archive.org/services/img/" queryData)
+    IF (NOT_EQUAL author "")
+        SET feed (APPEND "https://archive.org/search?query=creator%3A%22" \
+                         (URL_ENCODE (MID author 0 (INDEX_OF author ','))) "%22")
+    FI
 
 EXTRACT_PLAYLIST: |
     SET data (READ data "utf-8")
@@ -145,6 +167,10 @@ EXTRACT_PLAYLIST: |
         SET index (INDEX_END data "\"metadata\":{")
         SET title (JSON_EXTRACT_UTF8 data "title" index)
         SET author (REPLACE (JSON_EXTRACT_UTF8 data "creator" index) '"' '')
+        IF (NOT_EQUAL author "")
+            SET feed (APPEND "https://archive.org/search?query=creator%3A%22" \
+                             (URL_ENCODE (MID author 0 (INDEX_OF author ','))) "%22")
+        FI
         SET url (APPEND "https://" (JSON_EXTRACT data "d1") (JSON_EXTRACT_HTML data "dir") '/')
         # NOTE: The default cover is 180 pixels wide, and an audio waveform without an artwork.
         SET index (INDEX_OF data "\"format\":\"JPEG\"")
@@ -177,17 +203,29 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "title" string
             HASH_SET track "cover" cover
             HASH_SET track "author" author
+            HASH_SET track "feed" feed
             LIST_APPEND tracks track
         END
         RETURN
     FI
+    IF (EQUAL id 2) # Feed
+        SET title queryData
+    FI
     SET list (JSON_SPLIT (JSON_EXTRACT data "docs"))
     FOREACH list value
         SET id (JSON_EXTRACT value "identifier")
+        SET author (REPLACE (JSON_EXTRACT_UTF8 value "creator") '"' '')
         HASH_SET track "source" (APPEND "https://archive.org/details/" id)
         HASH_SET track "title" (JSON_EXTRACT_UTF8 value "title")
         HASH_SET track "cover" (APPEND "https://archive.org/services/img/" id)
-        HASH_SET track "author" (REPLACE (JSON_EXTRACT_UTF8 value "creator") '"' '')
+        HASH_SET track "author" author
+        # NOTE: A track keeps the values of the previous one until they are set again.
+        IF (EQUAL author "")
+            HASH_SET track "feed" ""
+        ELSE
+            HASH_SET track "feed" (APPEND "https://archive.org/search?query=creator%3A%22" \
+                                          (URL_ENCODE (MID author 0 (INDEX_OF author ','))) "%22")
+        FI
         LIST_APPEND tracks track
     END
 
