@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.11
+version: 1.0.12
 
 title: TikTok
 
@@ -117,11 +117,12 @@ EXTRACT_PLAYLIST: |
             CONTINUE
         FI
         SET string (JSON_EXTRACT value "uniqueId")
-        # NOTE: The first id of a track is the one of its author.
-        SET id (JSON_EXTRACT value "id" (INDEX_END value "\"desc\""))
-        SET index (INDEX_END value "\"video\"")
+        # NOTE: The author and the hashtags come first with their own 'id' and 'desc'.
+        SET index (INDEX_END value "\"createTime\"")
+        SET id (JSON_EXTRACT value "id" (INDEX_END value "\"desc\"" index))
         HASH_SET track "source" (APPEND "https://www.tiktok.com/@" string "/video/" id)
-        HASH_SET track "title" (JSON_EXTRACT_UTF8 value "desc")
+        HASH_SET track "title" (JSON_EXTRACT_UTF8 value "desc" index)
+        SET index (INDEX_END value "\"video\"")
         HASH_SET track "cover" (JSON_EXTRACT_UTF8 value "cover" index)
         HASH_SET track "author" (JSON_EXTRACT_UTF8 value "nickname")
         HASH_SET track "feed" (APPEND "https://www.tiktok.com/@" string)
