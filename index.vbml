@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/index.vbml
 
 api: 1.0.0
 
-version: 1.0.305
+version: 1.0.306
 
 #--------------------------------------------------------------------------------------------------
 # Backends
@@ -47,41 +47,41 @@ backend_subtitle: |
 #--------------------------------------------------------------------------------------------------
 
 backends: |
-    duckduckgo    DuckDuckGo    1.0.15  ^html.duckduckgo.com
-    bittorrent    BitTorrent    1.0.24  .torrent$|^magnet:?
-    youtube       Youtube       1.0.132 ^youtube.com|^youtu.be
-    youtubemusic  YoutubeMusic  1.0.0   ^music.youtube.com
-    dailymotion   Dailymotion   1.0.6   ^dailymotion.com|^games.dailymotion.com
-    vimeo         Vimeo         1.0.10  ^vimeo.com
-    twitter       Twitter       1.0.3   ^twitter.com|^x.com
-    facebook      Facebook      1.0.12  ^facebook.com
-    odysee        Odysee        1.0.10  ^odysee.com
-    twitch        Twitch        1.0.33  ^twitch.tv
-    archive       InternetArchive 1.0.1 ^archive.org
-    iptv          IPTV          1.0.11  ^iptv:
-    tiktok        TikTok        1.0.9   ^tiktok.com
-    soundcloud    SoundCloud    1.0.12  ^soundcloud.com
-    tmdb          TMDB          1.0.36  ^themoviedb.org
-    opensubtitles OpenSubtitles 1.0.11  ^dl.opensubtitles.org
-    peertube      PeerTube      1.0.28  /(watch|w/p|w|video-channels|c)/(?!.*/)
+    duckduckgo    DuckDuckGo      1.0.15  ^html.duckduckgo.com
+    bittorrent    BitTorrent      1.0.24  .torrent$|^magnet:?
+    youtube       Youtube         1.0.132 ^youtube.com|^youtu.be
+    youtubemusic  YoutubeMusic    1.0.0   ^music.youtube.com
+    dailymotion   Dailymotion     1.0.6   ^dailymotion.com|^games.dailymotion.com
+    vimeo         Vimeo           1.0.10  ^vimeo.com
+    twitter       Twitter         1.0.3   ^twitter.com|^x.com
+    facebook      Facebook        1.0.12  ^facebook.com
+    odysee        Odysee          1.0.10  ^odysee.com
+    twitch        Twitch          1.0.33  ^twitch.tv
+    archive       InternetArchive 1.0.2   ^archive.org
+    iptv          IPTV            1.0.11  ^iptv:
+    tiktok        TikTok          1.0.9   ^tiktok.com
+    soundcloud    SoundCloud      1.0.12  ^soundcloud.com
+    tmdb          TMDB            1.0.36  ^themoviedb.org
+    opensubtitles OpenSubtitles   1.0.11  ^dl.opensubtitles.org
+    peertube      PeerTube        1.0.28  /(watch|w/p|w|video-channels|c)/(?!.*/)
 
 covers: |
-    duckduckgo  cover/duckduckgo.png
-    bittorrent  cover/bittorrent.png
-    youtube     cover/youtube.png
+    duckduckgo   cover/duckduckgo.png
+    bittorrent   cover/bittorrent.png
+    youtube      cover/youtube.png
     youtubemusic cover/youtubemusic.png
-    dailymotion cover/dailymotion.png
-    vimeo       cover/vimeo.png
-    twitter     cover/twitter.png
-    facebook    cover/facebook.png
-    odysee      cover/odysee.png
-    peertube    cover/peertube.png
-    twitch      cover/twitch.png
-    archive     cover/archive.png
-    iptv        cover/iptv.png
-    tiktok      cover/tiktok.png
-    soundcloud  cover/soundcloud.png
-    tmdb        cover/tmdb.png
+    dailymotion  cover/dailymotion.png
+    vimeo        cover/vimeo.png
+    twitter      cover/twitter.png
+    facebook     cover/facebook.png
+    odysee       cover/odysee.png
+    peertube     cover/peertube.png
+    twitch       cover/twitch.png
+    archive      cover/archive.png
+    iptv         cover/iptv.png
+    tiktok       cover/tiktok.png
+    soundcloud   cover/soundcloud.png
+    tmdb         cover/tmdb.png
 
 hubs: |
     tmdb   https://vox.omega.gg/w/9d5fYXTcjLHReVUQabKRwB

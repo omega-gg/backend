@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/archive.vbml
 
 api: 1.0.1
 
-version: 1.0.1
+version: 1.0.2
 
 title: Internet Archive
 
@@ -89,7 +89,6 @@ CREATE_QUERY: |
         RETURN
     ELIF (EQUAL label "tracks")
         SET string "movies+AND+format%3A%28MPEG4+OR+h.264%29"
-        SET id 2
     ELIF (EQUAL label "albums")
         SET string "audio+AND+format%3AMP3"
     ELSE
@@ -108,9 +107,10 @@ EXTRACT_SOURCE: |
     FOREACH list value
         SET format (JSON_EXTRACT value "format")
         SET name (JSON_EXTRACT_UTF8 value "name")
+        SET source (APPEND url (REPLACE (URL_ENCODE name) "%2F" '/'))
         IF (CONTAIN format "MP3")
             IF (EQUAL audio "")
-                SET audio (APPEND url name)
+                SET audio source
             FI
         ELIF (CONTAIN format "MPEG4")
         OR (CONTAIN format "h.264")
@@ -124,7 +124,7 @@ EXTRACT_SOURCE: |
             ELIF (NOT_EQUAL original string)
                 CONTINUE
             FI
-            HASH_SET medias (JSON_EXTRACT value "height") (APPEND url name)
+            HASH_SET medias (JSON_EXTRACT value "height") source
         FI
     END
     IF (EQUAL original "")
@@ -135,7 +135,8 @@ EXTRACT_SOURCE: |
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
     SET title (JSON_EXTRACT_UTF8 data "title")
-    SET author (JSON_EXTRACT_UTF8 data "creator")
+    # NOTE: The creator can be a list.
+    SET author (REPLACE (JSON_EXTRACT_UTF8 data "creator") '"' '')
     SET cover (APPEND "https://archive.org/services/img/" queryData)
 
 EXTRACT_PLAYLIST: |
@@ -143,7 +144,7 @@ EXTRACT_PLAYLIST: |
     IF (EQUAL id 1) # Album
         SET index (INDEX_END data "\"metadata\":{")
         SET title (JSON_EXTRACT_UTF8 data "title" index)
-        SET author (JSON_EXTRACT_UTF8 data "creator" index)
+        SET author (REPLACE (JSON_EXTRACT_UTF8 data "creator" index) '"' '')
         SET url (APPEND "https://" (JSON_EXTRACT data "d1") (JSON_EXTRACT_HTML data "dir") '/')
         # NOTE: The default cover is 180 pixels wide, and an audio waveform without an artwork.
         SET index (INDEX_OF data "\"format\":\"JPEG\"")
@@ -186,7 +187,7 @@ EXTRACT_PLAYLIST: |
         HASH_SET track "source" (APPEND "https://archive.org/details/" id)
         HASH_SET track "title" (JSON_EXTRACT_UTF8 value "title")
         HASH_SET track "cover" (APPEND "https://archive.org/services/img/" id)
-        HASH_SET track "author" (JSON_EXTRACT_UTF8 value "creator")
+        HASH_SET track "author" (REPLACE (JSON_EXTRACT_UTF8 value "creator") '"' '')
         LIST_APPEND tracks track
     END
 
