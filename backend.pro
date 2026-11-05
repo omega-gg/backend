@@ -15,6 +15,7 @@ OTHER_FILES += index.vbml \
                twitch.vbml \
                tiktok.vbml \
                soundcloud.vbml \
+               archive.vbml \
                tmdb.vbml \
                opensubtitles.vbml \
                dist/generateLite.sh \

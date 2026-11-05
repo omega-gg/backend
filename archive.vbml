@@ -1,0 +1,197 @@
+# VBML 1.0.6
+#--------------------------------------------------------------------------------------------------
+# Properties
+#--------------------------------------------------------------------------------------------------
+
+type: backend
+
+origin: https://raw.githubusercontent.com/omega-gg/backend/master/archive.vbml
+
+api: 1.0.1
+
+version: 1.0.0
+
+title: Internet Archive
+
+host: archive.org
+
+cover: /cover/archive.png
+
+items:
+    playlist:
+        title: Tracks
+    folder:
+        title: Albums
+
+validate: ^archive.org
+
+#--------------------------------------------------------------------------------------------------
+# Routines
+#--------------------------------------------------------------------------------------------------
+
+TRACK_ID: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (START_WITH url "archive.org/details/")
+    OR (START_WITH url "archive.org/embed/")
+        RETURN (URL_ELEMENT url (INDEX_END url '/' 12))
+    FI
+    RETURN ""
+
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "archive.org/download/") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+        RETURN false
+    FI
+    SET type "playlist"
+    SET id (URL_ELEMENT url 21)
+    RETURN true
+
+URL_TRACK: |
+    RETURN (APPEND "https://archive.org/details/" id)
+
+URL_PLAYLIST: |
+    RETURN (APPEND "https://archive.org/download/" id)
+
+QUERY_SOURCE: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "archive.org/details/") false)
+    AND (EQUAL (START_WITH url "archive.org/embed/") false)
+        RETURN false
+    FI
+    SET url (URL_ELEMENT url (INDEX_END url '/' 12))
+    SET url (APPEND "https://archive.org/metadata/" url)
+    RETURN true
+
+QUERY_TRACK: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "archive.org/details/") false)
+    AND (EQUAL (START_WITH url "archive.org/embed/") false)
+        RETURN false
+    FI
+    SET queryData (URL_ELEMENT url (INDEX_END url '/' 12))
+    SET url (APPEND "https://archive.org/metadata/" queryData "/metadata")
+    RETURN true
+
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX url)
+    IF (EQUAL (START_WITH url "archive.org/download/") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 2)
+        RETURN false
+    FI
+    SET queryData (URL_ELEMENT url 21)
+    SET url (APPEND "https://archive.org/metadata/" queryData)
+    SET id 1
+    RETURN true
+
+CREATE_QUERY: |
+    IF (NOT_EQUAL method "search")
+        RETURN
+    ELIF (EQUAL label "tracks")
+        SET string "movies"
+        SET id 2
+    ELIF (EQUAL label "albums")
+        SET string "audio"
+    ELSE
+        RETURN
+    FI
+    SET q (URL_ENCODE q)
+    SET url (APPEND "https://archive.org/advancedsearch.php?q=%28title%3A%28" q \
+                    "%29+OR+creator%3A%28" q "%29%29+AND+mediatype%3A" string \
+                    "&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=creator" \
+                    "&sort%5B%5D=downloads+desc&rows=50&output=json")
+
+EXTRACT_SOURCE: |
+    SET data (READ data "utf-8")
+    SET url (APPEND "https://" (JSON_EXTRACT data "d1") (JSON_EXTRACT_HTML data "dir") '/')
+    SET list (JSON_SPLIT (JSON_EXTRACT_HTML data "files"))
+    FOREACH list value
+        SET format (JSON_EXTRACT value "format")
+        SET name (JSON_EXTRACT_UTF8 value "name")
+        IF (CONTAIN format "MP3")
+            IF (EQUAL audio "")
+                SET audio (APPEND url name)
+            FI
+        ELIF (CONTAIN format "MPEG4")
+        OR (CONTAIN format "h.264")
+            # NOTE: An item can hold several videos, we only want the qualities of the first one.
+            SET string (JSON_EXTRACT_UTF8 value "original")
+            IF (EQUAL string "")
+                SET string name
+            FI
+            IF (EQUAL original "")
+                SET original string
+            ELIF (NOT_EQUAL original string)
+                CONTINUE
+            FI
+            HASH_SET medias (JSON_EXTRACT value "height") (APPEND url name)
+        FI
+    END
+    IF (EQUAL original "")
+    AND (NOT_EQUAL audio "")
+        HASH_SET medias "default" audio
+    FI
+
+EXTRACT_TRACK: |
+    SET data (READ data "utf-8")
+    SET title (JSON_EXTRACT_UTF8 data "title")
+    SET author (JSON_EXTRACT_UTF8 data "creator")
+    SET cover (APPEND "https://archive.org/services/img/" queryData)
+
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 1) # Album
+        SET index (INDEX_END data "\"metadata\":{")
+        SET title (JSON_EXTRACT_UTF8 data "title" index)
+        SET cover (APPEND "https://archive.org/services/img/" queryData)
+        SET author (JSON_EXTRACT_UTF8 data "creator" index)
+        SET url (APPEND "https://" (JSON_EXTRACT data "d1") (JSON_EXTRACT_HTML data "dir") '/')
+        SET list (JSON_SPLIT (JSON_EXTRACT_HTML data "files"))
+        FOREACH list value
+            IF (EQUAL (CONTAIN (JSON_EXTRACT value "format") "MP3") false)
+                CONTINUE
+            FI
+            SET name (JSON_EXTRACT_UTF8 value "name")
+            # NOTE: A file often comes in several MP3 qualities, we only want the first one.
+            SET string (JSON_EXTRACT_UTF8 value "original")
+            IF (EQUAL string "")
+                SET string name
+            FI
+            IF (LIST_CONTAIN urls string)
+                CONTINUE
+            FI
+            LIST_APPEND urls string
+            SET string (JSON_EXTRACT_UTF8 value "title")
+            IF (EQUAL string "")
+                SET string name
+            FI
+            HASH_SET track "source" (APPEND url (REPLACE (URL_ENCODE name) "%2F" '/'))
+            HASH_SET track "title" string
+            HASH_SET track "cover" cover
+            HASH_SET track "author" author
+            LIST_APPEND tracks track
+        END
+        RETURN
+    FI
+    SET list (JSON_SPLIT (JSON_EXTRACT data "docs"))
+    FOREACH list value
+        SET id (JSON_EXTRACT value "identifier")
+        HASH_SET track "source" (APPEND "https://archive.org/details/" id)
+        HASH_SET track "title" (JSON_EXTRACT_UTF8 value "title")
+        HASH_SET track "cover" (APPEND "https://archive.org/services/img/" id)
+        HASH_SET track "author" (JSON_EXTRACT_UTF8 value "creator")
+        LIST_APPEND tracks track
+    END
+
+EXTRACT_FOLDER: |
+    SET data (READ data "utf-8")
+    SET list (JSON_SPLIT (JSON_EXTRACT data "docs"))
+    FOREACH list value
+        SET id (JSON_EXTRACT value "identifier")
+        HASH_SET item "type" "playlist"
+        HASH_SET item "state" "default"
+        HASH_SET item "source" (APPEND "https://archive.org/download/" id)
+        HASH_SET item "title" (JSON_EXTRACT_UTF8 value "title")
+        HASH_SET item "cover" (APPEND "https://archive.org/services/img/" id)
+        LIST_APPEND items item
+    END
