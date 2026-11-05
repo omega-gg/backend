@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.9
+version: 1.0.10
 
 title: TikTok
 
@@ -55,14 +55,9 @@ QUERY_SOURCE: |
     IF (EQUAL (CONTAIN url "/video/") false)
         RETURN false
     FI
-    SET id (MID url (LAST_INDEX_END url '/'))
-    # NOTE: The query seems to be faster with the additional region parameters.
-    SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
-                    "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
-                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
-                    "&device_type=ASUS_Z01QD&version=9" \
-                    "&carrier_region=US&sys_region=US&region=US&language=en")
-    SET queryMethod "OPTIONS"
+    SET url (APPEND "https://www." url)
+    # NOTE: A stream is refused without the cookies of its page.
+    SET cookies true
     RETURN true
 
 QUERY_TRACK: |
@@ -70,14 +65,7 @@ QUERY_TRACK: |
     IF (EQUAL (CONTAIN url "/video/") false)
         RETURN false
     FI
-    SET id (MID url (LAST_INDEX_END url '/'))
-    # NOTE: The query seems to be faster with the additional region parameters.
-    SET url (APPEND "https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/?aweme_id=" id \
-                    "&iid=7318518857994389254&device_id=7318517321748022790&channel=googleplay" \
-                    "&app_name=musical_ly&version_code=300904&device_platform=android" \
-                    "&device_type=ASUS_Z01QD&version=9" \
-                    "&carrier_region=US&sys_region=US&region=US&language=en")
-    SET queryMethod "OPTIONS"
+    SET url (APPEND "https://www." url)
     RETURN true
 
 #QUERY_PLAYLIST: |
@@ -92,19 +80,24 @@ QUERY_TRACK: |
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
-    SET data (SLICE_IN data "list\":[" "}},{")
-    SET url (HTML_TO_UTF8 (SLICE_IN data "url_list\":[\"" '"' (INDEX_END data "\"video\"")))
-    HASH_SET medias "720" url
+    SET index (INDEX_END data "\"itemStruct\"")
+    SET source (JSON_EXTRACT_UTF8 data "playAddr" index)
+    IF (EQUAL source "")
+        RETURN
+    FI
+    HASH_SET medias (JSON_EXTRACT data "height" index) source
+    SET options (LIST (APPEND "header=Cookie: " cookie) (APPEND "header=Referer: " url))
+    SET expiry (ADD (DATE) 1800) # Half an hour
 
 EXTRACT_TRACK: |
     SET data (READ data "utf-8")
-    SET data (SLICE_IN data "list\":[" "}},{")
-    SET title (JSON_EXTRACT_UTF8 data "desc")
-    SET cover (HTML_TO_UTF8 (SLICE_IN data "url_list\":[\"" '"' (INDEX_END data "\"cover\"")))
-    SET author (JSON_EXTRACT_UTF8 data "nickname")
+    SET index (INDEX_END data "\"itemStruct\"")
+    SET title (JSON_EXTRACT_UTF8 data "desc" index)
+    SET cover (JSON_EXTRACT_UTF8 data "cover" index)
+    SET author (JSON_EXTRACT_UTF8 data "nickname" index)
     #SET feed (APPEND '@' (JSON_EXTRACT data "unique_id"))
-    SET duration (JSON_EXTRACT data "duration" (INDEX_END data "\"video\""))
-    SET date (DATE (JSON_EXTRACT data "create_time") "yyyy-MM-dd")
+    SET duration (MULTIPLY (JSON_EXTRACT data "duration" index) 1000)
+    SET date (JSON_EXTRACT data "createTime" index)
 
 #EXTRACT_PLAYLIST: |
 #    SET data (READ data "utf-8")
