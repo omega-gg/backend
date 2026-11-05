@@ -9,7 +9,7 @@ source: https://raw.githubusercontent.com/omega-gg/backend/master/tiktok.vbml
 
 api: 1.0.3
 
-version: 1.0.10
+version: 1.0.11
 
 title: TikTok
 
@@ -37,18 +37,18 @@ TRACK_ID: |
 URL_TRACK: |
     RETURN (APPEND "https://www.tiktok.com/" id)
 
-#URL_PLAYLIST: |
-#    RETURN (APPEND "https://www.tiktok.com/" id)
+URL_PLAYLIST: |
+    RETURN (APPEND "https://www.tiktok.com/" id)
 
-#PLAYLIST_INFO: |
-#    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-#    IF (EQUAL (CONTAIN url "/@") false)
-#    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
-#        RETURN false
-#    FI
-#    SET type "feed"
-#    SET id (MID url (INDEX_END url '/'))
-#    RETURN true
+PLAYLIST_INFO: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url "/@") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN false
+    FI
+    SET type "feed"
+    SET id (MID url (INDEX_END url '/'))
+    RETURN true
 
 QUERY_SOURCE: |
     SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
@@ -68,15 +68,14 @@ QUERY_TRACK: |
     SET url (APPEND "https://www." url)
     RETURN true
 
-#QUERY_PLAYLIST: |
-#    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
-#    IF (EQUAL (CONTAIN url "/@") false)
-#    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
-#        RETURN false
-#    FI
-#    SET id (MID url (INDEX_END url '/'))
-#    SET url (APPEND "https://www.tiktok.com/" id)
-#    RETURN true
+QUERY_PLAYLIST: |
+    SET url (URL_REMOVE_PREFIX (URL_REMOVE_EXTENSION url))
+    IF (EQUAL (CONTAIN url "/@") false)
+    OR (NOT_EQUAL (COUNT_STRING url '/') 1)
+        RETURN false
+    FI
+    SET url (APPEND "https://www.tiktok.com/" (MID url (INDEX_END url '/')))
+    RETURN true
 
 EXTRACT_SOURCE: |
     SET data (READ data "utf-8")
@@ -95,23 +94,37 @@ EXTRACT_TRACK: |
     SET title (JSON_EXTRACT_UTF8 data "desc" index)
     SET cover (JSON_EXTRACT_UTF8 data "cover" index)
     SET author (JSON_EXTRACT_UTF8 data "nickname" index)
-    #SET feed (APPEND '@' (JSON_EXTRACT data "unique_id"))
+    SET feed (APPEND "https://www.tiktok.com/@" (JSON_EXTRACT data "uniqueId" index))
     SET duration (MULTIPLY (JSON_EXTRACT data "duration" index) 1000)
     SET date (JSON_EXTRACT data "createTime" index)
 
-#EXTRACT_PLAYLIST: |
-#    SET data (READ data "utf-8")
-#    SET index (INDEX_END data "property=\"og:title\"")
-#    SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
-#    SET title (CHOP title 9)
-#    SET index (INDEX_END data "property=\"og:image\"")
-#    # NOTE: Utf8 is required for the url extension.
-#    SET cover (HTML_ATTRIBUTE_UTF8 data "content" index)
-#    SET url (APPEND url "/video/")
-#    SET list (SLICE_IN data "user-post\":{\"list\":[\"" '"]')
-#    SET list (SPLIT list '","')
-#    FOREACH list data
-#        HASH_SET track "state" "default"
-#        HASH_SET track "source" (APPEND url data)
-#        LIST_APPEND tracks track
-#    END
+EXTRACT_PLAYLIST: |
+    SET data (READ data "utf-8")
+    IF (EQUAL id 0) # Channel
+        SET index (INDEX_END data "\"webapp.user-detail\"")
+        SET title (JSON_EXTRACT_UTF8 data "nickname" index)
+        SET cover (JSON_EXTRACT_UTF8 data "avatarLarger" index)
+        SET string (JSON_EXTRACT data "secUid" index)
+        HASH_SET next "url" (APPEND "https://www.tiktok.com/api/creator/item_list/" \
+                                    "?aid=1988&count=15&cursor=0&type=1&secUid=" string)
+        HASH_SET next "id" 1
+        RETURN
+    FI
+    SET list (JSON_SPLIT (JSON_EXTRACT data "itemList"))
+    FOREACH list value
+        # NOTE: A post made of images has no video to play.
+        IF (CONTAIN value "\"imagePost\"")
+            CONTINUE
+        FI
+        SET string (JSON_EXTRACT value "uniqueId")
+        # NOTE: The first id of a track is the one of its author.
+        SET id (JSON_EXTRACT value "id" (INDEX_END value "\"desc\""))
+        SET index (INDEX_END value "\"video\"")
+        HASH_SET track "source" (APPEND "https://www.tiktok.com/@" string "/video/" id)
+        HASH_SET track "title" (JSON_EXTRACT_UTF8 value "desc")
+        HASH_SET track "cover" (JSON_EXTRACT_UTF8 value "cover" index)
+        HASH_SET track "author" (JSON_EXTRACT_UTF8 value "nickname")
+        HASH_SET track "feed" (APPEND "https://www.tiktok.com/@" string)
+        HASH_SET track "duration" (MULTIPLY (JSON_EXTRACT value "duration" index) 1000)
+        LIST_APPEND tracks track
+    END
