@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/youtube.vbml
 
 api: 1.0.1
 
-version: 1.0.132
+version: 1.0.133
 
 title: Youtube
 
@@ -564,6 +564,12 @@ EXTRACT_PLAYLIST: |
                 LIST_APPEND tracks track
             END
         FI
+        # NOTE: A Topic channel has no videos page, so we use its uploads playlist.
+        IF (EQUAL (COUNT tracks) 0)
+            SET string (JSON_EXTRACT data "externalId")
+            HASH_SET next "url" (APPEND "https://www.youtube.com/playlist?list=UU" (MID string 2))
+            HASH_SET next "id" 5
+        FI
     ELIF (EQUAL id 2) # Search tracks
         SET list (SLICES data "\"videoRenderer\"" "}}}")
         FOREACH list value
@@ -614,7 +620,10 @@ EXTRACT_PLAYLIST: |
     ELSE # Playlist
         IF (EQUAL queryData "")
             SET index (INDEX_OF data "<meta name=\"title")
-            SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+            # NOTE: The uploads of a channel keep the title of the channel.
+            IF (NOT_EQUAL id 5)
+                SET title (HTML_ATTRIBUTE_UTF8 data "content" index)
+            FI
             IF (EQUAL index -1)
                 SET data (HTML_ATTRIBUTE data "data-uix-load-more-href" index)
                 HASH_SET next "url" (APPEND "https://www.youtube.com" (URL_DECODE data))
@@ -632,6 +641,18 @@ EXTRACT_PLAYLIST: |
             HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
             LIST_APPEND tracks track
         END
+        IF (EQUAL (COUNT tracks) 0)
+            SET list (SLICES data "\"lockupViewModel\":{" "\"contentType\"")
+            FOREACH list value
+                SET id (JSON_EXTRACT value "contentId")
+                SET index (INDEX_OF value "\"lockupMetadataViewModel\"")
+                HASH_SET track "state" "default"
+                HASH_SET track "source" (APPEND "https://www.youtube.com/watch?v=" id)
+                HASH_SET track "title" (JSON_EXTRACT_UTF8 value "content" index)
+                HASH_SET track "cover" (APPEND "https://i.ytimg.com/vi/" id "/maxresdefault.jpg")
+                LIST_APPEND tracks track
+            END
+        FI
     FI
 
 EXTRACT_FOLDER: |
