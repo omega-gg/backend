@@ -9,7 +9,7 @@ origin: https://raw.githubusercontent.com/omega-gg/backend/master/archive.vbml
 
 api: 1.0.1
 
-version: 1.0.0
+version: 1.0.1
 
 title: Internet Archive
 
@@ -88,10 +88,10 @@ CREATE_QUERY: |
     IF (NOT_EQUAL method "search")
         RETURN
     ELIF (EQUAL label "tracks")
-        SET string "movies"
+        SET string "movies+AND+format%3A%28MPEG4+OR+h.264%29"
         SET id 2
     ELIF (EQUAL label "albums")
-        SET string "audio"
+        SET string "audio+AND+format%3AMP3"
     ELSE
         RETURN
     FI
@@ -143,9 +143,16 @@ EXTRACT_PLAYLIST: |
     IF (EQUAL id 1) # Album
         SET index (INDEX_END data "\"metadata\":{")
         SET title (JSON_EXTRACT_UTF8 data "title" index)
-        SET cover (APPEND "https://archive.org/services/img/" queryData)
         SET author (JSON_EXTRACT_UTF8 data "creator" index)
         SET url (APPEND "https://" (JSON_EXTRACT data "d1") (JSON_EXTRACT_HTML data "dir") '/')
+        # NOTE: The default cover is 180 pixels wide, and an audio waveform without an artwork.
+        SET index (INDEX_OF data "\"format\":\"JPEG\"")
+        IF (EQUAL index -1)
+            SET cover (APPEND "https://archive.org/services/img/" queryData)
+        ELSE
+            SET name (JSON_EXTRACT_UTF8 data "name" (LAST_INDEX_OF data "\"name\"" index))
+            SET cover (APPEND url (REPLACE (URL_ENCODE name) "%2F" '/'))
+        FI
         SET list (JSON_SPLIT (JSON_EXTRACT_HTML data "files"))
         FOREACH list value
             IF (EQUAL (CONTAIN (JSON_EXTRACT value "format") "MP3") false)
